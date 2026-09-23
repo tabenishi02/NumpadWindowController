@@ -45,7 +45,7 @@ MVPでは採用しないもの:
 
 - GUI設定画面
 - Hot Reload
-- 常時全Window監視（ただしVS Code Open順取得のためCode.exe Windowのみ500ms観測）
+- 常時Window監視
 - Window Bindingの永続保存
 - 外付けテンキーとメインキーボードの厳密なデバイス識別
 - 高度なマルチモニター自動判定
@@ -507,23 +507,29 @@ Code.exe
 
 ### 13.1 MVPの順序定義
 
-MVPでは `First Observed Order` を使用する。実機PoCの結果、スクリプト実行中のOpen順を正しく保持するため、Code.exe Windowだけを500ms間隔で観測する。
+VS Codeの厳密なOpen順はMVP要件としない。
 
-スクリプトが初めてVS Code Windowを観測したとき、各HWNDに連番を付ける。
+Auto Bind時に現在の `Code.exe` Windowを列挙し、未使用候補を `WinGetList` の列挙順から逆順にして、空いているSlotへ割り当てる。
 
 ```text
-Observed #1 → Numpad4
-Observed #2 → Numpad5
-Observed #3 → Numpad6
+有効な既存Bindingを維持
+  ↓
+未使用の Code.exe Window を列挙
+  ↓
+列挙順を逆順
+  ↓
+空き Numpad4 → 5 → 6 の順に割り当て
 ```
 
-### 13.2 起動時にすでに複数Windowが存在する場合
+実機PoCでは、起動前に存在した3Windowの列挙順が実Open順の逆順だったため、この簡易規則で期待順と一致した。
 
-最初の観測時にAutoHotkeyから取得できるWindow列挙順を初期順として採用する。実機PoCではこの順序は真のOpen順と一致せず、複数VS Code WindowのPID / Process Creation Timeも同一だったため、起動前Windowの真のOpen順復元は保証しない。
+ただし真のOpen順は保証しない。
 
-この順は本来の「開いた順」と一致しない可能性がある。
+### 13.2 順序が意図と違う場合
 
-その場合は:
+順序差は許容する。
+
+必要な場合だけ:
 
 ```text
 Ctrl + Numpad4
@@ -533,19 +539,23 @@ Ctrl + Numpad6
 
 でManual Bindして補正する。
 
-Manual BindはAuto Bind Allでも保持される。
+Manual BindはAuto Bind Allでも保持されるため、補正後に自動処理で並び替えない。
 
 ### 13.3 新規Window
 
-スクリプト実行中は `Code.exe` のトップレベルWindowだけを500ms間隔で軽量観測する。
+常時Pollingは行わない。
 
-未観測HWNDを検出した時点で次のObservation Sequenceを付与する。
+新規VS Code Windowは次のタイミングで候補として認識する。
 
-この観測はVS CodeのOpen順保持専用であり、全Windowを常時Auto Bind再評価するものではない。
+- Auto Bind All
+- VS Code SlotのLazy Auto Bind
+- Ctrl + Alt + Numpad4 / 5 / 6 の個別Auto Bind
+
+既存の有効Bindingを維持したまま、未Bindingの新規候補だけを空きSlotへ追加する。
 
 ### 13.4 4Window以上
 
-Observation Sequenceが4番目以降のVS Code WindowはMVPではAuto Bindしない。
+4つ目以降のVS Code WindowはMVPではAuto Bindしない。
 
 任意SlotへManual Bind可能。
 
@@ -818,8 +828,7 @@ Shortcut Targetが存在しない場合もMVPではFatal Errorとする。
 5. Runtime Stateを初期化。
 6. Numpad0 / Virtual000入力判定器を初期化。
 7. Hotkeyを登録。
-8. VS Code Observation Stateを初期化し、Code.exe Windowの500ms観測を開始。
-9. Auto Bind Allを1回実行。
+8. Auto Bind Allを1回実行。
 10. 常駐開始。
 
 Chrome / VS Code等がまだ起動していなくてもエラーにはしない。
@@ -922,16 +931,11 @@ NumpadWindowController/
 - HWND
 - BindingSource
 
-### 26.3 VS Code Observation
-
-- HWND
-- Observation Sequence
-
-### 26.4 Used HWND Set
+### 26.3 Used HWND Set
 
 Auto Bind時の重複を防ぐため、現在Binding済みHWND集合を保持する。
 
-### 26.5 Numpad0 / Virtual000 Detector
+### 26.4 Numpad0 / Virtual000 Detector
 
 - 判定開始Tick
 - D/Uイベント列
@@ -1026,8 +1030,7 @@ Window Activate失敗:
 3. 通常の `Numpad0` は `Virtual000` 判定のため最大約80msの入力確定待ち時間を持つ。
 4. Chrome座標判定はPrimary Monitor Work Areaを基準とする。
 5. 複雑なマルチモニター配置は対象外。
-6. VS Codeの真のWindow生成順をスクリプト再起動後に保証しない。
-7. スクリプト起動前のVS Code複数Windowは初回列挙順を使用する。
+6. VS Codeの真のOpen順は保証せず、Auto Bind時の逆列挙順を簡易な割り当て規則として使用する。
 8. 4つ目以降のChrome / VS Codeは自動割り当てしない。
 9. Auto Bindをゼロから行う時、Minimized / Maximized Chromeは座標分類しない。
 10. Windows Terminal内部のpwshタブを完全には識別しない。
