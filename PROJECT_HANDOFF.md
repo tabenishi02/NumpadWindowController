@@ -2,7 +2,7 @@
 
 更新日: 2026-09-23  
 対象: NumpadWindowController  
-状態: Phase C完了 / Phase D設計前 / 本体実装前
+状態: Phase D完了 / Phase E設計前 / 本体実装前
 
 ## 1. プロジェクト概要
 
@@ -154,8 +154,9 @@ PoC:
 ## 11. 次回開始時に読む資料
 
 1. `PROJECT_HANDOFF.md`
-2. `docs/PHASE_C_SPEC.md`
-3. `docs/PHASE_B_RESULT.md`
+2. `docs/PHASE_D_SPEC.md`
+3. `docs/PHASE_C_SPEC.md`
+4. `docs/PHASE_B_RESULT.md`
 4. `docs/PHASE_A_SPEC.md`
 4. `docs/PHASE_B_POC.md`
 5. `docs/MVP_DESIGN.md`
@@ -188,7 +189,11 @@ Phase B PoC実装                 ← 完了
   ↓
 Phase B 実機結果評価             ← 完了
   ↓
-Phase C Auto Bind設計            ← 次
+Phase C Auto Bind設計            ← 完了
+  ↓
+Phase D Configuration設計        ← 完了
+  ↓
+Phase E 実装設計                 ← 次
   ↓
 実装
 ```
@@ -213,7 +218,7 @@ Phase C Auto Bind設計            ← 次
 - Manual > Auto > None
 - 1 HWND : 1 Slot
 - 1/2/3 = Explorer / ChatGPT Desktop / PowerShell系Terminal専用
-- 任意キー `/ * - + DEL 0 000 . Enter` は初期Window / AutoBind OFF
+- 任意キーは原則初期Window / AutoBind OFF。ただし物理DEL=`Backspace` は安全のため標準Disabled
 - Ctrl+Key = Manual Bind
 - Ctrl+Shift+Key = Slot Clear
 - Ctrl+Alt+Key = 個別Auto Bind
@@ -249,3 +254,20 @@ Phase C Auto Bind設計            ← 次
 - Lazy Auto BindはGroup / Slot単位の空Slot補充
 - Lazy失敗時はNone + ToolTip、Background Retryなし
 - Used HWND SetとCommit前検証で1 HWND : 1 Slotを保証
+
+
+## 18. Phase D確定事項
+
+詳細は `docs/PHASE_D_SPEC.md`。
+
+- Configは `KeyBindings.ini` / INI / ConfigVersion=1
+- UTF-16 LE BOM
+- Mode = Window / Shortcut / Disabled
+- AutoBind / GroupはConfigではなくBuilt-in Metadata
+- AllowedProcess / AllowedClass / AllowedTitleContainsをWindow Modeで使用
+- Shortcutは exe / bat / cmd / lnk
+- ps1はpwsh.exe + -File
+- Config変更はScript再起動で反映
+- 起動時に構造 / Mode / Allowed / ShortcutをFatal Validation
+- Backspaceは標準Disabled。明示有効化時は通常Keyboard Backspaceも巻き込むWarning
+- Numpad0 Disabled時はVirtual000もDisabled必須
