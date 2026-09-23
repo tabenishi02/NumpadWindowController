@@ -25,84 +25,50 @@
 
 ---
 
-# Phase A - 残仕様の確定
+# Phase A - 残仕様の確定 ✅ 完了
 
-実装前に、挙動の曖昧さをなくす。
+詳細仕様: [Phase A Specification](docs/PHASE_A_SPEC.md)
 
-## A-1. NumLock機能を確定
+採用した内容:
 
-- [ ] NumLockキーに割り当てるFunctionを決める
-- [ ] NumLock本来のON/OFF動作を残すか決める
-- [ ] NumLock状態がNumpadキー認識へ与える影響を整理する
-- [ ] 必要ならNumLock状態に依存しないHotkey設計を決める
+- [x] **A-1 NumLock**
+  - `NumLock` = Auto Bind All
+  - `Ctrl + NumLock` = Clear All
+  - 起動時に元のNumLock状態を保存してON固定
+  - 正常終了時に起動前状態へ復元
+  - NumLockはINIから変更できない予約Global Key
+- [x] **A-2 Manual / Auto優先関係**
+  - `Manual > Auto > None`
+  - 有効なManual BindはAuto Bindで上書きしない
+  - Manual対象HWND消滅時はNoneへ移行し、AutoBind=ONなら後のLazy/Auto Bindで復帰可能
+  - Slot Clear直後には自動再割り当てしない
+- [x] **A-3 重複Binding**
+  - `1 HWND : 1 Slot` を例外なく適用
+  - Manualで別Slotへ移す場合は旧SlotをNoneへする
+  - Auto BindではUsed HWND Setで重複候補を除外
+  - Allowed違反時は既存Bindingを変更しない
+- [x] **A-4 Numpad1 / 2 / 3**
+  - `1` = Explorer専用
+  - `2` = ChatGPT Desktop専用
+  - `3` = PowerShell系Terminal専用
+  - Manual Bindでも専用用途のAllowed条件を強制
+  - 実際のProcess/Class/Title判定値はPhase Bで確定
+- [x] **A-5 任意キー**
+  - `/ * - + DEL 0 000 . Enter` を初期 `Window / AutoBind=OFF`
+  - `000` は論理キー `Virtual000`
+  - 標準Shortcut割り当てはなし
+  - サポート対象キーはINIで `Window / Shortcut / Disabled` を必ず明示
+  - PassThrough ModeはMVPでは採用しない
+- [x] **A-6 Hotkey体系**
+  - `Key` = Activate / Shortcut
+  - `Ctrl + Key` = Manual Bind
+  - `Ctrl + Shift + Key` = Slot Clear
+  - `Ctrl + Alt + Key` = 個別Auto Bind
+  - `NumLock` = Auto Bind All
+  - `Ctrl + NumLock` = Clear All
+  - NumpadWindowControllerが扱うHotkeyは元アプリへ渡さない
 
-完了条件:
-- NumLock押下時の動作が1つに確定している
-- NumLock ON/OFFのどちらで本ツールを利用するか仕様化されている
-
-## A-2. Manual BindとAuto Bindの優先関係を確定
-
-- [ ] Manual BindをAuto Bind Allで維持するか決める
-- [ ] Lazy Auto BindでManual Bindが無効になった場合の扱いを決める
-- [ ] Manual Bind済みWindowを別Slotへ登録した場合の旧Slot処理を決める
-- [ ] Auto BindがManual Bindを上書きできる例外を設けるか決める
-
-完了条件:
-- `Manual / Auto / None` の状態遷移が明文化されている
-
-## A-3. 重複Bindingルールを確定
-
-- [ ] 同一HWNDを複数Slotへ割り当てることを全面禁止するか決める
-- [ ] 手動登録で重複した場合の挙動を確定
-- [ ] Auto Bind時の重複除外ルールを確定
-
-完了条件:
-- 1 Window : 1 Slot の原則と例外が確定している
-
-## A-4. Numpad1 / 2 / 3 の制約を確定
-
-- [ ] Numpad1をExplorer専用にするか決める
-- [ ] Numpad2をChatGPTデスクトップ専用にするか決める
-- [ ] Numpad3をpwsh専用にするか決める
-- [ ] 「既定用途」だけにして手動で別アプリを登録可能にするか比較する
-- [ ] Auto Bind時だけ固定し、Manual Bindでは任意にする案を検討する
-
-完了条件:
-- 1 / 2 / 3 の Allowed 条件が確定している
-
-## A-5. 任意キーの定義を確定
-
-対象候補:
-
-- `NumpadDiv`
-- `NumpadMult`
-- `NumpadSub`
-- `NumpadAdd`
-- `Backspace`（物理DEL）
-- `Numpad0`
-- `NumpadDot`
-- `NumpadEnter`
-
-タスク:
-
-- [ ] 初期設定でWindow Modeにするキーを決める
-- [ ] 初期設定でShortcut Modeにするキーがあるか決める
-- [ ] 未設定状態を許容するか決める
-- [ ] 未設定キー押下時の挙動を決める
-
-完了条件:
-- 各物理キーの初期Modeが決まっている
-
-## A-6. Auto Bind操作体系を確定
-
-- [ ] Auto Bind AllのHotkeyを確定
-- [ ] Slot単位Auto BindのHotkeyを確定
-- [ ] Slot ClearのHotkeyを確定
-- [ ] Clear AllのHotkeyを確定
-- [ ] `Ctrl + NumpadX` Manual Bindとの衝突がないことを確認
-
-完了条件:
-- 実装対象Hotkey一覧が確定している
+Phase A完了条件を満たしたため、次工程は **Phase B - Window識別方式の技術検証** とする。
 
 ---
 
@@ -593,15 +559,16 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-次に着手する順序は以下を推奨する。
+Phase Aは完了済み。次はPhase Bを次の順で進める。
 
-1. A-1 NumLock機能
-2. A-2 Manual / Auto Bind優先関係
-3. A-4 Numpad1/2/3の制約
-4. A-6 Auto Bind / Clear系Hotkey
-5. B-2 Chrome座標判定PoC
-6. B-5 VS Code「開いた順」PoC
-7. B-6〜B-8 Explorer / ChatGPT / pwsh識別PoC
-8. Phase C以降
+1. B-1 Window列挙PoC
+2. B-2 Chrome識別PoC
+3. B-3 Chrome座標Tolerance決定
+4. B-4 マルチモニター方針
+5. B-5 VS Code「開いた順」取得PoC
+6. B-6 Explorer識別PoC
+7. B-7 ChatGPT Desktop識別PoC
+8. B-8 pwsh / Windows Terminal識別PoC
+9. Phase C以降
 
-特にB-5は、VS Codeの「開いた順」という要件がWindowsから安定取得できるかを早期に確認する必要があるため、本実装前の重要な技術検証とする。
+特にB-5は、VS Codeの「開いた順」という要件がWindowsから安定取得できるかを確認する重要な技術検証とする。
