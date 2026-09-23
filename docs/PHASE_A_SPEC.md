@@ -276,7 +276,7 @@ MVPの任意キーは以下とする。
 
 ## 6.2 初期Mode
 
-全任意キーを次で開始する。
+原則として任意キーは次で開始する。
 
 ~~~text
 Mode = Window
@@ -285,7 +285,9 @@ HWND = None
 BindingSource = None
 ~~~
 
-つまり初期状態では空のManual Window Slotとして扱う。
+ただし物理DELは実測上 `Backspace` であり、通常キーボードのBackspaceと区別できないため、MVP標準Configでは `Backspace` だけ `Mode=Disabled` とする。
+
+それ以外の任意キーは空のManual Window Slotとして扱う。
 
 ## 6.3 Shortcutの初期割り当て
 
@@ -326,13 +328,13 @@ Mode=Disabled
 
 とする。
 
-Disabledキーは押下してもNumpadWindowControllerとして何もしない。
+DisabledキーはNumpadWindowControllerとして管理しない。
 
-MVPでは「元のテンキー入力をWindowsへ通す」PassThrough Modeは設けない。
+MVPではDisabled KeyのAction Hotkeyを登録せず、元のWindows入力をそのまま通す。
 
-理由:
+独立したPassThrough Modeは設けず、「Controller管理外」というDisabledの意味にネイティブ動作を含める。
 
-NumpadWindowController起動中のテンキーを専用コントローラーとして扱い、通常の数字入力との混在を避けるため。
+この定義により、通常キーボードBackspaceを維持したまま物理DELを既定Disabledにできる。
 
 ---
 
