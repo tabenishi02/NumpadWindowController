@@ -72,132 +72,53 @@ Phase A完了条件を満たしたため、次工程は **Phase B - Window識別
 
 ---
 
-# Phase B - Window識別方式の技術検証 🧪 PoC実装完了 / 実機結果待ち
+# Phase B - Window識別方式の技術検証 ✅ 完了
 
-詳細: [Phase B PoC Guide](docs/PHASE_B_POC.md)
+詳細結果: [Phase B Result](docs/PHASE_B_RESULT.md)  
+PoC手順: [Phase B PoC Guide](docs/PHASE_B_POC.md)
 
-PoC構成:
+実機結果により以下を確定した。
 
-- `poc/phase_b/B1_WindowEnumerationPoC.ahk`
-- `poc/phase_b/B2_B4_ChromeLayoutPoC.ahk`
-- `poc/phase_b/B5_VSCodeOrderPoC.ahk`
-- `poc/phase_b/B6_B8_TargetAppsPoC.ahk`
-- 共通ライブラリ: `poc/phase_b/lib/WindowProbe.ahk`
+- [x] **B-1 Window列挙**
+  - HWND / PID / Process / Class / Title / Geometry / MinMax / Style / ExStyle / Owner / Cloaked / ToolWindow / Monitorを取得可能
+  - 共通Candidate Filterを確定
+- [x] **B-2 Chrome識別**
+  - 通常3Window配置で7/8/9候補を正しく分類
+  - Chrome再起動後も新HWNDを座標から再分類可能
+- [x] **B-3 Chrome Tolerance**
+  - 現MVP Thresholdをそのまま採用
+  - 実配置は概ね左40% / 右60%だが現Threshold内
+  - Minimized / Maximized Chromeは新規座標分類対象外とする
+- [x] **B-4 Monitor方針**
+  - 実機は3840×2160 ×2
+  - Chrome専用Auto BindはPrimary Monitor Work Area固定
+  - Secondary Monitor追従はMVP後
+- [x] **B-5 VS Code順序**
+  - 起動前既存Windowの真のOpen順は復元不可
+  - PID / Process Creation Timeは複数Windowで同一
+  - 実行中は500ms観測でFirst Observed Orderを正しく取得可能
+  - 起動前既存Windowは初回WinGetList順＋Manual補正をFallbackとする
+- [x] **B-6 Explorer**
+  - Process=`explorer.exe`
+  - Class=`CabinetWClass`
+  - Shell_TrayWnd / Progman等は共通Filterで除外可能
+- [x] **B-7 ChatGPT Desktop**
+  - Process=`ChatGPT.exe`
+  - Class=`Chrome_WidgetWin_1`
+  - 識別はProcessを必須条件とする
+- [x] **B-8 PowerShell / Windows Terminal**
+  - top-levelは`WindowsTerminal.exe` / `CASCADIA_HOSTING_WINDOW_CLASS`
+  - `pwsh.exe` 自体はPseudoConsoleWindowでCandidate外
+  - Titleに`PowerShell 7`を含む条件でWindows PowerShell / cmdと区別
+  - Phase Dへ `AllowedTitleContains` を追加要求
 
-## B-1. Window列挙PoC
+Phase B Known Limitation:
 
-- [x] 可視トップレベルWindowの列挙PoCを実装
-- [x] HWND / Process / PID / Process Creation FILETIME / Title / Classを記録
-- [x] Position / Size / MinMax / Style / ExStyleを記録
-- [x] Visible / Owner / DWM Cloaked / ToolWindowを記録
-- [x] 初期Candidate判定とReject Reasonを出力
-- [ ] 実機結果を確認しCandidate除外条件を確定
+- Auto Bindをゼロから行う時、Minimized / Maximized Chromeは元の7/8/9位置を現在座標から判定しない。
+- すでにHWND Binding済みなら、その後にMinimize / MaximizeしてもBindingは維持する。
+- スクリプト起動前から存在する複数VS Code Windowの真のOpen順は保証しない。
 
-完了条件:
-- 実機結果からAuto Bind候補の共通フィルタを確定する
-
-## B-2. Chrome識別PoC
-
-- [x] `chrome.exe` のCandidate Window抽出を実装
-- [x] HWND / Title / Position / Size / MinMax / Monitorを出力
-- [x] 左上・左下・右大の仮分類を実装
-- [x] 想定矩形との差をScoreとして出力
-- [ ] 通常3Window配置の実機結果確認
-- [ ] 最小化時の結果確認
-- [ ] 最大化時の結果確認
-- [ ] Chrome再起動後の結果確認
-
-完了条件:
-- 7 / 8 / 9 を座標ベースで安定して再現できるか判定する
-
-## B-3. Chrome座標Tolerance決定
-
-- [x] Primary Monitor Work Areaに対する正規化値出力を実装
-- [x] 現MVPの仮ThresholdをPoCへ実装
-- [x] Ideal Rectangleとの差分Scoreを実装
-- [ ] 実測値から最終Threshold / Toleranceを決定
-
-完了条件:
-- Chrome位置判定式を実測に基づいて確定する
-
-## B-4. マルチモニター方針
-
-- [x] 全MonitorのBounds / Work Area出力を実装
-- [x] Window中心点から所属Monitorを記録
-- [x] Primary Monitor判定を記録
-- [ ] 実機Monitor構成を確認
-- [ ] Primary Monitor固定で問題ないか判定
-- [ ] 必要ならFallback方針を決定
-
-完了条件:
-- Chrome座標の基準Monitorを確定する
-
-## B-5. VS Code「開いた順」取得PoC
-
-- [x] 500ms間隔のVS Code Window観測PoCを実装
-- [x] 初回観測順 `Observation Sequence` を記録
-- [x] Z-orderをSnapshotごとに記録
-- [x] PID / Process Creation FILETIMEを記録
-- [x] 起動前既存Windowと実行中新規Windowを区別して記録
-- [x] F5 Snapshot / F8 Reset / F9 Log Openを実装
-- [ ] 起動前から3Window存在するケースを実機確認
-- [ ] PoC実行中に1→2→3の順で開くケースを確認
-- [ ] Close / Reopenケースを確認
-- [ ] 実測結果からMVPの順序方式を確定
-
-完了条件:
-- 4 / 5 / 6へ割り当てる順序方式を実測に基づいて確定する
-
-## B-6. Explorer識別PoC
-
-- [x] Explorerを含む全Candidate WindowのProcess / Class / Title出力を実装
-- [x] `explorer.exe` をHint表示
-- [ ] 通常Explorer WindowのClassを実機確認
-- [ ] Desktop / Taskbar等が候補へ混入しないか確認
-- [ ] 複数Explorer時の選択規則を確定
-
-完了条件:
-- Numpad1用Explorer識別条件を確定する
-
-## B-7. ChatGPT Desktop識別PoC
-
-- [x] Candidate Window一覧からChatGPT/OpenAI文字列のHintを出力
-- [x] Process / Class / Title / HWND / Z-orderを出力
-- [ ] ChatGPT Desktopの実際のProcess Nameを確認
-- [ ] Window Classを確認
-- [ ] 複数Windowの有無を確認
-- [ ] Numpad2用Allowed条件を確定
-
-完了条件:
-- ChatGPT Desktopを安定して識別できる条件を確定する
-
-## B-8. pwsh / Windows Terminal識別PoC
-
-- [x] `WindowsTerminal.exe` / `pwsh.exe` / PowerShell系TitleのHintを実装
-- [x] Process / Class / Title / PID / Z-orderを出力
-- [ ] Windows Terminal内pwshの実機値を確認
-- [ ] `pwsh.exe` がトップレベルWindowとして現れるか確認
-- [ ] PowerShell以外のTerminal候補との区別を確認
-- [ ] Numpad3用Allowed条件を確定
-
-完了条件:
-- 「PowerShell 7を操作しているトップレベルTerminal Window」の識別条件を確定する
-
-## Phase B 実行結果の提出
-
-PoC実行後、`poc/phase_b/results/` のTSVをまとめて確認する。
-
-必要結果:
-
-- [ ] B1 Window snapshot ×1
-- [ ] B2_B4 通常Chrome配置
-- [ ] B2_B4 1Window最小化
-- [ ] B2_B4 1Window最大化
-- [ ] B2_B4 Chrome再起動後
-- [ ] B5 VS Code observation log
-- [ ] B6_B8 Target Apps snapshot
-
-実機結果受領後に `docs/PHASE_B_RESULT.md` を作成し、B-1～B-8を完了扱いへ更新する。
+追加PoCはMVPには不要。次工程は **Phase C - Auto Bindアルゴリズム確定**。
 
 ---
 
