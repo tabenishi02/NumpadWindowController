@@ -45,7 +45,7 @@ MVPでは採用しないもの:
 
 - GUI設定画面
 - Hot Reload
-- 常時Window監視
+- 常時全Window監視（ただしVS Code Open順取得のためCode.exe Windowのみ500ms観測）
 - Window Bindingの永続保存
 - 外付けテンキーとメインキーボードの厳密なデバイス識別
 - 高度なマルチモニター自動判定
@@ -308,6 +308,7 @@ Known Limitation:
 - BindingSource
 - AllowedProcess
 - AllowedClass
+- AllowedTitleContains
 - AutoBind
 - AutoBindGroup
 
@@ -413,7 +414,7 @@ chrome.exe
 - Numpad8 = Chrome2
 - Numpad9 = Chrome3
 
-MVPではPrimary MonitorのWork Areaを基準とする。
+MVPではPrimary MonitorのWork Areaを基準とする。実機PoCでPrimary Monitor上の通常3Window配置とChrome再起動後に正しく再分類できることを確認済み。
 
 ### 12.1 Chrome1
 
@@ -476,6 +477,8 @@ Chrome3候補:
 
 候補が見つからなければ対象Slotは空のままにする。
 
+Minimized / Maximized Chromeは新規の座標分類対象外とする。すでにBinding済みのHWNDは状態変更後も維持する。Auto Bindをゼロから行う時に対象ChromeがMinimized / Maximizedなら、通常状態へ戻して再Auto BindするかManual Bindで補正する。
+
 ### 12.5 Chrome 4Window以上
 
 4つ目以降はMVPではAuto Bindしない。
@@ -504,7 +507,7 @@ Code.exe
 
 ### 13.1 MVPの順序定義
 
-MVPでは `First Observed Order` を使用する。
+MVPでは `First Observed Order` を使用する。実機PoCの結果、スクリプト実行中のOpen順を正しく保持するため、Code.exe Windowだけを500ms間隔で観測する。
 
 スクリプトが初めてVS Code Windowを観測したとき、各HWNDに連番を付ける。
 
@@ -516,7 +519,7 @@ Observed #3 → Numpad6
 
 ### 13.2 起動時にすでに複数Windowが存在する場合
 
-最初の観測時にAutoHotkeyから取得できるWindow列挙順を初期順として採用する。
+最初の観測時にAutoHotkeyから取得できるWindow列挙順を初期順として採用する。実機PoCではこの順序は真のOpen順と一致せず、複数VS Code WindowのPID / Process Creation Timeも同一だったため、起動前Windowの真のOpen順復元は保証しない。
 
 この順は本来の「開いた順」と一致しない可能性がある。
 
@@ -559,6 +562,7 @@ Numpad1はExplorer専用Slotとする。
 基本対象:
 
 - Process: `explorer.exe`
+- Class: `CabinetWClass`
 - 可視トップレベルWindow
 - デスクトップShellやタスクバー等は除外
 
@@ -576,9 +580,7 @@ Allowed条件:
 
 Numpad2はChatGPTデスクトップ専用Slotとする。
 
-Process Name / Window Classは実装前に実機で確認し、INIの既定値として記録する。
-
-設計上はProcess Nameによる判定を第一条件とする。
+実機PoCで `Process=ChatGPT.exe`, `Class=Chrome_WidgetWin_1`, `Title=ChatGPT` を確認した。MVPでは `ChatGPT.exe` を必須識別条件とし、Class / Titleは補助情報として扱う。
 
 複数候補がある場合は最も前面側のWindowを採用。
 
@@ -592,17 +594,22 @@ Process Nameが将来変更された場合はINI編集で対応する。
 
 Numpad3は「PowerShell 7作業用Terminal Window」を対象とする。
 
-Windows 11ではpwshがWindows Terminal内で動作する場合があるため、MVPでは次の順に候補を探す。
+実機PoCではPowerShell 7のトップレベルWindowは `WindowsTerminal.exe` / `CASCADIA_HOSTING_WINDOW_CLASS` だった。 `pwsh.exe` 自体は `PseudoConsoleWindow` でOwnerあり・ToolWindow・Zero SizeのためCandidate外だった。
 
-1. Windows TerminalのトップレベルWindowで、Titleに `PowerShell` または `pwsh` を含むもの。
-2. 直接トップレベルWindowとして取得できる `pwsh.exe`。
-3. 条件一致なしなら未Binding。
+MVP識別条件:
+
+1. Process = `WindowsTerminal.exe`
+2. Class = `CASCADIA_HOSTING_WINDOW_CLASS`
+3. Titleに `PowerShell 7` を含む
+4. 条件一致なしなら未Binding
+
+Windows PowerShellやcmd.exeも同じProcess / Classを持つため、Title条件を必須とする。
 
 複数候補がある場合は最も前面側を採用。
 
 Known Limitation:
 
-- Windows Terminalのタブ内部プロセスを完全には追跡しない。
+- Windows Terminalのタブ内部プロセスを完全には追跡せず、MVPではTitle条件でPowerShell 7を識別する。
 - Titleがカスタマイズされている場合、自動検出できない可能性がある。
 
 その場合はManual Bindで補正可能とする。
@@ -815,7 +822,7 @@ Shortcut Targetが存在しない場合もMVPではFatal Errorとする。
 5. Runtime Stateを初期化。
 6. Numpad0 / Virtual000入力判定器を初期化。
 7. Hotkeyを登録。
-8. VS Code Observation Stateを初期化。
+8. VS Code Observation Stateを初期化し、Code.exe Windowの500ms観測を開始。
 9. Auto Bind Allを1回実行。
 10. 常駐開始。
 
@@ -1026,10 +1033,11 @@ Window Activate失敗:
 6. VS Codeの真のWindow生成順をスクリプト再起動後に保証しない。
 7. スクリプト起動前のVS Code複数Windowは初回列挙順を使用する。
 8. 4つ目以降のChrome / VS Codeは自動割り当てしない。
-9. Windows Terminal内部のpwshタブを完全には識別しない。
-10. 設定変更にはスクリプト再起動が必要。
-11. GUI設定画面はない。
-12. Runtime Bindingはスクリプト終了時に失われる。
+9. Auto Bindをゼロから行う時、Minimized / Maximized Chromeは座標分類しない。
+10. Windows Terminal内部のpwshタブを完全には識別しない。
+11. 設定変更にはスクリプト再起動が必要。
+12. GUI設定画面はない。
+13. Runtime Bindingはスクリプト終了時に失われる。
 
 ---
 
