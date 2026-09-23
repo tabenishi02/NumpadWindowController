@@ -724,6 +724,8 @@ logs/NumpadWindowController_<timestamp>.log
 
 へ逐次記録する。
 
+Debug LogのFile I/Oは必ず例外を内部でCatchし、ログ書き込み失敗によってController本体の入力処理やBinding処理を失敗させない。
+
 `logs/` はGit管理対象外とする。
 
 ## 20.3 Debug記録対象
