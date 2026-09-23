@@ -537,7 +537,7 @@ Phase Aでは「どう動くべきか」を確定した。
 
 - Chrome座標・サイズ取得
 - Primary Monitor Work Area判定
-- VS Code First Observed Order
+- VS Code簡易逆列挙順割り当て
 - Explorerの通常Window識別
 - ChatGPT DesktopのProcess / Class
 - PowerShell系Terminalの識別
