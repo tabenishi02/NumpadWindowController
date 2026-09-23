@@ -370,9 +370,11 @@ Ctrl + Key
 Window Mode:
 - 現在のActive WindowをManual Bind。
 
-Shortcut / Disabled:
-- 実行しない。
-- 短時間通知で「Window Modeではない」と示す。
+Shortcut:
+- Controller用のCtrl Hotkeyを登録せず、通常の入力としてActive Appへ渡す。
+
+Disabled:
+- Controller Hotkeyを登録せず、通常の入力としてActive Appへ渡す。
 
 ### Ctrl + Shift
 
@@ -384,7 +386,7 @@ Window Mode:
 - Slot Clear。
 
 Shortcut / Disabled:
-- 何もしない。
+- Controller用のCtrl+Shift Hotkeyを登録せず、通常の入力としてActive Appへ渡す。
 
 ### Ctrl + Alt
 
@@ -399,7 +401,7 @@ Window ModeかつAutoBind=OFF:
 - Auto Bind規則が存在しないため何も割り当てず、通知する。
 
 Shortcut / Disabled:
-- 何もしない。
+- Controller用のCtrl+Alt Hotkeyを登録せず、通常の入力としてActive Appへ渡す。
 
 ## 7.2 Global操作
 
@@ -437,12 +439,14 @@ Ctrl + Alt + 000
 
 ## 7.4 Hotkey衝突方針
 
-NumpadWindowControllerで定義したテンキーHotkeyはスクリプト実行中に消費し、元アプリへ渡さない。
+NumpadWindowControllerが実際に登録したController Hotkeyだけを消費する。
 
-目的:
+- Window ModeはNormal / Ctrl / Ctrl+Shift / Ctrl+AltをController操作として登録する。
+- Shortcut ModeはNormalだけを登録する。
+- Disabledは登録しない。
+- 未定義Modifier CombinationはActive Appへ通常入力として渡す。
 
-- Ctrl+テンキー等がアプリ側Shortcutと同時発火するのを防ぐ。
-- Window Controllerとして操作を一意にする。
+例外として、Numpad0 / Virtual000 Detectorが有効な場合はSC052を判定のためSuppressするため、Detectorが対応していないModifier CombinationをネイティブNumpad0として再送しない。
 
 ## 7.5 Auto Bind Allと個別Auto Bindの違い
 
