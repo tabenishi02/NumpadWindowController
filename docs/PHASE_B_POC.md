@@ -210,7 +210,7 @@ poc/phase_b/B5_VSCodeOrderPoC.ahk
 出力:
 
 ~~~text
-poc/phase_b/results/B5_vscode_order.tsv
+poc/phase_b/results/B5_vscode_order_<timestamp>.tsv
 ~~~
 
 取得項目:
