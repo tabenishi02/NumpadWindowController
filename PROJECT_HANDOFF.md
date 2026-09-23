@@ -48,10 +48,10 @@ VSCode1  VSCode2 VSCode3 任意
 Explorer ChatGPT pwsh    任意
 
 0        000     .       Enter
-特別/任意 使用不可 任意   任意
+任意     使用不可 任意   任意
 ```
 
-NumLockとNumpad0には特別機能を持たせる予定だが、具体的な機能は未確定。
+NumLockには特別機能を持たせる予定。Numpad0は通常の任意キーとして扱う。
 
 物理DELキーはAutoHotkey上では `Backspace` として検出される。
 
@@ -133,17 +133,16 @@ Auto Bind / Clear系の最終Hotkeyは未確定。
 ## 10. 次回以降の主要論点
 
 1. NumLockの特別機能
-2. Numpad0の特別機能
-3. Manual BindとAuto Bindの最終優先関係
-4. Chrome座標判定のTolerance
-5. マルチモニター時のChrome座標基準
-6. VS Codeの「開いた順番」を取得・保持する具体的方法
-7. Numpad1/2/3のAuto Bindをどこまで固定するか
-8. 一般候補の優先順位
-9. Auto Bind All / Clear等のHotkey
-10. Shortcutの引数・Working Directory等
-11. 設定ファイル形式
-12. GUIの必要性
+2. Manual BindとAuto Bindの最終優先関係
+3. Chrome座標判定のTolerance
+4. マルチモニター時のChrome座標基準
+5. VS Codeの「開いた順番」を取得・保持する具体的方法
+6. Numpad1/2/3のAuto Bindをどこまで固定するか
+7. 一般候補の優先順位
+8. Auto Bind All / Clear等のHotkey
+9. Shortcutの引数・Working Directory等
+10. 設定ファイル形式
+11. GUIの必要性
 
 ## 11. 次回開始時に読む資料
 
