@@ -28,7 +28,7 @@ global gIgnoreUntilUp := false
 global gInterruptedBy := ""
 global gFinalizeTimer := FinalizeByTimer
 
-DirCreate LOG_DIR
+DirCreate(LOG_DIR)
 
 FileAppend(
     "=== TripleZeroDetectionPoC session " A_Now
@@ -38,7 +38,7 @@ FileAppend(
 )
 
 ; The measured key is Numpad0 only while NumLock is on.
-SetNumLockState "On"
+SetNumLockState("On")
 
 ; Observe every keyboard event, but suppress only the physical key with SC052.
 ; Other keys remain visible to the active application.
@@ -112,7 +112,7 @@ HandleZeroDown(now) {
         gActive := true
         gStartTick := now
         gEvents := []
-        SetTimer gFinalizeTimer, -DETECTION_WINDOW_MS
+        SetTimer(gFinalizeTimer, -DETECTION_WINDOW_MS)
     }
 
     gEvents.Push({kind: "D", tick: now})
@@ -177,7 +177,7 @@ FinalizeSequence(forcedResult := "") {
     if !gActive
         return
 
-    SetTimer gFinalizeTimer, 0
+    SetTimer(gFinalizeTimer, 0)
 
     pattern := EventPattern()
     downCount := CountEvent("D")
@@ -234,7 +234,7 @@ ResetSession() {
     global gZeroPhysicallyDown, gIgnoreUntilUp
     global gInterruptedBy, gFinalizeTimer
 
-    SetTimer gFinalizeTimer, 0
+    SetTimer(gFinalizeTimer, 0)
 
     gActive := false
     gStartTick := 0
@@ -298,10 +298,10 @@ GetStartTick() {
 }
 
 ShowStatus(text, durationMs := 1000) {
-    ToolTip text
-    SetTimer ClearStatus, -durationMs
+    ToolTip(text)
+    SetTimer(ClearStatus, -durationMs)
 }
 
 ClearStatus() {
-    ToolTip
+    ToolTip()
 }
