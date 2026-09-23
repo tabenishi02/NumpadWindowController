@@ -1079,7 +1079,7 @@ Phase Aに属する以下は採用済み仕様とする。
 引き続きレビュー対象:
 
 10. Chrome判定をPrimary Monitor座標方式にする。
-11. VS CodeをFirst Observed Order + Manual補正とする。
+11. VS CodeはAuto Bind時の逆列挙順を簡易割り当て規則とし、必要時のみManual補正とする。
 12. 4つ目以降のChrome / VS CodeをMVPでは手動割り当てにする。
 13. INI設定＋スクリプト再起動方式とする。
 14. 初期実装を単一AHKファイルにする。
