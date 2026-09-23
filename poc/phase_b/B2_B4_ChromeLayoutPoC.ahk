@@ -3,8 +3,9 @@
 #Include %A_ScriptDir%\lib\WindowProbe.ahk
 
 resultDir := EnsureResultDir()
-chromeFile := resultDir "\B2_B4_chrome_layout.tsv"
-monitorFile := resultDir "\B2_B4_monitors.tsv"
+tag := MakeResultTag()
+chromeFile := resultDir "\B2_B4_chrome_layout_" tag ".tsv"
+monitorFile := resultDir "\B2_B4_monitors_" tag ".tsv"
 
 WriteMonitorSnapshot(monitorFile)
 WriteChromeSnapshot(chromeFile)
