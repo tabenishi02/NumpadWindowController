@@ -269,7 +269,16 @@ Ctrl + Shift + Key
 NumLock
 ```
 
-全Auto Bind対象Slotを再評価する。
+全Auto Bind対象SlotのBindingを検証し、有効なManual / Auto Bindingを維持したまま、無効または空のSlotだけを補充する。
+
+完全に再構築する場合は:
+
+```text
+Ctrl + NumLock
+NumLock
+```
+
+の順でClear All後にAuto Bind Allを実行する。
 
 NumLock本来のON/OFF切り替えは実行しない。
 
@@ -380,17 +389,28 @@ Bindingが無効な場合:
 
 ## 11. Auto Bind共通ルール
 
-Auto Bind対象は `AutoBind=ON` のWindow Slotのみ。
+詳細仕様は `docs/PHASE_C_SPEC.md` を正とする。
 
-処理順:
+Auto Bind対象は `AutoBind=ON` の専用Window Slot `1～9` のみ。
 
-1. 有効なManual Bindを確保。
-2. Chrome Groupを処理。
-3. VS Code Groupを処理。
-4. Explorerを処理。
-5. ChatGPT Desktopを処理。
-6. pwsh / Windows Terminalを処理。
-7. 結果をRuntime Stateへ反映。
+Auto Bind Allは差分補修方式とする。
+
+1. Current Runtime StateをWorking Stateへコピー。
+2. 全既存BindingのValidityを確認。
+3. 無効BindingだけNoneへ変更。
+4. 有効Manual / Auto BindingのHWNDをUsed HWND Setへ登録。
+5. Chrome Groupの空Slotを補充。
+6. VS Code Groupの空Slotを補充。
+7. Explorer / ChatGPT / PowerShellの空Slotを補充。
+8. `1 HWND : 1 Slot` を最終検証。
+9. Working StateをRuntime StateへCommit。
+
+既存BindingのValidityと新規Candidate Eligibilityは分離する。
+
+- 既存BindingはHWNDが存在しAllowed条件を満たす限り維持する。
+- 新規CandidateにはPhase Bの共通FilterとGroup固有条件を要求する。
+- Binding済みChromeは移動 / Minimize / MaximizeしてもProcess条件を満たす限り維持する。
+- 新規Chrome候補だけNormal状態 + 座標Thresholdを要求する。
 
 MVPでは任意Slotへの一般Window自動割り当ては行わない。
 
@@ -624,29 +644,37 @@ Known Limitation:
 
 ## 17. Lazy Auto Bind
 
-AutoBind=ONのSlotで、通常押下時に:
+AutoBind=ONのSlotで通常押下時に:
 
-- HWNDが未設定
+- BindingSource=None
 - HWNDが消滅
 - HWNDがAllowed条件に一致しなくなった
 
-場合、そのSlotが所属するGroupだけ再評価する。
+場合のみ実行する。
+
+Chrome / VS Codeは対象Group全体の「空Slot補充」を行い、有効な既存Bindingは維持する。
+
+1 / 2 / 3は対象Slotだけ再探索する。
 
 例:
 
 ```text
 Numpad7押下
   ↓
-Chrome1 HWND無効
+7のHWND無効
   ↓
-Chrome Group再評価
+7をNoneへ変更
   ↓
-7/8/9を必要に応じて再構築
+Chrome Groupの空Slotだけ補充
   ↓
-Numpad7をActivate
+7が埋まればActivate
 ```
 
-Manual Bindが有効な他Slotは維持する。
+候補が見つからなければSlotはNoneのままにし、短時間ToolTipを表示する。
+
+自動RetryやBackground pollingは行わない。
+
+Shortcut / Disabled / AutoBind=OFFではLazy Auto Bindしない。
 
 ---
 
