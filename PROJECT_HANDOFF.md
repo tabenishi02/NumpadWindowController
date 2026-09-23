@@ -21,12 +21,13 @@
 
 ## 3. キー動作モデル
 
-各物理キーは次のいずれかのModeを持つ。
+設定可能な通常キーは次のいずれかのModeを持つ。
 
 - Window
 - Shortcut
-- Function
 - Disabled
+
+NumLockは通常Modeとは別の予約Global Function Keyとして扱う。
 
 ShortcutキーはWindow Binding対象外。
 
@@ -126,9 +127,14 @@ Ctrl + NumpadX
   -> Window Modeなら現在Windowを手動Bind
 ```
 
-Shortcut / Function / DisabledキーへのWindow Bindingは拒否する。
+Shortcut / DisabledキーへのWindow Bindingは拒否する。
 
-Auto Bind / Clear系の最終Hotkeyは未確定。
+Phase Aで以下を確定済み:
+
+- `Ctrl + Shift + Key` -> Slot Clear
+- `Ctrl + Alt + Key` -> 個別Auto Bind
+- `NumLock` -> Auto Bind All
+- `Ctrl + NumLock` -> Clear All
 
 ## 10. 次回以降の主要論点
 
@@ -170,7 +176,7 @@ Auto Bind案
   ↓
 実機配置・Chrome/VS Code優先順位・Shortcut仕様反映  ← 現在
   ↓
-実装タスク一覧を作成            ← 現在
+実装タスク一覧を作成
   ↓
 Phase A 残仕様確定             ← 完了
   ↓
