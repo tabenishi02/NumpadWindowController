@@ -12,6 +12,7 @@ AutoHotkey v2を利用し、テンキーの各キーに `Window / Shortcut / Fun
 - [暫定設計](docs/DESIGN_DRAFT.md)
 - [設計引き継ぎ](PROJECT_HANDOFF.md)
 - [実装タスク一覧](TASKS.md)
+- [000キー識別PoC](poc/README.md)
 
 > [!NOTE]
 > 現在の設計は確定版ではありません。今後の議論で変更する前提の暫定スナップショットです。
