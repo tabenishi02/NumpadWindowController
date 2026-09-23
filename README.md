@@ -25,7 +25,7 @@ AutoHotkey v2を利用し、テンキーの各キーに `Window / Shortcut / Fun
 - 実機で確認したKey Name / VK / SCを設計資料に記録
 - キーごとに `Window / Shortcut / Function / Disabled` を設定
 - Shortcut設定キーはWindow Binding対象外
-- `000` キーは使用不可
+- `000` キーは高速な `Numpad0` D-U×3を検出し、仮想キー `Virtual000` として利用
 - `7 / 8 / 9` はChrome専用
 - Chrome優先3ウィンドウは画面上の座標で自動割り当て
 - `4 / 5 / 6` はVS Code専用
@@ -52,7 +52,7 @@ VSCode1  VSCode2 VSCode3 任意
 Explorer ChatGPT pwsh    任意
 
 0        000     .       Enter
-任意     使用不可 任意   任意
+任意     仮想キー 任意   任意
 ```
 
 同じアプリを複数ウィンドウで使用する環境でも、個々のウィンドウへ直接ジャンプできることを主目的とします。
