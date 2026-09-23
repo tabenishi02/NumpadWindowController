@@ -124,51 +124,45 @@ Phase B Known Limitation:
 
 ---
 
-# Phase C - Auto Bindアルゴリズム確定
+# Phase C - Auto Bindアルゴリズム確定 ✅ 完了
 
-## C-1. Auto Bind処理順を確定
+詳細仕様: [Phase C Specification](docs/PHASE_C_SPEC.md)
 
-基本案:
+採用した内容:
 
-1. 対象Window列挙
-2. 使用不可Window除外
-3. Shortcut / Function / Disabledキー除外
-4. Manual Bind維持処理
-5. Chrome 3Windowを7/8/9へ割り当て
-6. VS Code 3Windowを4/5/6へ割り当て
-7. Explorer / ChatGPT / pwshを処理
-8. その他Windowを任意Slotへ割り当て
-9. 重複チェック
-10. Runtime State更新
+- [x] **C-1 Auto Bind処理順**
+  - Auto Bind対象は専用Slot `1～9` のみ
+  - 有効なManual / Auto Bindingは維持
+  - 無効BindingだけNoneへ落とし、空Slotだけ補充
+  - Group順は Chrome → VS Code → Explorer → ChatGPT → PowerShell
+  - 候補不足は残りSlot=None、候補過多は余剰候補を無視
+  - Working State上で計算し、最終検証後にRuntime StateへCommit
+- [x] **C-2 4つ目以降のChrome / VS Code**
+  - 自動割り当てしない
+  - 任意Slotへ自動転送しない
+  - 必要な場合だけManual Bind
+- [x] **C-3 一般Window**
+  - 一般Window Auto Bind自体をMVPでは実装しない
+  - 任意Slot `/ * - + DEL 0 000 . Enter` はManual専用
+  - 一般Windowの優先順位 / 自動Slot順は定義しない
+- [x] **C-4 Lazy Auto Bind**
+  - Binding None / HWND消滅 / Allowed条件違反時のみ発動
+  - Chrome / VS CodeはGroup単位で空Slot補充
+  - 1 / 2 / 3は対象Slotだけ補充
+  - Shortcut / Disabled / AutoBind=OFFでは実行しない
+  - 失敗時はNoneのままToolTip、Background Retryなし
+- [x] **個別Auto Bind**
+  - `Ctrl + Alt + 7/8/9` = Chrome Group補充
+  - `Ctrl + Alt + 4/5/6` = VS Code Group補充
+  - `Ctrl + Alt + 1/2/3` = 対象Slot補充
+- [x] **完全再構築**
+  - `NumLock` 単体は有効Bindingを維持して欠損補修
+  - 完全再構築は `Ctrl + NumLock → NumLock`
+- [x] **1 HWND : 1 Slot**
+  - Used HWND Setで候補重複を防止
+  - Commit前に最終重複検証
 
-タスク:
-
-- [ ] 上記順序を最終確定
-- [ ] 候補不足時の挙動を決定
-- [ ] Slot不足時の挙動を決定
-
-## C-2. 4つ目以降のChrome / VS Code処理
-
-- [ ] 一般候補へ回すことを実装仕様として明文化
-- [ ] 一般候補内での順位を決める
-- [ ] 任意Slotが不足する場合は未割り当てとするか決める
-
-## C-3. 一般Windowの優先順位
-
-- [ ] Explorer / ChatGPT / pwshを一般Windowより先にするか確定
-- [ ] 残りWindowの並び順を決める
-  - Z-order
-  - 起動順
-  - Process名
-  - HWND
-  - その他
-- [ ] 未使用任意Slotへの割り当て順を決める
-
-## C-4. Lazy Auto Bind仕様
-
-- [ ] HWND無効時に自動再探索する条件を確定
-- [ ] Shortcut Modeでは実行しないことを確認
-- [ ] 再探索失敗時の通知を決める
+Phase C完了。次工程は **Phase D - Configuration仕様確定**。
 
 ---
 
