@@ -166,59 +166,49 @@ Phase C完了。次工程は **Phase D - Configuration仕様確定**。
 
 ---
 
-# Phase D - Configuration仕様確定
+# Phase D - Configuration仕様確定 ✅ 完了
 
-## D-1. 設定ファイル形式を確定
+詳細仕様: [Phase D Configuration Specification](docs/PHASE_D_SPEC.md)
 
-候補:
-- INI
-- JSON
+採用した内容:
 
-現時点ではINI案がある。
+- [x] **D-1 設定ファイル形式**
+  - INIを正式採用
+  - ファイル名は `KeyBindings.ini`
+  - Scriptと同じDirectoryに固定
+  - `[General] ConfigVersion=1` 必須
+  - UTF-16 LE BOMを正規Encodingとする
+  - Hot Reloadなし、編集後はScript再起動
+- [x] **D-2 Key設定スキーマ**
+  - Key identityはSection名
+  - 18 Key Sectionをすべて必須
+  - Modeは `Window / Shortcut / Disabled`
+  - 共通Fieldは `Mode / Label`
+  - Window Modeは `AllowedProcess / AllowedClass / AllowedTitleContains`
+  - `AutoBind / AutoBindGroup / AutoBindOrder` はConfigから除外し、コード側Built-in Metadataへ固定
+  - NumLockはConfig対象外
+- [x] **D-3 Shortcut**
+  - Target対応: `.exe / .bat / .cmd / .lnk`
+  - Arguments / WorkingDirectory対応
+  - `.ps1` 直接Targetは禁止
+  - PowerShell Scriptは `pwsh.exe -File ...` を使用
+  - Shortcutは毎回Targetを実行し、既存Window Activateは行わない
+  - Target解決失敗 / 不存在は起動時Fatal
+  - 実行時失敗は通知してScript継続
+- [x] **D-4 設定Validation**
+  - Config不存在 / Version不正 / 未知Section / Section不足 / 重複 / 未知FieldをFatal
+  - Mode / Label / Mode別Field整合を検証
+  - 専用Slot 1～9はWindow Mode固定
+  - Chrome 7/8/9、VS Code 4/5/6のAllowed条件整合を検証
+  - Numpad3へ `AllowedTitleContains=PowerShell 7` を正式採用
+  - `Numpad0=Disabled` の場合は `Virtual000=Disabled` を必須
+- [x] **Backspace安全方針**
+  - 物理DELは通常Keyboard Backspaceと区別不可
+  - 標準Configは `Key-Backspace Mode=Disabled`
+  - Disabled KeyはController Hotkeyを登録せずネイティブ入力を通す
+  - Backspaceを有効化した場合は起動時Warning
 
-タスク:
-
-- [ ] INIで必要なネスト・配列表現が十分か確認
-- [ ] JSONとの比較
-- [ ] 最終形式を決定
-
-## D-2. Key設定スキーマ確定
-
-最低限検討するフィールド:
-
-- [ ] Key
-- [ ] Mode
-- [ ] Label
-- [ ] AllowedProcess
-- [ ] AllowedClass
-- [ ] AllowedTitleContains
-- [ ] AutoBind
-- [ ] AutoBindGroup
-- [ ] ShortcutTarget
-- [ ] ShortcutArguments
-- [ ] ShortcutWorkingDirectory
-
-## D-3. Shortcut仕様確定
-
-- [ ] exe起動を対応
-- [ ] bat / cmd実行を対応
-- [ ] ps1を直接対応するか決める
-- [ ] Argumentsを対応するか決める
-- [ ] Working Directoryを対応するか決める
-- [ ] 既に起動済みの場合の挙動を決める
-- [ ] ファイル不存在時のエラー処理を決める
-
-## D-4. 設定エラー処理
-
-- [ ] 不正Mode
-- [ ] 存在しないKey
-- [ ] Shortcut Target不存在
-- [ ] Allowed条件矛盾
-- [ ] 同一物理キーの重複定義
-- [ ] 必須項目不足
-
-完了条件:
-- 起動時に設定を検証し、安全に失敗できる
+Phase D完了。次工程は **Phase E - 実装設計**。
 
 ---
 
