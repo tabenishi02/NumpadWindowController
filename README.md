@@ -6,11 +6,12 @@ AutoHotkey v2を利用し、テンキーの各キーに `Window / Shortcut / Fun
 
 ## 現在の段階
 
-現在は **Phase B PoC実装済み / 実機結果待ち** です。本体実装はまだ開始していません。
+現在は **Phase B実機検証完了 / Phase C設計前** です。本体実装はまだ開始していません。
 
 - [MVP設計書](docs/MVP_DESIGN.md)
 - [Phase A仕様](docs/PHASE_A_SPEC.md)
 - [Phase B PoC手順](docs/PHASE_B_POC.md)
+- [Phase B結果](docs/PHASE_B_RESULT.md)
 - [暫定設計](docs/DESIGN_DRAFT.md)
 - [設計引き継ぎ](PROJECT_HANDOFF.md)
 - [実装タスク一覧](TASKS.md)
