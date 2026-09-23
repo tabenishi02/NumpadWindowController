@@ -574,17 +574,15 @@ Commit
 
 Phase DではConfiguration仕様を確定する。
 
-Phase Cから必要となるConfiguration項目:
+Phase Dで採用するConfiguration項目:
 
 - Mode
 - Label
 - AllowedProcess
 - AllowedClass
 - AllowedTitleContains
-- AutoBind
-- AutoBindGroup
 - Shortcut Target / Arguments / WorkingDirectory
 
-MVPでは一般Window Auto Bindを採用しないため、汎用的な `AutoBindOrder` は必須ではない。
+`AutoBind / AutoBindGroup / AutoBindOrder` はPhase Cの不変条件なのでConfigへ持たせず、Key IDから決まるBuilt-in Metadataとする。
 
 Chrome / VS Codeの割り当て順はコード側のGroup固有Ruleとして保持する。
