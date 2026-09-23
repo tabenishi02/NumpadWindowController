@@ -3,7 +3,7 @@
 #Include %A_ScriptDir%\lib\WindowProbe.ahk
 
 resultDir := EnsureResultDir()
-resultFile := resultDir "\B6_B8_target_apps.tsv"
+resultFile := resultDir "\B6_B8_target_apps_" MakeResultTag() ".tsv"
 
 WriteTargetSnapshot(resultFile)
 
