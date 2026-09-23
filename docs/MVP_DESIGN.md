@@ -537,15 +537,11 @@ Manual BindはAuto Bind Allでも保持される。
 
 ### 13.3 新規Window
 
-スクリプト実行中に新しいVS Code Windowが観測された場合、未観測HWNDへ次のObservation Sequenceを付与する。
+スクリプト実行中は `Code.exe` のトップレベルWindowだけを500ms間隔で軽量観測する。
 
-常時ポーリングは行わないため、新Windowの観測タイミングは:
+未観測HWNDを検出した時点で次のObservation Sequenceを付与する。
 
-- Auto Bind All
-- Lazy Auto Bind
-- VS Code Slot操作
-
-のいずれかとする。
+この観測はVS CodeのOpen順保持専用であり、全Windowを常時Auto Bind再評価するものではない。
 
 ### 13.4 4Window以上
 
