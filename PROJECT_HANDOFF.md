@@ -2,7 +2,7 @@
 
 更新日: 2026-09-23  
 対象: NumpadWindowController  
-状態: Phase D完了 / Phase E設計前 / 本体実装前
+状態: Phase E完了 / Phase F実装前
 
 ## 1. プロジェクト概要
 
@@ -88,13 +88,11 @@ VS Code Windowは重なる運用を前提とする。
 
 4つ目以降のVS Codeは一般候補扱い。
 
-## 6. その他の既定Window
+## 6. その他の専用Window
 
-- 1: Explorer
-- 2: ChatGPTデスクトップ
-- 3: pwsh
-
-実装時にProcess/Class等の正確な判別条件を確認する。ChatGPTデスクトップのProcess名は現時点で推測して固定しない。
+- 1: Explorer = `explorer.exe` + `CabinetWClass`
+- 2: ChatGPT Desktop = `ChatGPT.exe`
+- 3: PowerShell 7 = `WindowsTerminal.exe` + `CASCADIA_HOSTING_WINDOW_CLASS` + Title contains `PowerShell 7`
 
 ## 7. Shortcut Mode
 
@@ -154,8 +152,9 @@ PoC:
 ## 11. 次回開始時に読む資料
 
 1. `PROJECT_HANDOFF.md`
-2. `docs/PHASE_D_SPEC.md`
-3. `docs/PHASE_C_SPEC.md`
+2. `docs/PHASE_E_SPEC.md`
+3. `docs/PHASE_D_SPEC.md`
+4. `docs/PHASE_C_SPEC.md`
 4. `docs/PHASE_B_RESULT.md`
 4. `docs/PHASE_A_SPEC.md`
 4. `docs/PHASE_B_POC.md`
@@ -193,9 +192,9 @@ Phase C Auto Bind設計            ← 完了
   ↓
 Phase D Configuration設計        ← 完了
   ↓
-Phase E 実装設計                 ← 次
+Phase E 実装設計                 ← 完了
   ↓
-実装
+Phase F AutoHotkey v2実装         ← 次
 ```
 
 
@@ -271,3 +270,21 @@ Phase E 実装設計                 ← 次
 - 起動時に構造 / Mode / Allowed / ShortcutをFatal Validation
 - Backspaceは標準Disabled。明示有効化時は通常Keyboard Backspaceも巻き込むWarning
 - Numpad0 Disabled時はVirtual000もDisabled必須
+
+
+## 19. Phase E確定事項
+
+詳細は `docs/PHASE_E_SPEC.md`。
+
+- MVP本体は単一 `NumpadWindowController.ahk`
+- `lib/` 分割はMVPでは行わない
+- Global Runtime入口は1つのApp State
+- Config / Key Definitionは起動後Immutable
+- Runtime Binding正本はApp.Slots
+- Slot StateはHwnd + BindingSource
+- Window metadata / Used HWND Setは一時データ
+- Auto BindはWorking Stateで計算後Commit
+- Window ModeだけController修飾Hotkeyを登録
+- ShortcutはNormalのみ、DisabledはHotkey未登録
+- Numpad0 / Virtual000だけInputHook Detector
+- 通常利用では永続Logなし、Debug時のみログ
