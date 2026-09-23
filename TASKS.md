@@ -1,0 +1,607 @@
+# Numpad Window Controller - Implementation Tasks
+
+更新日: 2026-09-23  
+対象: NumpadWindowController  
+目的: 現在の暫定設計から、AutoHotkey v2による初期実装と実機検証までを完了するためのタスク一覧
+
+## 0. 現在地点
+
+完了済み:
+
+- [x] プロジェクト名決定
+- [x] GitHubリポジトリ作成
+- [x] Windows 11 + AutoHotkey v2を基本技術として採用
+- [x] 実機テンキーの主要キーについて Key Name / VK / SC を確認
+- [x] `000` キーが独立キーではなく `Numpad0` を3回送ることを確認
+- [x] キーModeを `Window / Shortcut / Function / Disabled` に整理
+- [x] `7 / 8 / 9` をChrome専用とする方針を決定
+- [x] `4 / 5 / 6` をVS Code専用とする方針を決定
+- [x] `1 / 2 / 3` の既定用途を Explorer / ChatGPTデスクトップ / pwsh とする方針を決定
+- [x] `0` を通常の任意キーへ変更
+- [x] Chrome優先3Windowの座標ベースAuto Bind方針を決定
+- [x] VS Code優先3Windowを「開いた順」で割り当てる方針を決定
+- [x] ShortcutキーをWindow Binding対象から除外する方針を決定
+- [x] HWNDをRuntime Bindingとして使用し、永続化しない方針を決定
+
+---
+
+# Phase A - 残仕様の確定
+
+実装前に、挙動の曖昧さをなくす。
+
+## A-1. NumLock機能を確定
+
+- [ ] NumLockキーに割り当てるFunctionを決める
+- [ ] NumLock本来のON/OFF動作を残すか決める
+- [ ] NumLock状態がNumpadキー認識へ与える影響を整理する
+- [ ] 必要ならNumLock状態に依存しないHotkey設計を決める
+
+完了条件:
+- NumLock押下時の動作が1つに確定している
+- NumLock ON/OFFのどちらで本ツールを利用するか仕様化されている
+
+## A-2. Manual BindとAuto Bindの優先関係を確定
+
+- [ ] Manual BindをAuto Bind Allで維持するか決める
+- [ ] Lazy Auto BindでManual Bindが無効になった場合の扱いを決める
+- [ ] Manual Bind済みWindowを別Slotへ登録した場合の旧Slot処理を決める
+- [ ] Auto BindがManual Bindを上書きできる例外を設けるか決める
+
+完了条件:
+- `Manual / Auto / None` の状態遷移が明文化されている
+
+## A-3. 重複Bindingルールを確定
+
+- [ ] 同一HWNDを複数Slotへ割り当てることを全面禁止するか決める
+- [ ] 手動登録で重複した場合の挙動を確定
+- [ ] Auto Bind時の重複除外ルールを確定
+
+完了条件:
+- 1 Window : 1 Slot の原則と例外が確定している
+
+## A-4. Numpad1 / 2 / 3 の制約を確定
+
+- [ ] Numpad1をExplorer専用にするか決める
+- [ ] Numpad2をChatGPTデスクトップ専用にするか決める
+- [ ] Numpad3をpwsh専用にするか決める
+- [ ] 「既定用途」だけにして手動で別アプリを登録可能にするか比較する
+- [ ] Auto Bind時だけ固定し、Manual Bindでは任意にする案を検討する
+
+完了条件:
+- 1 / 2 / 3 の Allowed 条件が確定している
+
+## A-5. 任意キーの定義を確定
+
+対象候補:
+
+- `NumpadDiv`
+- `NumpadMult`
+- `NumpadSub`
+- `NumpadAdd`
+- `Backspace`（物理DEL）
+- `Numpad0`
+- `NumpadDot`
+- `NumpadEnter`
+
+タスク:
+
+- [ ] 初期設定でWindow Modeにするキーを決める
+- [ ] 初期設定でShortcut Modeにするキーがあるか決める
+- [ ] 未設定状態を許容するか決める
+- [ ] 未設定キー押下時の挙動を決める
+
+完了条件:
+- 各物理キーの初期Modeが決まっている
+
+## A-6. Auto Bind操作体系を確定
+
+- [ ] Auto Bind AllのHotkeyを確定
+- [ ] Slot単位Auto BindのHotkeyを確定
+- [ ] Slot ClearのHotkeyを確定
+- [ ] Clear AllのHotkeyを確定
+- [ ] `Ctrl + NumpadX` Manual Bindとの衝突がないことを確認
+
+完了条件:
+- 実装対象Hotkey一覧が確定している
+
+---
+
+# Phase B - Window識別方式の技術検証
+
+仕様として決めても、Windows / AutoHotkeyから安定取得できない情報は実装できないため、小規模PoCで先に確認する。
+
+## B-1. Window列挙PoC
+
+- [ ] AutoHotkey v2で可視トップレベルWindow一覧を取得する
+- [ ] 各Windowについて以下を取得する
+  - HWND
+  - Process Name
+  - PID
+  - Window Title
+  - Window Class
+  - Position
+  - Size
+  - Minimized状態
+- [ ] ツール自身や不要なシステムWindowを除外する条件を調べる
+
+完了条件:
+- Auto Bind対象候補を一覧化できる
+
+## B-2. Chrome識別PoC
+
+- [ ] `chrome.exe` の各トップレベルWindowを個別取得できるか確認
+- [ ] 3つのChrome Windowの座標とサイズを取得
+- [ ] 左上・左下・右大を安定して区別できるか確認
+- [ ] 最小化時の座標値を確認
+- [ ] 最大化時の扱いを確認
+- [ ] Chrome再起動後でも座標ルールから再割り当てできることを確認
+
+完了条件:
+- 7 / 8 / 9 を座標ベースで再現可能と判断できる
+
+## B-3. Chrome座標Tolerance決定
+
+- [ ] 画面幅・高さに対する比率で判定するか決める
+- [ ] ピクセルToleranceまたは比率Toleranceを決める
+- [ ] Windowsのスナップ配置による数px差を許容する
+- [ ] タスクバー領域を含むWork Area基準かScreen全体基準か決める
+
+完了条件:
+- Chrome位置判定式を実装可能な形で定義できる
+
+## B-4. マルチモニター方針
+
+- [ ] 現在の利用環境で対象ChromeがどのMonitorにあるか整理
+- [ ] Primary Monitor固定か、Window所属Monitor基準か決める
+- [ ] Monitor追加・取り外し時のFallbackを決める
+
+完了条件:
+- 座標の基準Monitorが確定している
+
+## B-5. VS Code「開いた順」取得PoC
+
+- [ ] 複数 `Code.exe` Windowを列挙
+- [ ] HWND列挙順が開いた順と一致するか検証
+- [ ] Z-orderが開いた順として使えるか検証
+- [ ] PID / Process creation timeで識別可能か検証
+- [ ] VS Codeが複数Windowを同一Processで保持するケースを確認
+- [ ] 安定して「最初 / 2番目 / 3番目」を復元できる方式を選定
+
+完了条件:
+- 4 / 5 / 6 へ割り当てる順序を取得する技術方式が確定している
+
+## B-6. Explorer識別PoC
+
+- [ ] Explorer WindowのProcess / Classを確認
+- [ ] デスクトップやタスクバーなど不要なExplorer系Windowとの区別方法を確認
+
+完了条件:
+- Numpad1用候補を正しく抽出できる
+
+## B-7. ChatGPTデスクトップ識別PoC
+
+- [ ] 実際のProcess Nameを確認
+- [ ] Window Classを確認
+- [ ] 複数Windowが存在し得るか確認
+- [ ] Auto Bind条件を決定
+
+完了条件:
+- Numpad2用Allowed条件が確定している
+
+## B-8. pwsh Window識別PoC
+
+- [ ] `pwsh.exe` が直接トップレベルWindowを持つか確認
+- [ ] Windows Terminal内でpwshを使用する場合のProcess / Class関係を確認
+- [ ] VS Code Integrated Terminalは対象外とするか確認
+- [ ] 複数pwshセッションがある場合の候補選択方法を決める
+
+完了条件:
+- Numpad3で切り替える「pwsh Window」の定義が確定している
+
+---
+
+# Phase C - Auto Bindアルゴリズム確定
+
+## C-1. Auto Bind処理順を確定
+
+基本案:
+
+1. 対象Window列挙
+2. 使用不可Window除外
+3. Shortcut / Function / Disabledキー除外
+4. Manual Bind維持処理
+5. Chrome 3Windowを7/8/9へ割り当て
+6. VS Code 3Windowを4/5/6へ割り当て
+7. Explorer / ChatGPT / pwshを処理
+8. その他Windowを任意Slotへ割り当て
+9. 重複チェック
+10. Runtime State更新
+
+タスク:
+
+- [ ] 上記順序を最終確定
+- [ ] 候補不足時の挙動を決定
+- [ ] Slot不足時の挙動を決定
+
+## C-2. 4つ目以降のChrome / VS Code処理
+
+- [ ] 一般候補へ回すことを実装仕様として明文化
+- [ ] 一般候補内での順位を決める
+- [ ] 任意Slotが不足する場合は未割り当てとするか決める
+
+## C-3. 一般Windowの優先順位
+
+- [ ] Explorer / ChatGPT / pwshを一般Windowより先にするか確定
+- [ ] 残りWindowの並び順を決める
+  - Z-order
+  - 起動順
+  - Process名
+  - HWND
+  - その他
+- [ ] 未使用任意Slotへの割り当て順を決める
+
+## C-4. Lazy Auto Bind仕様
+
+- [ ] HWND無効時に自動再探索する条件を確定
+- [ ] Shortcut Modeでは実行しないことを確認
+- [ ] 再探索失敗時の通知を決める
+
+---
+
+# Phase D - Configuration仕様確定
+
+## D-1. 設定ファイル形式を確定
+
+候補:
+- INI
+- JSON
+
+現時点ではINI案がある。
+
+タスク:
+
+- [ ] INIで必要なネスト・配列表現が十分か確認
+- [ ] JSONとの比較
+- [ ] 最終形式を決定
+
+## D-2. Key設定スキーマ確定
+
+最低限検討するフィールド:
+
+- [ ] Key
+- [ ] Mode
+- [ ] Label
+- [ ] AllowedProcess
+- [ ] AllowedClass
+- [ ] AutoBind
+- [ ] AutoBindGroup
+- [ ] AutoBindOrder
+- [ ] ShortcutTarget
+- [ ] ShortcutArguments
+- [ ] ShortcutWorkingDirectory
+- [ ] Function
+
+## D-3. Shortcut仕様確定
+
+- [ ] exe起動を対応
+- [ ] bat / cmd実行を対応
+- [ ] ps1を直接対応するか決める
+- [ ] Argumentsを対応するか決める
+- [ ] Working Directoryを対応するか決める
+- [ ] 既に起動済みの場合の挙動を決める
+- [ ] ファイル不存在時のエラー処理を決める
+
+## D-4. 設定エラー処理
+
+- [ ] 不正Mode
+- [ ] 存在しないKey
+- [ ] Shortcut Target不存在
+- [ ] Allowed条件矛盾
+- [ ] 同一物理キーの重複定義
+- [ ] 必須項目不足
+
+完了条件:
+- 起動時に設定を検証し、安全に失敗できる
+
+---
+
+# Phase E - 実装設計
+
+## E-1. ファイル構成確定
+
+候補:
+
+```text
+NumpadWindowController/
+├─ NumpadWindowController.ahk
+├─ KeyBindings.ini
+├─ lib/
+│  ├─ Config.ahk
+│  ├─ WindowRegistry.ahk
+│  ├─ AutoBind.ahk
+│  ├─ WindowActions.ahk
+│  ├─ ShortcutActions.ahk
+│  └─ Notifications.ahk
+├─ tests/
+└─ docs/
+```
+
+- [ ] 単一ファイル構成か分割構成か決定
+- [ ] 初期版で過剰分割しない方針を決める
+
+## E-2. Runtime Stateモデル
+
+- [ ] Key定義オブジェクト
+- [ ] Window Slot状態
+- [ ] HWND
+- [ ] BindingSource
+- [ ] Window metadata
+- [ ] Used HWND set
+
+をどう保持するか決める。
+
+## E-3. Logging方針
+
+- [ ] 通常利用ではログ不要か決める
+- [ ] Debug Modeを設けるか決める
+- [ ] Auto Bind結果を確認できる診断出力を用意するか決める
+
+---
+
+# Phase F - AutoHotkey v2実装
+
+## F-1. Skeleton
+
+- [ ] `#Requires AutoHotkey v2.0`
+- [ ] Single Instance設定
+- [ ] 設定ファイル読込
+- [ ] 起動時設定検証
+- [ ] Runtime State初期化
+
+## F-2. Hotkey登録
+
+- [ ] Window Modeの通常押下
+- [ ] `Ctrl + Key` Manual Bind
+- [ ] Auto Bind All
+- [ ] Slot Auto Bind
+- [ ] Slot Clear
+- [ ] Clear All
+- [ ] Function Mode
+- [ ] Shortcut Mode
+- [ ] Disabled Mode
+
+## F-3. Window基本操作
+
+- [ ] Active Window取得
+- [ ] HWND存在確認
+- [ ] Process / Class / Title取得
+- [ ] Minimized判定
+- [ ] Restore
+- [ ] Activate
+- [ ] Window候補列挙
+
+## F-4. Manual Bind
+
+- [ ] Window Mode確認
+- [ ] Allowed条件確認
+- [ ] 重複処理
+- [ ] HWND登録
+- [ ] BindingSource=Manual
+- [ ] 成功/失敗通知
+
+## F-5. Chrome Auto Bind
+
+- [ ] Chrome候補列挙
+- [ ] Monitor / Position / Size取得
+- [ ] 左上Chrome判定
+- [ ] 左下Chrome判定
+- [ ] 右大Chrome判定
+- [ ] 7/8/9へBinding
+- [ ] 4つ目以降を一般候補へ返す
+
+## F-6. VS Code Auto Bind
+
+- [ ] VS Code候補列挙
+- [ ] B-5で決めた方式で開いた順を判定
+- [ ] 4/5/6へBinding
+- [ ] 4つ目以降を一般候補へ返す
+
+## F-7. Explorer / ChatGPT / pwsh Auto Bind
+
+- [ ] Explorer判定
+- [ ] ChatGPT判定
+- [ ] pwsh判定
+- [ ] 1/2/3への割り当て
+
+## F-8. 一般Window Auto Bind
+
+- [ ] 残Window候補の整列
+- [ ] 残り任意Slotの列挙
+- [ ] 1 Window : 1 Slotを保証
+- [ ] Slot不足時の処理
+
+## F-9. Lazy Auto Bind
+
+- [ ] HWND無効検知
+- [ ] Slot単位再探索
+- [ ] 成功時Activate
+- [ ] 失敗時通知
+
+## F-10. Clear処理
+
+- [ ] Slot Clear
+- [ ] Clear All
+- [ ] Configurationを消さないことを確認
+
+## F-11. Shortcut実行
+
+- [ ] exe起動
+- [ ] bat/cmd実行
+- [ ] Arguments対応
+- [ ] Working Directory対応
+- [ ] 実行失敗通知
+
+## F-12. NumLock Function
+
+- [ ] A-1で確定した機能を実装
+
+---
+
+# Phase G - テスト
+
+## G-1. 設定読込テスト
+
+- [ ] 正常設定
+- [ ] 不正Mode
+- [ ] 不正Key
+- [ ] Shortcut不存在
+- [ ] 重複設定
+
+## G-2. Manual Bindテスト
+
+- [ ] Chrome -> 7/8/9 成功
+- [ ] VS Code -> 7/8/9 拒否
+- [ ] VS Code -> 4/5/6 成功
+- [ ] Chrome -> 4/5/6 拒否
+- [ ] ShortcutキーへのManual Bind拒否
+- [ ] DisabledキーへのManual Bind拒否
+
+## G-3. Chrome Auto Bindテスト
+
+- [ ] 1Window
+- [ ] 2Window
+- [ ] 3Window
+- [ ] 4Window以上
+- [ ] 左上/左下/右大の正しい割り当て
+- [ ] 数pxずれ
+- [ ] 最小化
+- [ ] 再起動後の再割り当て
+
+## G-4. VS Code Auto Bindテスト
+
+- [ ] 1Window
+- [ ] 2Window
+- [ ] 3Window
+- [ ] 4Window以上
+- [ ] 開いた順の正しい割り当て
+- [ ] VS Code再起動
+- [ ] Window Close後の再割り当て
+
+## G-5. 1/2/3テスト
+
+- [ ] Explorer
+- [ ] ChatGPTデスクトップ
+- [ ] pwsh
+- [ ] 対象アプリ不存在
+- [ ] 複数候補存在時
+
+## G-6. Shortcutテスト
+
+- [ ] exe
+- [ ] bat/cmd
+- [ ] Arguments
+- [ ] Working Directory
+- [ ] Target不存在
+- [ ] Window Binding対象から除外されること
+
+## G-7. Clear / Lazy Bindテスト
+
+- [ ] Slot Clear
+- [ ] Clear All
+- [ ] Clear後Auto Bind
+- [ ] HWND無効化後Lazy Auto Bind
+- [ ] Manual Bindとの優先関係
+
+## G-8. 長時間常駐テスト
+
+- [ ] 数時間常駐
+- [ ] Chromeのタブ変更
+- [ ] Window増減
+- [ ] Sleep / Resume
+- [ ] Explorer再起動
+- [ ] スクリプト再起動
+
+---
+
+# Phase H - 実機受入試験
+
+## H-1. 日常操作シナリオ
+
+- [ ] 7で左上Chromeへ移動
+- [ ] 8で左下Chromeへ移動
+- [ ] 9で右大Chromeへ移動
+- [ ] 4/5/6でVS Codeを開いた順に切り替え
+- [ ] 1でExplorer
+- [ ] 2でChatGPTデスクトップ
+- [ ] 3でpwsh
+- [ ] 0を任意WindowまたはShortcutとして設定して利用
+- [ ] 任意キーのShortcut実行
+- [ ] Manual Bindで一時的に割り当て変更
+- [ ] Clear / Auto Bindで復旧
+
+## H-2. 操作感確認
+
+- [ ] 誤操作しやすいキーがないか確認
+- [ ] Hotkeyが複雑すぎないか確認
+- [ ] ToolTip通知量が適切か確認
+- [ ] Auto Bindの再現性を確認
+- [ ] 日常的に手動再Bindingが必要にならないか確認
+
+完了条件:
+- 通常利用で追加操作なしに主要Windowへ安定して移動できる
+
+---
+
+# Phase I - 初期版完成処理
+
+- [ ] 実装結果を `docs/DESIGN_DRAFT.md` へ反映
+- [ ] Draft表記を見直す
+- [ ] READMEへインストール方法を追加
+- [ ] READMEへ設定例を追加
+- [ ] READMEへ操作一覧を追加
+- [ ] Known Limitationsを整理
+- [ ] サンプル `KeyBindings.ini` を追加
+- [ ] 必要ならLICENSEを追加
+- [ ] バージョン番号を決定
+- [ ] 初期リリース可否を判断
+
+---
+
+# 推奨する実行順
+
+大きな依存関係は次の通り。
+
+```text
+Phase A  残仕様確定
+   ↓
+Phase B  技術PoC
+   ↓
+Phase C  Auto Bindアルゴリズム確定
+   ↓
+Phase D  Configuration仕様確定
+   ↓
+Phase E  実装設計
+   ↓
+Phase F  本実装
+   ↓
+Phase G  機能テスト
+   ↓
+Phase H  実機受入試験
+   ↓
+Phase I  初期版完成処理
+```
+
+## 最優先タスク
+
+次に着手する順序は以下を推奨する。
+
+1. A-1 NumLock機能
+2. A-2 Manual / Auto Bind優先関係
+3. A-4 Numpad1/2/3の制約
+4. A-6 Auto Bind / Clear系Hotkey
+5. B-2 Chrome座標判定PoC
+6. B-5 VS Code「開いた順」PoC
+7. B-6〜B-8 Explorer / ChatGPT / pwsh識別PoC
+8. Phase C以降
+
+特にB-5は、VS Codeの「開いた順」という要件がWindowsから安定取得できるかを早期に確認する必要があるため、本実装前の重要な技術検証とする。
