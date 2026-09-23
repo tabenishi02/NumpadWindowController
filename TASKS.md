@@ -96,8 +96,10 @@ PoC手順: [Phase B PoC Guide](docs/PHASE_B_POC.md)
 - [x] **B-5 VS Code順序**
   - 起動前既存Windowの真のOpen順は復元不可
   - PID / Process Creation Timeは複数Windowで同一
-  - 実行中は500ms観測でFirst Observed Orderを正しく取得可能
-  - 起動前既存Windowは初回WinGetList順＋Manual補正をFallbackとする
+  - 厳密なOpen順はMVP要件としない
+  - Auto Bind時に未使用Code.exe候補をWinGetListの逆順で4→5→6へ割り当てる
+  - 常時監視 / Observation Sequenceは採用しない
+  - 順序差は許容し、必要時のみManual Bindで補正する
 - [x] **B-6 Explorer**
   - Process=`explorer.exe`
   - Class=`CabinetWClass`
@@ -116,7 +118,7 @@ Phase B Known Limitation:
 
 - Auto Bindをゼロから行う時、Minimized / Maximized Chromeは元の7/8/9位置を現在座標から判定しない。
 - すでにHWND Binding済みなら、その後にMinimize / MaximizeしてもBindingは維持する。
-- スクリプト起動前から存在する複数VS Code Windowの真のOpen順は保証しない。
+- VS Codeの真のOpen順は保証せず、簡易な逆列挙順を使用する。
 
 追加PoCはMVPには不要。次工程は **Phase C - Auto Bindアルゴリズム確定**。
 
