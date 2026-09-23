@@ -263,43 +263,33 @@ Multi Monitor自動追従はMVP後の拡張対象。
 
 ## 6.2 PoC実行中に順番に開いた場合
 
-500ms観測中に:
+500ms観測を行えば実Open順を取得できること自体は確認できた。
 
-1. CharacterPageCollector
-2. CodexMobileDashboard
-3. ComputerActivityArchive
+ただし、ユーザー要件ではVS Codeの厳密なOpen順に大きなこだわりはなく、順序精度のために常時監視を追加する必要はない。
 
-の順で開いた結果、Observation Sequenceも:
+## 6.3 MVP方式
 
-1. CharacterPageCollector
-2. CodexMobileDashboard
-3. ComputerActivityArchive
+MVPではVS Code専用の定期監視を採用しない。
 
-となり、実Open順と一致した。
+Auto Bind時だけ現在の `Code.exe` Windowを列挙し、次の単純な規則を使用する。
 
-## 6.3 Close / Reopen
+1. 有効な既存Bindingを維持する。
+2. すでに他SlotへBinding済みのHWNDを候補から除外する。
+3. 残った `Code.exe` Windowを `WinGetList` の列挙順から逆順にする。
+4. 空いている `Numpad4 → Numpad5 → Numpad6` の順で割り当てる。
+5. 4つ目以降はMVPでは自動割り当てしない。
 
-既存Windowを閉じ、新規Windowを開いた場合、新HWNDへ新しいObservation Sequence = 4 が付与された。
+実機PoCでは、起動前3Windowの `WinGetList` 順が実Open順の逆順になっていたため、この簡易規則で期待順と一致した。
 
-First Observed Order方式は実行中のWindow生成順追跡に利用できる。
+ただし、これは真のOpen順を保証する規則ではない。Z-order等により順序が異なる場合は許容し、必要な場合だけ `Ctrl + Numpad4 / 5 / 6` でManual Bindして補正する。
 
-## 6.4 MVP方式
+この方式では:
 
-従来の「常時Pollingなし」を一部変更する。
+- 500ms監視不要
+- Observation Sequence不要
+- PID / Process Creation Timeによる順序復元不要
 
-MVPではVS Code Windowだけを対象に、500ms間隔の軽量観測を行う。
-
-目的:
-
-- スクリプト起動後に開かれたVS Code WindowのOpen順を保持する。
-
-スクリプト起動時にすでに複数Windowが存在する場合:
-
-- 真のOpen順は復元しない。
-- 初回WinGetList順を暫定Observation Sequenceとして採用する。
-- 必要なら Ctrl + Numpad4 / 5 / 6 のManual Bindで補正する。
-
-Manual BindはAuto Bind Allで維持されるため、このFallbackでMVP利用可能と判断する。
+となり、MVP実装を単純化できる。
 
 ---
 
@@ -426,8 +416,10 @@ Chrome座標分類ではMinimized / Maximizedを新規分類対象外とする�
 
 ## 10.3 VS Code
 
-- 実行中Open順を得るため500ms観測を採用。
-- 起動前既存Windowの真のOpen順は保証しない。
+- VS Code専用の常時監視は採用しない。
+- Auto Bind時に `Code.exe` を列挙し、未使用候補を逆順にして空き4→5→6へ割り当てる。
+- 有効な既存Bindingは維持する。
+- 真のOpen順は保証しない。
 - Manual Bind補正を正式Fallbackとする。
 
 ## 10.4 Configuration追加要件
