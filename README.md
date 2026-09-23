@@ -6,8 +6,9 @@ AutoHotkey v2を利用し、テンキーの各キーに `Window / Shortcut / Fun
 
 ## 現在の段階
 
-現在は **初期設計中** です。実装はまだ開始していません。
+現在は **MVP設計レビュー段階** です。実装はまだ開始していません。
 
+- [MVP設計書](docs/MVP_DESIGN.md)
 - [暫定設計](docs/DESIGN_DRAFT.md)
 - [設計引き継ぎ](PROJECT_HANDOFF.md)
 - [実装タスク一覧](TASKS.md)
