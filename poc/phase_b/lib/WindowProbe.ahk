@@ -368,3 +368,8 @@ IsProcess(p, name) {
 IsCandidateProcess(p, name) {
     return p.candidate && IsProcess(p, name)
 }
+
+
+MakeResultTag() {
+    return A_Now "_" A_TickCount
+}
