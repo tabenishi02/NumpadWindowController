@@ -184,7 +184,7 @@ ShortcutまたはDisabledのキーは:
 | `4` | VSCode1 | Window | ON |
 | `5` | VSCode2 | Window | ON |
 | `6` | VSCode3 | Window | ON |
-| DEL / Backspace | 任意 | Window | OFF |
+| DEL / Backspace | 任意 | Disabled | OFF |
 | `1` | Explorer | Window | ON |
 | `2` | ChatGPT Desktop | Window | ON |
 | `3` | pwsh / Windows Terminal | Window | ON |
@@ -236,7 +236,7 @@ Disabled:
 
 ```text
 Key
-→ 何もしない
+→ Controller Hotkeyを登録せず、ネイティブ入力をそのまま通す
 ```
 
 ### 7.3 Manual Bind
@@ -245,13 +245,13 @@ Key
 Ctrl + Key
 ```
 
-現在アクティブなWindowを、そのキーへManual Bindする。
+Window Mode Keyに対して現在アクティブなWindowをManual Bindする。
 
-条件:
+Window ModeだけこのController Hotkeyを登録する。
 
-- KeyがWindow Modeであること。
-- 固定用途SlotではAllowed条件を満たすこと。
-- Shortcut / Disabledは拒否する。
+Shortcut Mode / DisabledではCtrl+KeyをController側で登録せず、Active Appへ通常入力として渡す。
+
+固定用途SlotではAllowed条件を満たすこと。
 
 ### 7.4 Slot Clear
 
@@ -868,17 +868,24 @@ Fatal Errorとしてスクリプトを終了する条件:
 
 ## 22. 起動処理
 
+詳細は `docs/PHASE_E_SPEC.md` を正とする。
+
 スクリプト起動時:
 
 1. Single Instanceを保証。
-2. NumLockをON固定。
-3. INIを読み込む。
+2. Built-in Metadataを生成。
+3. INIをRaw Read。
 4. 設定検証。
-5. Runtime Stateを初期化。
-6. Numpad0 / Virtual000入力判定器を初期化。
-7. Hotkeyを登録。
-8. Auto Bind Allを1回実行。
-10. 常駐開始。
+5. Config / Key Definitionを生成。
+6. 起動時NumLock状態を保存しOnExitを登録。
+7. NumLockをONへ設定。
+8. Runtime Stateを初期化。
+9. Numpad0 / Virtual000入力判定器を初期化。
+10. Hotkeyを登録。
+11. Auto Bind Allを1回実行。
+12. 常駐開始。
+
+Config Fatal Error時はNumLockやHotkeyを変更する前に終了する。
 
 Chrome / VS Code等がまだ起動していなくてもエラーにはしない。
 
@@ -934,6 +941,8 @@ MVPでAuto Bind対象にするWindowは:
 
 ## 25. ファイル構成
 
+詳細実装設計は `docs/PHASE_E_SPEC.md` を正とする。
+
 MVPは過剰に分割しない。
 
 ```text
@@ -948,7 +957,7 @@ NumpadWindowController/
    └─ MVP_DESIGN.md
 ```
 
-初期実装は `NumpadWindowController.ahk` 1ファイルにまとめる。
+初期実装は `NumpadWindowController.ahk` 1ファイルにまとめ、Config / Runtime / Input / Window Probe / Auto Bind / Actions / Notification / DebugをコメントSectionと関数Prefixで分離する。
 
 理由:
 
