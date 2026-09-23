@@ -6,166 +6,169 @@
 
 ## 1. プロジェクト概要
 
-一般的なUSBテンキーを、Windows上の複数ウィンドウへ直接切り替えるための専用コントローラーとして利用する。
+一般的なUSBテンキーを、Windows上の複数ウィンドウへ直接切り替えるためのコントローラーとして利用する。
 
-特に、同一アプリを複数ウィンドウで使用する環境を重視する。
-
-現在の主要ユースケース:
-
-- Chromeを基本3ウィンドウで使用
-- Chrome 3ウィンドウをテンキー `7 / 8 / 9` に1対1で割り当てる
-- VS Codeを複数プロジェクトで使用
-- VS Codeウィンドウを `4 / 5 / 6` に割り当てる
-- その他のテンキーキーにも任意のウィンドウを登録可能にする
-- 手動登録だけでなく、自動Bindingも行えるようにする
+現在は、Window切り替えだけでなく、キーごとにShortcutや特別機能も持てる設計へ拡張している。
 
 ## 2. 技術方針
 
 - Windows 11
 - AutoHotkey v2
 - 一般的なUSBテンキー
-- Windowの実行中識別はHWND
+- 実行中Window識別はHWND
 - HWNDは永続化しない
 - 永続ConfigurationとRuntime Bindingを分離する
 
-## 3. 現時点の重要な設計方針
+## 3. キー動作モデル
 
-### Window Slot
+各物理キーは次のいずれかのModeを持つ。
 
-テンキーの各物理キーをWindow Slotとして扱う。
+- Window
+- Shortcut
+- Function
+- Disabled
 
-Slotは以下を持つ想定:
+ShortcutキーはWindow Binding対象外。
 
-- Key
-- Label
-- Allowed条件
-- AutoBind設定
-- Priority Rule
-- HWND
-- BindingSource
+`000` は独立キーとして識別できず、Numpad0を3回送信するためDisabled。
 
-### 固定制約
-
-- `Numpad7 / 8 / 9` → Chromeのみ
-- `Numpad4 / 5 / 6` → VS Codeのみ
-- その他 → 初期案では任意
-
-### 手動Binding
+## 4. 現在の既定配置
 
 ```text
-Ctrl + NumpadX
+NumLock  /       *       -
+Function 任意    任意    任意
+
+7        8       9       +
+Chrome1  Chrome2 Chrome3 任意
+
+4        5       6       DEL
+VSCode1  VSCode2 VSCode3 任意
+
+1        2       3       Enter
+Explorer ChatGPT pwsh    任意
+
+0        000     .       Enter
+特別/任意 使用不可 任意   任意
 ```
 
-で、現在のアクティブウィンドウを対象Slotへ登録する。
+NumLockとNumpad0には特別機能を持たせる予定だが、具体的な機能は未確定。
 
-SlotのAllowed条件に違反する場合は登録拒否。
+物理DELキーはAutoHotkey上では `Backspace` として検出される。
 
-### 通常操作
+## 5. Auto Bind優先順位
+
+### Chrome
+
+最優先。
+
+優先3Windowのみ `7 / 8 / 9` へ割り当てる。
+
+- 7: 左上、画面幅約30% × 高さ約50%
+- 8: 左下、画面幅約30% × 高さ約50%
+- 9: 右側、画面幅約70% × 高さ100%
+
+Chrome Windowは基本的に重ならない運用を前提とする。
+
+4つ目以降のChromeは一般候補扱い。
+
+### VS Code
+
+Chromeの次に優先。
+
+優先3Windowのみ、開いた順番で:
+
+```text
+1番目 -> 4
+2番目 -> 5
+3番目 -> 6
+```
+
+VS Code Windowは重なる運用を前提とする。
+
+4つ目以降のVS Codeは一般候補扱い。
+
+## 6. その他の既定Window
+
+- 1: Explorer
+- 2: ChatGPTデスクトップ
+- 3: pwsh
+
+実装時にProcess/Class等の正確な判別条件を確認する。ChatGPTデスクトップのProcess名は現時点で推測して固定しない。
+
+## 7. Shortcut Mode
+
+設定ファイルからキーへShortcutを割り当て可能にする。
+
+用途:
+
+- アプリ起動
+- バッチファイル実行
+
+Shortcutが設定されたキーはWindow Binding対象から除外される。
+
+Windowキーへ戻す場合は設定ファイルを編集後、スクリプトを再起動する。
+
+## 8. 実機キー情報
+
+Key HistoryでVK / SC / AutoHotkey Key Nameを確認済み。
+
+詳細は `docs/DESIGN_DRAFT.md` の「実機で確認したAutoHotkeyキー情報」を参照。
+
+## 9. 手動Binding
+
+基本方針:
 
 ```text
 NumpadX
-```
-
-で登録済みウィンドウへ切り替える。
-
-最小化されていれば復元してActivateする。
-
-### Auto Bind
-
-Slotごとの条件とPriority Ruleを使用して、自動的にウィンドウをBindingする機能を持たせる。
-
-候補条件:
-
-- Process
-- Window Class
-- Title
-- Monitor
-- Position
-- Size
-- Z-order
-
-### Clear
-
-- 単一SlotのBinding解除
-- 全SlotのBinding解除
-
-の両方を持たせる。
-
-Configuration自体はClearしない。
-
-## 4. 操作ショートカットの状態
-
-以下のうち、基本方針として比較的強いもの:
-
-```text
-NumpadX
-  -> Slot XをActivate
+  -> Window ModeならBinding済みWindowをActivate
 
 Ctrl + NumpadX
-  -> 現在のWindowをSlot Xへ手動Bind
+  -> Window Modeなら現在Windowを手動Bind
 ```
 
-以下は暫定案であり、変更前提:
+Shortcut / Function / DisabledキーへのWindow Bindingは拒否する。
 
-```text
-Ctrl + Alt + NumpadX
-  -> Slot X Auto Bind
+Auto Bind / Clear系の最終Hotkeyは未確定。
 
-Ctrl + Shift + NumpadX
-  -> Slot X Clear
+## 10. 次回以降の主要論点
 
-Ctrl + Alt + NumpadEnter
-  -> Auto Bind All
+1. NumLockの特別機能
+2. Numpad0の特別機能
+3. Manual BindとAuto Bindの最終優先関係
+4. Chrome座標判定のTolerance
+5. マルチモニター時のChrome座標基準
+6. VS Codeの「開いた順番」を取得・保持する具体的方法
+7. Numpad1/2/3のAuto Bindをどこまで固定するか
+8. 一般候補の優先順位
+9. Auto Bind All / Clear等のHotkey
+10. Shortcutの引数・Working Directory等
+11. 設定ファイル形式
+12. GUIの必要性
 
-Ctrl + Alt + Shift + Numpad0
-  -> Clear All
-```
-
-## 5. 次回の議論で重要な点
-
-ユーザーは、現在の設計に変更したい点があると明示している。
-
-そのため、次回は実装へ進まず、まず変更要求を受けて暫定設計を更新する。
-
-特に確認・再設計候補:
-
-1. テンキー各キーの最終用途
-2. Hotkey体系
-3. Manual / Auto Bindingの優先順位
-4. Auto Bindのアルゴリズム
-5. Priority Ruleの表現
-6. Chrome 3ウィンドウの自動識別
-7. VS Codeのプロジェクト識別方法
-8. Clear Allの意味
-9. 設定保存方式
-10. GUIの必要性
-11. NumLock OFFへの対応
-12. 外付けテンキーのみを識別する必要性
-
-## 6. 次回開始時に読む資料
+## 11. 次回開始時に読む資料
 
 1. `PROJECT_HANDOFF.md`
 2. `docs/DESIGN_DRAFT.md`
 3. `README.md`
 
-## 7. 現在の段階
+## 12. 現在の段階
 
 ```text
 プロジェクト立ち上げ
   ↓
-初期ユースケース整理
+Window Slot方式
   ↓
-Window Slot方式を採用
+Chrome / VS Code制約
   ↓
-Chrome / VS Code制約を追加
+Auto Bind案
   ↓
-Auto Bind / Priority Rule案を追加
+実機テンキー調査
   ↓
-GitHubへ暫定設計を保存  ← 現在
+キーModeモデル導入
   ↓
-設計変更点の議論
+実機配置・Chrome/VS Code優先順位・Shortcut仕様反映  ← 現在
   ↓
-仕様確定
+残りの設計論点を確定
   ↓
 実装
 ```

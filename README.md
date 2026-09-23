@@ -1,15 +1,12 @@
 # Numpad Window Controller
 
-Windows上で、一般的なテンキーを「ウィンドウ直接切り替え用コントローラー」として利用するためのツールです。
+Windows上で、一般的なテンキーを「ウィンドウ直接切り替え＋ショートカット実行用コントローラー」として利用するためのツールです。
 
-AutoHotkey v2を利用し、テンキーの各キーを Window Slot として扱います。  
-各Slotには特定のウィンドウを割り当て、キーを1回押すだけでそのウィンドウを前面へ呼び出せる構成を目指します。
+AutoHotkey v2を利用し、テンキーの各キーに `Window / Shortcut / Function / Disabled` の動作種別を割り当てます。
 
 ## 現在の段階
 
 現在は **初期設計中** です。実装はまだ開始していません。
-
-これまでに検討した内容は以下にまとめています。
 
 - [暫定設計](docs/DESIGN_DRAFT.md)
 - [設計引き継ぎ](PROJECT_HANDOFF.md)
@@ -19,27 +16,40 @@ AutoHotkey v2を利用し、テンキーの各キーを Window Slot として扱
 
 ## 現時点の主要方針
 
-- Windows 11 を対象とする
-- AutoHotkey v2 を利用する
-- 一般的なUSBテンキーを利用可能にする
-- テンキーの数値キーだけでなく、演算キー等もWindow Slotとして利用可能にする
-- 通常押下で登録済みウィンドウへ切り替える
-- `Ctrl + テンキー` で現在のウィンドウを手動登録できるようにする
-- Slotごとに登録可能なアプリを制限できるようにする
-- `7 / 8 / 9` は Chrome 専用
-- `4 / 5 / 6` は VS Code 専用
-- ウィンドウの条件・優先順位から自動割り当てできるようにする
-- 全Bindingを解除する機能を持たせる
-- 設定と現在のHWND Bindingを分離する
+- Windows 11
+- AutoHotkey v2
+- 一般的なUSBテンキーを利用
+- 実機で確認したKey Name / VK / SCを設計資料に記録
+- キーごとに `Window / Shortcut / Function / Disabled` を設定
+- Shortcut設定キーはWindow Binding対象外
+- `000` キーは使用不可
+- `7 / 8 / 9` はChrome専用
+- Chrome優先3ウィンドウは画面上の座標で自動割り当て
+- `4 / 5 / 6` はVS Code専用
+- VS Code優先3ウィンドウは開いた順に自動割り当て
+- `1 / 2 / 3` の既定用途はExplorer / ChatGPTデスクトップ / pwsh
+- 4つ目以降のChrome / VS Codeは一般候補として扱う
+- HWNDはRuntime Bindingとして使用し、永続化しない
+- 全Window Bindingを解除する機能を持つ
+- Shortcutからアプリ起動やバッチファイル実行を行えるようにする
 
-## 想定用途
-
-例:
+## 既定キー配置
 
 ```text
-7 8 9  -> Chrome Window 1 / 2 / 3
-4 5 6  -> VS Code Window 1 / 2 / 3
-1 2 3  -> その他の任意ウィンドウ
+NumLock  /       *       -
+Function 任意    任意    任意
+
+7        8       9       +
+Chrome1  Chrome2 Chrome3 任意
+
+4        5       6       DEL
+VSCode1  VSCode2 VSCode3 任意
+
+1        2       3       Enter
+Explorer ChatGPT pwsh    任意
+
+0        000     .       Enter
+特別/任意 使用不可 任意   任意
 ```
 
 同じアプリを複数ウィンドウで使用する環境でも、個々のウィンドウへ直接ジャンプできることを主目的とします。
