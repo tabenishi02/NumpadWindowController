@@ -621,8 +621,10 @@ Target=C:\path\to\example.bat
 Mode=Function
 Function=TODO
 
-[Key-000]
-Mode=Disabled
+[Key-Virtual000]
+Mode=Window
+Label=Virtual 000
+AutoBind=false
 ```
 
 実際のフィールド名・ファイル形式は未確定。
