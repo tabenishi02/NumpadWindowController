@@ -30,7 +30,7 @@
 
 ShortcutキーはWindow Binding対象外。
 
-`000` は独立キーとして識別できず、Numpad0を3回送信するためDisabled。
+`000` は独立VK/SCを持たないが、高速なNumpad0 D-U×3をPoCで識別できたため、論理キー `Virtual000` として正式採用する。
 
 ## 4. 現在の既定配置
 
@@ -48,7 +48,7 @@ VSCode1  VSCode2 VSCode3 任意
 Explorer ChatGPT pwsh    任意
 
 0        000     .       Enter
-任意     使用不可 任意   任意
+任意     仮想キー 任意   任意
 ```
 
 NumLockには特別機能を持たせる予定。Numpad0は通常の任意キーとして扱う。
@@ -182,3 +182,8 @@ PoC
 ## 13. MVP設計レビュー
 
 `docs/MVP_DESIGN.md` に、最低限動作する v0.1 を実装するための仕様を具体化した。実装はこの設計書のレビュー後に開始する。
+
+
+## 14. Virtual000採用
+
+物理 `000` が生成する高速な `Numpad0` D-U×3を80ms判定窓で識別し、内部では `Virtual000` として扱う。通常の `Numpad0` と分離し、`Window / Shortcut / Disabled` を設定可能とする。PoCでは通常使用時に誤認識なく動作した。
