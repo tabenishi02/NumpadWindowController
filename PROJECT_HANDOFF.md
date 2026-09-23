@@ -154,12 +154,13 @@ PoC:
 ## 11. 次回開始時に読む資料
 
 1. `PROJECT_HANDOFF.md`
-2. `docs/PHASE_A_SPEC.md`
-3. `docs/PHASE_B_POC.md`
-4. `docs/MVP_DESIGN.md`
-5. `TASKS.md`
-6. `docs/DESIGN_DRAFT.md`
-7. `README.md`
+2. `docs/PHASE_B_RESULT.md`
+3. `docs/PHASE_A_SPEC.md`
+4. `docs/PHASE_B_POC.md`
+5. `docs/MVP_DESIGN.md`
+6. `TASKS.md`
+7. `docs/DESIGN_DRAFT.md`
+8. `README.md`
 
 ## 12. 現在の段階
 
@@ -184,9 +185,9 @@ Phase A 残仕様確定             ← 完了
   ↓
 Phase B PoC実装                 ← 完了
   ↓
-Phase B 実機結果評価              ← 次
+Phase B 実機結果評価             ← 完了
   ↓
-Phase C以降
+Phase C Auto Bind設計            ← 次
   ↓
 実装
 ```
@@ -225,8 +226,8 @@ Phase C以降
 - Chrome通常3Windowと再起動後は現Thresholdで7/8/9を識別可能
 - Chrome座標基準はPrimary Monitor Work Area
 - Minimized / Maximized Chromeは新規座標分類対象外
-- VS CodeはCode.exe Windowを500ms観測して実行中Open順を保持
-- 起動前VS Codeの真のOpen順は復元せずManual補正
+- VS Codeは常時監視せず、Auto Bind時に未使用Code.exe候補をWinGetListの逆順で4→5→6へ割り当てる
+- 真のOpen順は保証せず、必要な場合だけManual補正
 - Explorer = explorer.exe + CabinetWClass
 - ChatGPT Desktop = ChatGPT.exe
 - PowerShell 7 = WindowsTerminal.exe + CASCADIA_HOSTING_WINDOW_CLASS + Title contains "PowerShell 7"
