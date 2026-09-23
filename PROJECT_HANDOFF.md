@@ -2,7 +2,7 @@
 
 更新日: 2026-09-23  
 対象: NumpadWindowController  
-状態: Phase B PoC実装完了 / 実機結果待ち / 本体実装前
+状態: Phase B完了 / Phase C設計前 / 本体実装前
 
 ## 1. プロジェクト概要
 
@@ -216,3 +216,18 @@ Phase C以降
 - Ctrl+Shift+Key = Slot Clear
 - Ctrl+Alt+Key = 個別Auto Bind
 - Virtual000も通常論理キーと同一の操作体系
+
+
+## 16. Phase B確定事項
+
+詳細は `docs/PHASE_B_RESULT.md`。
+
+- Chrome通常3Windowと再起動後は現Thresholdで7/8/9を識別可能
+- Chrome座標基準はPrimary Monitor Work Area
+- Minimized / Maximized Chromeは新規座標分類対象外
+- VS CodeはCode.exe Windowを500ms観測して実行中Open順を保持
+- 起動前VS Codeの真のOpen順は復元せずManual補正
+- Explorer = explorer.exe + CabinetWClass
+- ChatGPT Desktop = ChatGPT.exe
+- PowerShell 7 = WindowsTerminal.exe + CASCADIA_HOSTING_WINDOW_CLASS + Title contains "PowerShell 7"
+- Phase Dへ AllowedTitleContains を追加
