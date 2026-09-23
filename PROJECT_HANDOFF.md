@@ -2,7 +2,7 @@
 
 更新日: 2026-09-23  
 対象: NumpadWindowController  
-状態: Phase B完了 / Phase C設計前 / 本体実装前
+状態: Phase C完了 / Phase D設計前 / 本体実装前
 
 ## 1. プロジェクト概要
 
@@ -154,8 +154,9 @@ PoC:
 ## 11. 次回開始時に読む資料
 
 1. `PROJECT_HANDOFF.md`
-2. `docs/PHASE_B_RESULT.md`
-3. `docs/PHASE_A_SPEC.md`
+2. `docs/PHASE_C_SPEC.md`
+3. `docs/PHASE_B_RESULT.md`
+4. `docs/PHASE_A_SPEC.md`
 4. `docs/PHASE_B_POC.md`
 5. `docs/MVP_DESIGN.md`
 6. `TASKS.md`
@@ -232,3 +233,19 @@ Phase C Auto Bind設計            ← 次
 - ChatGPT Desktop = ChatGPT.exe
 - PowerShell 7 = WindowsTerminal.exe + CASCADIA_HOSTING_WINDOW_CLASS + Title contains "PowerShell 7"
 - Phase Dへ AllowedTitleContains を追加
+
+
+## 17. Phase C確定事項
+
+詳細は `docs/PHASE_C_SPEC.md`。
+
+- Auto Bindは専用Slot 1～9だけ
+- 任意SlotはManual専用で一般Window Auto Bindなし
+- NumLockは有効Manual / Auto Bindingを維持して欠損だけ補修
+- 完全再構築は Ctrl+NumLock → NumLock
+- Chromeは新規割り当て時だけ座標判定
+- VS Codeは未使用候補を逆列挙順で空き4→5→6へ補充
+- 4つ目以降のChrome / VS CodeはAuto Bindしない
+- Lazy Auto BindはGroup / Slot単位の空Slot補充
+- Lazy失敗時はNone + ToolTip、Background Retryなし
+- Used HWND SetとCommit前検証で1 HWND : 1 Slotを保証
