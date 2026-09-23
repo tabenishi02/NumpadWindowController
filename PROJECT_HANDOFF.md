@@ -2,7 +2,7 @@
 
 更新日: 2026-09-23  
 対象: NumpadWindowController  
-状態: MVP設計レビュー / 実装前
+状態: Phase A完了 / Phase B技術検証前 / 実装前
 
 ## 1. プロジェクト概要
 
@@ -132,25 +132,26 @@ Auto Bind / Clear系の最終Hotkeyは未確定。
 
 ## 10. 次回以降の主要論点
 
-1. NumLockの特別機能
-2. Manual BindとAuto Bindの最終優先関係
-3. Chrome座標判定のTolerance
-4. マルチモニター時のChrome座標基準
-5. VS Codeの「開いた順番」を取得・保持する具体的方法
-6. Numpad1/2/3のAuto Bindをどこまで固定するか
-7. 一般候補の優先順位
-8. Auto Bind All / Clear等のHotkey
-9. Shortcutの引数・Working Directory等
-10. 設定ファイル形式
-11. GUIの必要性
+Phase Aは完了済み。次はPhase Bの技術検証を行う。
+
+1. 可視トップレベルWindow列挙
+2. Chrome座標・サイズ識別
+3. Chrome判定Tolerance
+4. Primary Monitor / Work Area基準の検証
+5. VS Code First Observed Orderの実現性
+6. Explorer通常Windowの識別
+7. ChatGPT DesktopのProcess / Class確認
+8. PowerShell系Terminalの識別
+9. 非表示 / Tool Window等の除外条件
 
 ## 11. 次回開始時に読む資料
 
 1. `PROJECT_HANDOFF.md`
-2. `docs/MVP_DESIGN.md`
-3. `docs/DESIGN_DRAFT.md`
+2. `docs/PHASE_A_SPEC.md`
+3. `docs/MVP_DESIGN.md`
 4. `TASKS.md`
-5. `README.md`
+5. `docs/DESIGN_DRAFT.md`
+6. `README.md`
 
 ## 12. 現在の段階
 
@@ -171,9 +172,11 @@ Auto Bind案
   ↓
 実装タスク一覧を作成            ← 現在
   ↓
-残りの設計論点を確定
+Phase A 残仕様確定             ← 完了
   ↓
-PoC
+Phase B Window識別技術検証      ← 次
+  ↓
+Phase C以降
   ↓
 実装
 ```
@@ -187,3 +190,19 @@ PoC
 ## 14. Virtual000採用
 
 物理 `000` が生成する高速な `Numpad0` D-U×3を80ms判定窓で識別し、内部では `Virtual000` として扱う。通常の `Numpad0` と分離し、`Window / Shortcut / Disabled` を設定可能とする。PoCでは通常使用時に誤認識なく動作した。
+
+
+## 15. Phase A確定事項
+
+詳細は `docs/PHASE_A_SPEC.md`。
+
+- NumLock = Auto Bind All
+- Ctrl+NumLock = Clear All
+- Manual > Auto > None
+- 1 HWND : 1 Slot
+- 1/2/3 = Explorer / ChatGPT Desktop / PowerShell系Terminal専用
+- 任意キー `/ * - + DEL 0 000 . Enter` は初期Window / AutoBind OFF
+- Ctrl+Key = Manual Bind
+- Ctrl+Shift+Key = Slot Clear
+- Ctrl+Alt+Key = 個別Auto Bind
+- Virtual000も通常論理キーと同一の操作体系
