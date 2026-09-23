@@ -2,7 +2,7 @@
 
 更新日: 2026-09-23  
 対象: NumpadWindowController  
-状態: Phase A完了 / Phase B技術検証前 / 実装前
+状態: Phase B PoC実装完了 / 実機結果待ち / 本体実装前
 
 ## 1. プロジェクト概要
 
@@ -138,26 +138,28 @@ Phase Aで以下を確定済み:
 
 ## 10. 次回以降の主要論点
 
-Phase Aは完了済み。次はPhase Bの技術検証を行う。
+Phase BのPoCコードはすべて作成済み。現在は実機結果待ち。
 
-1. 可視トップレベルWindow列挙
-2. Chrome座標・サイズ識別
-3. Chrome判定Tolerance
-4. Primary Monitor / Work Area基準の検証
-5. VS Code First Observed Orderの実現性
-6. Explorer通常Windowの識別
-7. ChatGPT DesktopのProcess / Class確認
-8. PowerShell系Terminalの識別
-9. 非表示 / Tool Window等の除外条件
+PoC:
+
+1. B1 Window Enumeration
+2. B2-B4 Chrome / Monitor Layout
+3. B5 VS Code Observation Order
+4. B6-B8 Explorer / ChatGPT / PowerShell系Terminal
+
+詳細実行手順は `docs/PHASE_B_POC.md`。
+
+実機結果をまとめて受領後、`docs/PHASE_B_RESULT.md` を作成して識別仕様を確定する。
 
 ## 11. 次回開始時に読む資料
 
 1. `PROJECT_HANDOFF.md`
 2. `docs/PHASE_A_SPEC.md`
-3. `docs/MVP_DESIGN.md`
-4. `TASKS.md`
-5. `docs/DESIGN_DRAFT.md`
-6. `README.md`
+3. `docs/PHASE_B_POC.md`
+4. `docs/MVP_DESIGN.md`
+5. `TASKS.md`
+6. `docs/DESIGN_DRAFT.md`
+7. `README.md`
 
 ## 12. 現在の段階
 
@@ -180,7 +182,9 @@ Auto Bind案
   ↓
 Phase A 残仕様確定             ← 完了
   ↓
-Phase B Window識別技術検証      ← 次
+Phase B PoC実装                 ← 完了
+  ↓
+Phase B 実機結果評価              ← 次
   ↓
 Phase C以降
   ↓
