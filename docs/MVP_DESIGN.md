@@ -757,6 +757,8 @@ Shortcutは「既存Windowを探す」のではなく、設定されたTargetを
 
 ## 20. 設定ファイル
 
+詳細仕様は `docs/PHASE_D_SPEC.md` を正とする。
+
 MVPはINIを採用する。
 
 理由:
@@ -772,16 +774,21 @@ MVPはINIを採用する。
 KeyBindings.ini
 ```
 
+Scriptと同じDirectoryに配置し、`[General] ConfigVersion=1` を必須とする。
+
+EncodingはUTF-16 LE with BOMを正規形式とする。
+
 ### 20.1 Window Keyの設定項目
 
 - Mode
 - Label
 - AllowedProcess
 - AllowedClass
-- AutoBind
-- AutoBindGroup
+- AllowedTitleContains
 
-必要のない項目は空欄可。
+Allowed条件は必要なければ空欄可。
+
+`AutoBind / AutoBindGroup / AutoBindOrder` はKeyごとのBuilt-in Metadataとしてコード側で固定し、INIへ持たせない。
 
 ### 20.2 Shortcut Keyの設定項目
 
@@ -797,18 +804,28 @@ KeyBindings.ini
 [Key-Virtual000]
 Mode=Window
 Label=Virtual 000
-AutoBind=false
+AllowedProcess=
+AllowedClass=
+AllowedTitleContains=
 ```
 
 Shortcutとして利用する場合も、通常キーと同様に `Mode=Shortcut` と `Target` 等を設定する。
 
-### 20.4 Reserved Key
+### 20.4 Backspace / 物理DEL
+
+物理DELは通常キーボードの `Backspace` と区別できないため、標準Configでは `Mode=Disabled` とする。
+
+DisabledではController Hotkeyを登録せず、ネイティブBackspace入力を維持する。
+
+明示的にWindow / Shortcutへ変更した場合は、通常キーボードBackspaceも同じActionを発火するため起動時Warningを表示する。
+
+### 20.5 Reserved Key
 
 NumLockはINIから変更不可とする。
 
 MVPではGlobal Function Keyとして固定する。
 
-### 20.5 設定変更
+### 20.6 設定変更
 
 INIを編集した後はスクリプトを再起動する。
 
@@ -822,14 +839,18 @@ Hot Reloadは行わない。
 
 Fatal Errorとしてスクリプトを終了する条件:
 
-- 未知のKey Section
+- Configファイル不存在
+- ConfigVersion不正
+- 未知 / 不足 / 重複Key Section
+- 未知 / 重複Field
 - 不正なMode
 - 必須設定不足
-- Chrome専用Slotの制約が破壊されている
-- VS Code専用Slotの制約が破壊されている
-- 同じ物理Keyの重複定義
-
-Shortcut Targetが存在しない場合もMVPではFatal Errorとする。
+- ModeとFieldの組み合わせ違反
+- Chrome / VS Code専用SlotのAllowed条件不整合
+- 1 / 2 / 3の必須Allowed条件不足
+- Numpad0 / Virtual000のMode制約違反
+- Shortcut Target解決失敗 / 不存在
+- Shortcut WorkingDirectory不存在
 
 理由:
 
