@@ -6,7 +6,7 @@ AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Short
 
 ## 現在の段階
 
-現在は **Phase D完了 / Phase E実装設計前** です。本体実装はまだ開始していません。
+現在は **Phase E完了 / Phase F本実装前** です。本体実装はまだ開始していません。
 
 - [MVP設計書](docs/MVP_DESIGN.md)
 - [Phase A仕様](docs/PHASE_A_SPEC.md)
@@ -14,6 +14,7 @@ AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Short
 - [Phase B結果](docs/PHASE_B_RESULT.md)
 - [Phase C仕様](docs/PHASE_C_SPEC.md)
 - [Phase D仕様](docs/PHASE_D_SPEC.md)
+- [Phase E仕様](docs/PHASE_E_SPEC.md)
 - [暫定設計](docs/DESIGN_DRAFT.md)
 - [設計引き継ぎ](PROJECT_HANDOFF.md)
 - [実装タスク一覧](TASKS.md)
@@ -40,7 +41,9 @@ AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Short
 - HWNDはRuntime Bindingとして使用し、永続化しない
 - Auto Bindは専用Slot 1～9の欠損補修のみ。任意SlotはManual専用
 - ConfigはKeyBindings.ini（INI / ConfigVersion=1）。Auto Bind Groupはコード側固定
+- MVP本体は単一AHKファイル。内部を責務Section / Prefix関数で分離
 - 物理DELは通常Backspaceと区別できないため標準Disabled
+- 通常利用では永続ログなし。必要時のみDebug Log
 - 全Window Bindingを解除する機能を持つ
 - Shortcutからアプリ起動やバッチファイル実行を行えるようにする
 
