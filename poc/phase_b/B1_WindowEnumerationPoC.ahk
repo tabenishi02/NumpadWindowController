@@ -3,7 +3,7 @@
 #Include %A_ScriptDir%\lib\WindowProbe.ahk
 
 resultDir := EnsureResultDir()
-resultFile := resultDir "\B1_windows.tsv"
+resultFile := resultDir "\B1_windows_" MakeResultTag() ".tsv"
 
 windows := ProbeAllWindows()
 WriteWindowSnapshot(resultFile, windows)
