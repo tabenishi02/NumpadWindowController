@@ -4,7 +4,7 @@ Persistent()
 #Include %A_ScriptDir%\lib\WindowProbe.ahk
 
 global gResultDir := EnsureResultDir()
-global gResultFile := gResultDir "\B5_vscode_order.tsv"
+global gResultFile := gResultDir "\B5_vscode_order_" MakeResultTag() ".tsv"
 global gSeen := Map()
 global gSequence := 0
 global gInitialScan := true
