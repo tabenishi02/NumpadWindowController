@@ -5,16 +5,9 @@
 
 ## 1. 目的
 
-一般的な安価なUSBテンキーを、Windows上のウィンドウを直接呼び出すための専用コントローラーとして利用する。
+一般的なUSBテンキーを、Windows上のウィンドウを直接呼び出すための専用コントローラーとして利用する。
 
-単純な「アプリ切り替え」ではなく、同じアプリを複数ウィンドウで使用している場合でも、特定のウィンドウとテンキーの物理キーを1対1で対応させられることを重視する。
-
-主な想定例:
-
-- Chromeを常時3ウィンドウで使用し、それぞれを `7 / 8 / 9` から直接呼び出す
-- VS Codeを複数プロジェクトで開き、それぞれを `4 / 5 / 6` から直接呼び出す
-- その他のテンキーキーにも任意のウィンドウを割り当てる
-- 毎回の手動登録を減らすため、条件と優先順位による自動割り当てを行う
+同じアプリを複数ウィンドウで使用する場合でも、特定のウィンドウとテンキーの物理キーを1対1で対応させる。また、ウィンドウ切り替えだけでなく、設定ファイルからショートカット実行や特別機能をキーへ割り当てられる構造とする。
 
 ---
 
@@ -22,677 +15,698 @@
 
 - OS: Windows 11
 - 実装候補: AutoHotkey v2
-- 入力デバイス: 一般的なUSBテンキー
-- 初期版では NumLock ON を前提とする
+- 入力デバイス: 現在使用しているUSBテンキー
+- 実行中ウィンドウの識別: HWND
+- 永続設定とRuntime Stateを分離する
 
-専用マクロデバイスや専用ドライバを必須としない。
+専用マクロデバイスや専用ドライバは初期版では必須としない。
 
 ---
 
-## 3. 基本概念
+## 3. キー動作モデル
 
-### 3.1 Window Slot
+追加仕様により、テンキーの各物理キーをすべて単純な Window Slot とみなす方式は採用しない。
 
-テンキーの各物理キーを `Window Slot` として扱う。
+各キーは設定上、次のいずれかの動作種別を持つ。
 
-各Slotは、単なるHWNDの保存先ではなく、以下の情報を持つ。
+| Mode | 意味 |
+|---|---|
+| Window | ウィンドウをBindingし、通常押下でActivateする |
+| Shortcut | プログラム起動やバッチファイル呼び出しを行う |
+| Function | Numpad Window Controller固有の特別機能を実行する |
+| Disabled | 使用しない |
+
+### 3.1 排他性
+
+1つの物理キーは同時に複数Modeを持たない。
+
+特に `Shortcut` が設定されたキーは Window Binding対象から除外する。
+
+```text
+Shortcut設定あり
+  ↓
+Window Binding対象外
+  ↓
+通常押下でShortcutを実行
+```
+
+Shortcutキーを再びWindowキーとして使う場合は、設定ファイルを編集してModeまたはShortcut設定を変更し、スクリプトを再起動する。
+
+---
+
+## 4. 実機テンキー配置
+
+現在使用しているテンキーの物理配置と既定用途は次の通り。
+
+| キー | 割り当て | キー | 割り当て | キー | 割り当て | キー | 割り当て |
+|---|---|---|---|---|---|---|---|
+| NumLock | 機能キー | `/` | 任意 | `*` | 任意 | `-` | 任意 |
+| `7` | Chrome1 | `8` | Chrome2 | `9` | Chrome3 | `+` | 任意 |
+| `4` | VSCode1 | `5` | VSCode2 | `6` | VSCode3 | DEL | 任意 |
+| `1` | エクスプローラー | `2` | ChatGPTデスクトップ | `3` | pwsh | Enter | 任意 |
+| `0` | 任意 / 特別機能あり | `000` | 使用不可 | `.` | 任意 | Enter | 任意 |
+
+注記:
+
+- Enterキーは物理的に縦2行分の大きさで、`1 / 2 / 3` の行と `0 / 000 / .` の行にまたがる。
+- NumLockキーには特別な機能を持たせる予定。
+- `0` キーにも特別な機能を持たせる予定。
+- NumLockと`0`の具体的な特別機能は現時点では未確定。
+- `000` キーはNumpad0を3回送信するだけなので、独立キーとして識別できず、本システムでは使用不可とする。
+- 物理DELキーはAutoHotkey上では `Backspace` として検出される。
+
+---
+
+## 5. 実機で確認したAutoHotkeyキー情報
+
+Key Historyで確認した値を実機情報として記録する。
+
+| 物理キー | VK | SC | AutoHotkey Key |
+|---|---:|---:|---|
+| NumLock | 90 | 145 | NumLock |
+| `/` | 6F | 135 | NumpadDiv |
+| `*` | 6A | 037 | NumpadMult |
+| `-` | 6D | 04A | NumpadSub |
+| `7` | 67 | 047 | Numpad7 |
+| `8` | 68 | 048 | Numpad8 |
+| `9` | 69 | 049 | Numpad9 |
+| `+` | 6B | 04E | NumpadAdd |
+| `4` | 64 | 04B | Numpad4 |
+| `5` | 65 | 04C | Numpad5 |
+| `6` | 66 | 04D | Numpad6 |
+| DEL | 08 | 00E | Backspace |
+| `1` | 61 | 04F | Numpad1 |
+| `2` | 62 | 050 | Numpad2 |
+| `3` | 63 | 051 | Numpad3 |
+| `0` | 60 | 052 | Numpad0 |
+| `.` | 6E | 053 | NumpadDot |
+| Enter | 0D | 11C | NumpadEnter |
+
+### 5.1 000キー
+
+`000` キーは独自のVK/SCを持たず、`Numpad0` のDown/Upを3回発生させる。
+
+したがって、通常の `0` キーと確実に区別できる独立キーとしては扱わない。
+
+### 5.2 通常キーボード側の四則計算キー参考値
+
+実機調査時の参考情報として記録する。
+
+| VK | SC | Key |
+|---:|---:|---|
+| BB | 027 | `;` |
+| BD | 00C | `-` |
+| BA | 028 | `:` |
+| BF | 035 | `/` |
+
+これらはテンキー側の `NumpadDiv / NumpadSub` 等とは別キーとして扱える。
+
+---
+
+## 6. Window Mode
+
+Window ModeのキーにはWindow Slotを持たせる。
+
+各Window Slotは以下を持つ。
 
 - Key
 - Label
-- 登録可能なウィンドウ条件
-- Auto Bindの可否
-- Auto Bind時の優先条件
+- Allowed条件
+- AutoBind設定
+- Auto Bind優先条件
 - 現在BindingされているHWND
 - BindingSource
   - Manual
   - Auto
   - None
 
-概念例:
+例:
 
 ```text
-Slot 7
-  Key: Numpad7
-  Label: Chrome 1
-  AllowedProcess: chrome.exe
-  AutoBind: true
-  PriorityRules: ...
-  HWND: ...
-  BindingSource: Auto / Manual / None
+Key: Numpad7
+Mode: Window
+Label: Chrome 1
+AllowedProcess: chrome.exe
+AutoBind: true
+HWND: ...
+BindingSource: Auto / Manual / None
 ```
 
 ---
 
-## 4. 初期Slot方針
+## 7. 既定Window割り当て制約
 
-数値キーだけでなく、一般的なテンキーに存在する演算キー等も利用可能な構造とする。
+### 7.1 Chrome
 
-| 物理キー | Slot | 初期限界 |
-|---|---|---|
-| Numpad7 | 7 | Chromeのみ |
-| Numpad8 | 8 | Chromeのみ |
-| Numpad9 | 9 | Chromeのみ |
-| Numpad4 | 4 | VS Codeのみ |
-| Numpad5 | 5 | VS Codeのみ |
-| Numpad6 | 6 | VS Codeのみ |
-| Numpad1 | 1 | 任意 |
-| Numpad2 | 2 | 任意 |
-| Numpad3 | 3 | 任意 |
-| Numpad0 | 0 | 任意 |
-| NumpadDot | Dot | 任意 |
-| NumpadDiv | Divide | 任意 |
-| NumpadMult | Multiply | 任意 |
-| NumpadSub | Subtract | 任意 |
-| NumpadAdd | Add | 任意 |
-| NumpadEnter | Enter | 任意 |
-
-この表は初期案であり、今後変更可能とする。
-
----
-
-## 5. 固定アプリ制約
-
-### 5.1 Chrome
-
-`Numpad7 / 8 / 9` は必ず Google Chrome のウィンドウのみを受け付ける。
-
-想定条件:
+`Numpad7 / Numpad8 / Numpad9` はChrome専用とする。
 
 ```text
 AllowedProcess = chrome.exe
 ```
 
-Chrome以外のウィンドウを手動登録しようとした場合は拒否する。
+Chrome以外を手動Bindingしようとした場合は拒否する。
 
-### 5.2 VS Code
+### 7.2 VS Code
 
-`Numpad4 / 5 / 6` は必ず Visual Studio Code のウィンドウのみを受け付ける。
-
-想定条件:
+`Numpad4 / Numpad5 / Numpad6` はVS Code専用とする。
 
 ```text
 AllowedProcess = Code.exe
 ```
 
-VS Code以外のウィンドウを手動登録しようとした場合は拒否する。
+VS Code以外を手動Bindingしようとした場合は拒否する。
 
-### 5.3 その他
+### 7.3 Numpad1
 
-`0 / 1 / 2 / 3 / Dot / Divide / Multiply / Subtract / Add / Enter` は、初期案では任意のウィンドウを登録可能とする。
+既定用途はWindows エクスプローラー。
 
-将来的にはSlotごとに個別制約を設定できる構造とする。
+実装時には対象ウィンドウの実際のProcess/Classを確認してAllowed条件を確定する。
+
+### 7.4 Numpad2
+
+既定用途はChatGPTデスクトップアプリ。
+
+実装時に実際のProcess/Classを確認してAllowed条件を確定する。現時点ではプロセス名を推測して固定しない。
+
+### 7.5 Numpad3
+
+既定用途はPowerShell 7 (`pwsh`)。
+
+実装時にTerminal Hostとの関係も含めて、Window判別条件を確定する。
+
+### 7.6 任意キー
+
+`NumpadDiv / NumpadMult / NumpadSub / NumpadAdd / Backspace / Numpad0 / NumpadDot / NumpadEnter` は、特別機能やShortcutが設定されていない場合、任意Window用として利用可能とする。
 
 ---
 
-## 6. 手動Binding
+## 8. 手動Binding
 
-全Slotで同じ基本操作体系を採用する。
+Window Modeのキーでは、基本操作を以下とする。
 
-### 6.1 通常押下
+### 8.1 通常押下
 
 ```text
 NumpadX
 ```
 
-Slot X にBindingされているウィンドウを前面へ移動する。
+対象SlotにBindingされているWindowを前面へ移動する。
 
 処理:
 
 ```text
 キー押下
   ↓
-SlotのHWNDを取得
+Modeを確認
   ↓
-HWNDが現在も有効か確認
+Window ModeならHWND取得
   ↓
-Slot制約に適合するウィンドウか再確認
+HWNDが有効か確認
+  ↓
+Allowed条件を再確認
   ↓
 最小化されていれば復元
   ↓
-前面へActivate
+Activate
 ```
 
-### 6.2 手動登録
+### 8.2 手動登録
 
 ```text
 Ctrl + NumpadX
 ```
 
-現在アクティブなウィンドウをSlot Xへ登録する。
+現在アクティブなWindowを対象Slotへ登録する。
 
-登録前に必ずSlot制約を検証する。
+- 対象キーがWindow Modeであること
+- Allowed条件に適合すること
 
-例:
+を必ず検証する。
 
-- `Ctrl + Numpad7` でChrome → 登録可能
-- `Ctrl + Numpad7` でVS Code → 登録拒否
-- `Ctrl + Numpad4` でVS Code → 登録可能
-- `Ctrl + Numpad4` でChrome → 登録拒否
+Shortcut / Function / Disabledキーに対するWindow Bindingは拒否する。
 
-### 6.3 BindingSource
-
-手動登録された場合:
+### 8.3 BindingSource
 
 ```text
-BindingSource = Manual
+Manual
+Auto
+None
 ```
 
-自動登録された場合:
-
-```text
-BindingSource = Auto
-```
-
-未登録:
-
-```text
-BindingSource = None
-```
+をRuntime Stateとして保持する。
 
 ---
 
-## 7. HWNDによるRuntime Binding
+## 9. HWNDとRuntime State
 
-実行中のウィンドウ識別には HWND を利用する。
+一度BindingされたWindowはHWNDで追跡する。
 
 利点:
 
-- Chromeの現在のタブタイトルが変化しても、同じChromeウィンドウを追跡できる
-- VS Codeのタイトルが多少変化しても、一度Bindingした後は同じウィンドウを直接Activateできる
+- Chromeのタブタイトルが変わっても同じWindowを維持できる
+- VS Codeのタイトル変化の影響を受けにくい
 
-ただしHWNDはプロセス・ウィンドウの再生成で変化するため、永続的な識別子としては利用しない。
+ただしHWNDは再起動等で変化するため永続化しない。
 
----
-
-## 8. 設定とRuntime Stateの分離
-
-### 8.1 永続化するConfiguration
+### 永続Configuration
 
 例:
 
 ```text
-Slot 7
-  AllowedProcess = chrome.exe
-  PriorityRules = ...
-  Label = Chrome 1
+Key = Numpad7
+Mode = Window
+AllowedProcess = chrome.exe
+AutoBind = true
+Priority = ...
 ```
 
-### 8.2 永続化しないRuntime State
+### Runtime State
 
 例:
 
 ```text
-Slot 7
-  HWND = 123456
-  BindingSource = Auto
-```
-
-PC再起動や対象アプリ再起動後は、保存済みConfigurationを利用して新しいHWNDを再探索する。
-
----
-
-## 9. 重複Binding
-
-原則として、同一ウィンドウを複数Slotへ同時Bindingしない。
-
-例:
-
-```text
-Slot 7 -> Chrome A
-```
-
-の状態でChrome AをSlot 8へ手動登録した場合、初期案では:
-
-```text
-Slot 7 -> Empty
-Slot 8 -> Chrome A
-```
-
-とする。
-
-自動Bindingでも、1つのウィンドウが複数Slotの候補として選ばれないよう、確定済みウィンドウを候補から除外する。
-
-この挙動は今後再検討可能。
-
----
-
-## 10. Auto Bind
-
-手作業で毎回ウィンドウを登録する負担を減らすため、自動Binding機能を持たせる。
-
-### 10.1 基本処理
-
-```text
-Windows上の対象ウィンドウ一覧を取得
-  ↓
-SlotのAllowed条件に適合するウィンドウを抽出
-  ↓
-Priority Ruleで候補を評価
-  ↓
-最上位候補を選択
-  ↓
-重複を避けてSlotへBinding
-```
-
-### 10.2 Manual Bindの優先
-
-初期案では、有効なManual BindはAuto Bindより優先する。
-
-例:
-
-```text
-Slot 7 = Auto
-Slot 8 = Manual
-Slot 9 = Auto
-```
-
-Auto Bind Allを実行しても、Slot 8のManual Bindが有効な限り上書きしない。
-
----
-
-## 11. Priority Rule
-
-Auto Bindでは、複数候補から対象を選ぶため優先条件を設定できるようにする。
-
-利用候補:
-
-- Process
-- Window Class
-- Window Title
-- Monitor
-- Window Position
-- Window Size
-- Z-order
-
-優先条件は複数段階設定可能とする。
-
-例:
-
-```text
-Slot 7
-  AllowedProcess = chrome.exe
-
-  Priority:
-    1. Title contains "ChatGPT"
-    2. Monitor = 1
-    3. Position = Left
-    4. Window order
-```
-
-基本思想:
-
-```text
-具体的な条件
-  ↓
-一致しなければ次の条件
-  ↓
-Fallback条件
+HWND = 123456
+BindingSource = Auto
 ```
 
 ---
 
-## 12. Chromeの自動割り当て
+## 10. 重複Binding
 
-Chromeは通常、現在表示しているタブによってウィンドウタイトルが変化する。
+原則として、同一Windowを複数のWindow Slotへ同時Bindingしない。
 
-そのためChromeの永続的なウィンドウ識別を、タイトルだけに依存させない。
+手動Bindingで既存SlotのWindowを別Slotへ移した場合は、旧Slotを空にする案を維持する。
 
-Auto Bind候補として以下を組み合わせる。
+Auto Bindでは、一度確定したWindowを後続Slotの候補から除外する。
 
-- `chrome.exe`
-- Monitor
-- Window Position
-- Title
-- Window Size
-- その他Windowsから得られる安定情報
-
-一度Bindingされた後はHWNDを使用するため、タブタイトルが変化してもBindingは維持できる。
-
-### 制約
-
-複数Chromeウィンドウが以下のすべてで区別不能な場合:
-
-- 同一プロセス種別
-- 同一モニター
-- 同一または近い位置
-- タイトルが可変
-- その他の安定した識別情報がない
-
-再起動後に「以前のChrome 1」を完全自動で復元することは保証できない。
-
-その場合はPriority Ruleの設計を調整する。
+この細部は今後再検討可能。
 
 ---
 
-## 13. VS Codeの自動割り当て
+## 11. Auto Bindの全体優先順位
 
-VS Codeはウィンドウタイトルにプロジェクト名・フォルダ名が含まれることが多いため、ChromeよりタイトルベースのPriority Ruleを利用しやすい。
+Auto Bindではアプリ種別ごとに優先度を持たせる。
 
-例:
+現時点の優先順位:
+
+1. Chromeの優先3Window → `7 / 8 / 9`
+2. VS Codeの優先3Window → `4 / 5 / 6`
+3. その他のWindow候補
+4. 4つ目以降のChrome / VS Codeは「その他」と同列
+
+したがって、ChromeやVS Codeが4Window以上存在しても、4つ目以降に専用優先Slotは与えない。
+
+---
+
+## 12. Chrome Auto Bind
+
+Chromeは他アプリより先にAuto Bindする。
+
+ただし、専用優先対象は3Windowまでで、対象キーは `7 / 8 / 9` のみ。
+
+Chrome各Windowは基本的に重ならない運用を前提とし、画面上の座標と占有領域で割り当てる。
+
+### 12.1 Numpad7 / Chrome1
+
+優先対象:
+
+- 画面左側
+- 左から右へ約30%
+- 上から下へ約50%
+- 左上の小Window
+
+概念:
 
 ```text
-Slot 4
-  AllowedProcess = Code.exe
-  Priority 1 = Title contains "ImagePromptComposer"
-
-Slot 5
-  AllowedProcess = Code.exe
-  Priority 1 = Title contains "DanbooruArtistCollector"
-
-Slot 6
-  AllowedProcess = Code.exe
-  Priority 1 = Title contains "RunLog"
+┌───────────────┬──────────────────────────────┐
+│ Chrome1       │                              │
+│ 約30% x 50%   │                              │
+├───────────────┤                              │
+│               │                              │
+└───────────────┴──────────────────────────────┘
 ```
 
-ただし、プロジェクト名による固定割り当てを最終仕様とするかは未確定。
+### 12.2 Numpad8 / Chrome2
+
+優先対象:
+
+- 画面左側
+- 左から右へ約30%
+- 下から上へ約50%
+- 左下の小Window
+
+### 12.3 Numpad9 / Chrome3
+
+優先対象:
+
+- 画面右側
+- 右から左へ約70%
+- 上から下へ100%
+- 右側の大Window
+
+### 12.4 座標判定
+
+厳密なピクセル一致ではなく、許容幅を持つ位置・サイズ判定とする。
+
+具体的なToleranceは実装前に確定する。
+
+### 12.5 Chromeが4Window以上ある場合
+
+4つ目以降のChromeはChrome専用優先割り当てから外し、その他アプリと同列の一般候補として扱う。
 
 ---
 
-## 14. Lazy Auto Bind
+## 13. VS Code Auto Bind
 
-登録済みHWNDが無効になった場合、単に失敗するのではなく、そのSlotだけAuto Bindを再実行できる設計とする。
+VS CodeはChromeの次に優先してAuto Bindする。
 
-例:
+専用優先対象は3Windowまでで、対象キーは `4 / 5 / 6` のみ。
+
+VS CodeはWindow同士が重なる運用を前提とし、座標ではなく「開いた順番」を優先順位として利用する。
 
 ```text
-Numpad7
+最初に開いたVS Code  -> Numpad4
+次に開いたVS Code    -> Numpad5
+3番目に開いたVS Code -> Numpad6
+```
+
+### 13.1 「開いた順番」の取得
+
+Windows/AutoHotkeyから安定して取得可能な情報で、起動・生成順をどのように再現するかは実装前に検証する。
+
+取得方法が複数ある場合でも、設計上の要求は「ユーザーが開いた順番を4→5→6へ反映すること」とする。
+
+### 13.2 VS Codeが4Window以上ある場合
+
+4つ目以降のVS CodeはVS Code専用優先割り当てから外し、その他アプリと同列の一般候補として扱う。
+
+---
+
+## 14. その他WindowのAuto Bind
+
+Chrome優先3WindowとVS Code優先3Windowを確定した後、残りのWindow Modeキーに対して一般候補を割り当てる。
+
+一般候補には以下も含まれる。
+
+- Explorer
+- ChatGPTデスクトップ
+- pwsh
+- その他アプリ
+- 4つ目以降のChrome
+- 4つ目以降のVS Code
+
+Numpad1/2/3の既定固定用途との優先関係、および一般候補の並び順は今後詳細化する。
+
+---
+
+## 15. Lazy Auto Bind
+
+Window Modeのキーを押した際、登録HWNDが無効なら、そのSlotだけAuto Bindを再評価できる構造とする。
+
+```text
+キー押下
   ↓
-Slot 7のHWNDが無効
+HWND無効
   ↓
-Slot 7 Auto Bind
+対象SlotをAuto Bind
   ↓
-Priority RuleによりChrome候補を探索
-  ↓
-新HWNDを登録
+新しいHWNDを取得
   ↓
 Activate
 ```
 
-これによりChromeやVS Codeを再起動した後でも、ユーザーが再登録操作を意識する必要を減らす。
+---
+
+## 16. Auto Bind All
+
+全Window ModeキーのAuto Bindを一括再評価する機能を持たせる。
+
+基本処理:
+
+1. 実行中Windowを列挙
+2. Shortcut / Function / Disabledキーを除外
+3. 有効なManual Bindの扱いを確認
+4. Chrome優先3Windowを7/8/9へ割り当て
+5. VS Code優先3Windowを4/5/6へ割り当て
+6. 残りのWindow候補を処理
+7. 重複を避けて確定
+8. 結果を通知
+
+Auto Bind Allの最終Hotkeyは未確定。
 
 ---
 
-## 15. Auto Bind All
+## 17. Clear
 
-全Auto Bind対象Slotを一括で再評価する機能を持たせる。
+### 17.1 Slot Clear
 
-初期ショートカット案:
+単一Window SlotのRuntime Bindingを解除する機能を持つ。
 
-```text
-Ctrl + Alt + NumpadEnter
-```
+Shortcut / Function / DisabledキーにはWindow Bindingがないため対象外。
 
-想定処理:
+### 17.2 Clear All
 
-1. 全ウィンドウ取得
-2. 有効なManual Bindを固定
-3. Auto Bind対象Slotを順に評価
-4. Slot制約で候補抽出
-5. Priority Ruleで候補を決定
-6. 重複を避けて割り当て
-7. 結果を一時表示
+すべてのWindow SlotのRuntime Bindingを解除する。
 
-このショートカット自体は未確定。
-
----
-
-## 16. Slot Clear / Clear All
-
-### 16.1 単一Slot Clear
-
-初期ショートカット案:
+削除対象:
 
 ```text
-Ctrl + Shift + NumpadX
+HWND
+BindingSource
 ```
 
-対象SlotのRuntime Bindingだけを削除する。
+削除しないもの:
 
-### 16.2 Clear All
-
-全SlotのRuntime Bindingを解除する機能を持たせる。
-
-初期ショートカット案:
-
-```text
-Ctrl + Alt + Shift + Numpad0
-```
-
-実行後:
-
-```text
-HWND = Empty
-BindingSource = None
-```
-
-とする。
-
-以下は削除しない:
-
-- AllowedProcess
-- PriorityRules
+- Mode
+- Allowed条件
+- Priority設定
+- Shortcut設定
+- Function設定
 - Label
 - AutoBind設定
 
-したがって:
+したがって、Clear All後にAuto Bind Allを実行してConfigurationから再構築できる。
 
-```text
-Clear All
-  ↓
-全Slot未登録
-  ↓
-Auto Bind All
-  ↓
-Configurationから再構築
-```
-
-が可能。
-
-このショートカット自体は未確定。
+最終Hotkeyは未確定。
 
 ---
 
-## 17. 個別Auto Bind
+## 18. Shortcut Mode
 
-各Slotのみを自動再割り当てする操作も持たせる案。
+各キーには設定ファイルからShortcutを割り当てられる。
 
-初期ショートカット案:
+用途:
+
+- アプリケーションやウィンドウを起動する
+- バッチファイルを実行する
+- その他、設定された実行対象を呼び出す
+
+### 18.1 Window Bindingとの排他
+
+Shortcutが設定されたキーはWindowを開くキーの対象から除外する。
+
+つまり:
 
 ```text
-Ctrl + Alt + NumpadX
+Mode = Shortcut
+  ↓
+Manual Bind不可
+Auto Bind対象外
+Window Activate対象外
+  ↓
+通常押下でShortcut実行
 ```
 
-この操作体系は未確定。
+### 18.2 設定変更
+
+ShortcutキーをWindowキーへ変更する場合:
+
+1. 設定ファイルの該当キーを編集
+2. Shortcut設定を削除またはModeをWindowへ変更
+3. スクリプトを再起動
+
+初期版では設定変更のHot Reloadを必須としない。
+
+### 18.3 設定例
+
+具体的な設定形式は未確定だが、概念例:
+
+```ini
+[Key-NumpadDiv]
+Mode=Shortcut
+Target=C:\path\to\example.bat
+```
+
+または:
+
+```ini
+[Key-NumpadDiv]
+Mode=Shortcut
+Target=C:\Program Files\Example\Example.exe
+```
+
+引数・Working Directory等を持たせるかは今後検討する。
 
 ---
 
-## 18. 状態通知
+## 19. Function Mode
+
+NumLock、およびNumpad0には特別な機能を持たせる予定。
+
+現時点では具体的な機能内容が未決定であるため、設定・実装では予約領域として扱う。
+
+`000` はFunction Modeにも利用しない。
+
+---
+
+## 20. 状態通知
 
 常設GUIは初期版では必須としない。
 
-登録・失敗・解除等はAutoHotkeyの一時的なToolTip等で通知する案。
+以下の操作結果をToolTip等で通知する案を維持する。
 
-例:
-
-```text
-Chrome Slot 7 registered
-```
-
-```text
-Slot 7 accepts only Google Chrome
-```
-
-```text
-Slot 8 is empty
-```
-
-Auto Bind Allでは結果一覧を一時表示する案もある。
+- Manual Bind成功
+- Allowed条件違反
+- Slot未登録
+- Auto Bind結果
+- Clear結果
+- Shortcut実行失敗
 
 ---
 
-## 19. 設定ファイル
+## 21. 設定ファイル
 
-スクリプト本体にSlot設定を書き散らさず、Configurationを外部ファイルへ分離する方針。
+スクリプト本体とキー設定を分離する。
 
-初期構成案:
+構成案:
 
 ```text
 NumpadWindowController/
 ├─ NumpadWindowController.ahk
-├─ WindowSlots.ini
+├─ KeyBindings.ini
 └─ docs/
 ```
 
-設定例:
+従来案の `WindowSlots.ini` より、Shortcut / Function / Disabledも含められる `KeyBindings.ini` の方が現在の設計には適する。
+
+概念例:
 
 ```ini
-[Slot7]
-Key=Numpad7
+[Key-Numpad7]
+Mode=Window
 Label=Chrome 1
 AllowedProcess=chrome.exe
 AutoBind=true
+AutoBindGroup=Chrome
+AutoBindOrder=1
 
-[Slot8]
-Key=Numpad8
-Label=Chrome 2
-AllowedProcess=chrome.exe
-AutoBind=true
-
-[Slot9]
-Key=Numpad9
-Label=Chrome 3
-AllowedProcess=chrome.exe
-AutoBind=true
-
-[Slot4]
-Key=Numpad4
+[Key-Numpad4]
+Mode=Window
 Label=VSCode 1
 AllowedProcess=Code.exe
 AutoBind=true
+AutoBindGroup=VSCode
+AutoBindOrder=1
+
+[Key-Numpad1]
+Mode=Window
+Label=Explorer
+AutoBind=true
+
+[Key-NumpadDiv]
+Mode=Shortcut
+Target=C:\path\to\example.bat
+
+[Key-NumLock]
+Mode=Function
+Function=TODO
+
+[Key-000]
+Mode=Disabled
 ```
 
-Priority Ruleの実際の表現形式は未確定。
+実際のフィールド名・ファイル形式は未確定。
 
 ---
 
-## 20. 起動時Auto Bind
-
-将来的にはWindowsログイン時等にAutoHotkeyスクリプトを起動し、Auto Bindを行えるようにする。
-
-ただしスクリプト起動時点ではChromeやVS Codeがまだ起動していない可能性がある。
-
-そのため初期案では:
-
-```text
-起動時Auto Bind
-+
-空Slot・無効Slot使用時のLazy Auto Bind
-```
-
-を併用する。
-
-常時ポーリングは必須としない。
-
----
-
-## 21. 外付けテンキー固有の制約
+## 22. 外付けテンキー固有の制約
 
 一般的なUSBテンキーは、AutoHotkeyから通常キーボードのテンキーと区別できない場合がある。
 
-例えば:
+初期版ではこの制約を受け入れる。
 
-```text
-外付けテンキー Numpad7
-```
-
-と
-
-```text
-メインキーボード Numpad7
-```
-
-が同じ入力として扱われる可能性がある。
-
-初期版ではテンキー入力をウィンドウ操作へ使う前提とする。
-
-将来的に外付けテンキーだけを識別する必要が生じた場合は、AutoHotInterception等の追加手段を検討する。ただし専用ドライバ等の依存が増えるため、初期採用はしない。
-
----
-
-## 22. 現時点の操作案
-
-| 操作 | 動作 | 状態 |
-|---|---|---|
-| `NumpadX` | Slot XをActivate | 方針採用 |
-| `Ctrl + NumpadX` | 現Windowを手動Bind | 方針採用 |
-| `Ctrl + Alt + NumpadX` | Slot XをAuto Bind | 暫定案 |
-| `Ctrl + Shift + NumpadX` | Slot XをClear | 暫定案 |
-| `Ctrl + Alt + NumpadEnter` | Auto Bind All | 暫定案 |
-| `Ctrl + Alt + Shift + Numpad0` | Clear All | 暫定案 |
-
-ショートカット体系は今後の設計議論で変更可能。
+必要になった場合のみAutoHotInterception等を検討する。
 
 ---
 
 ## 23. 現時点で比較的強く決まっている事項
 
-- テンキー全体を汎用Window Slotとして設計する
-- 同一アプリの複数ウィンドウを個別Slotへ割り当て可能にする
-- `Ctrl + Numpadキー` による手動登録を基本操作とする
-- `7 / 8 / 9` はChrome以外を拒否する
-- `4 / 5 / 6` はVS Code以外を拒否する
-- 手動登録でもSlot制約を必ず検証する
-- HWNDはRuntime Bindingとして使う
-- HWND自体は永続化しない
+- AutoHotkey v2を使用する
+- 実機テンキーのKey Name / VK / SCは本書の測定値を基準とする
+- キーは `Window / Shortcut / Function / Disabled` のModeを持つ
+- ShortcutキーはWindow Binding対象外
+- `000` はDisabled
+- `7 / 8 / 9` はChrome専用
+- Chrome優先3Windowは座標で7/8/9へ割り当てる
+- ChromeはAuto Bindで最優先
+- 4つ目以降のChromeは一般候補へ回す
+- `4 / 5 / 6` はVS Code専用
+- VS Code優先3Windowは開いた順に4/5/6へ割り当てる
+- VS CodeはChromeの次にAuto Bindする
+- 4つ目以降のVS Codeは一般候補へ回す
+- `1 / 2 / 3` の既定用途はExplorer / ChatGPTデスクトップ / pwsh
+- HWNDはRuntime Bindingとして利用し、永続化しない
 - ConfigurationとRuntime Stateを分離する
-- 自動Binding機能を持たせる
-- Priority RuleによってAuto Bind候補を選べるようにする
-- 全Bindingを空にする機能を持たせる
+- 全Window BindingをClearする機能を持つ
 
 ---
 
 ## 24. 未確定・再検討予定
 
-ユーザーから「変更してほしい設計がある」と明示されているため、この資料を最終仕様とは扱わない。
-
-特に以下は次回以降の論点候補:
-
-1. 各テンキーキーの最終役割
-2. `Ctrl / Alt / Shift` を使った操作体系
-3. Manual BindをAuto Bindより必ず優先するか
-4. 重複Bindingを全面禁止するか
-5. Auto BindのSlot評価順序
-6. Priority Ruleの具体的な評価方式
-7. Chrome 3ウィンドウを安定して自動識別する方法
-8. VS Codeをプロジェクト名で固定するか、汎用的な手動・自動Slotとして扱うか
-9. Clear All時の挙動
-10. 設定ファイル形式
-11. GUIを作るか、設定ファイル＋Hotkeyだけにするか
-12. NumLock OFF時の扱い
-13. 外付けテンキーと通常キーボードのテンキーを区別する必要があるか
+1. NumLockの特別機能
+2. Numpad0の特別機能
+3. Manual BindとAuto Bindの最終優先関係
+4. 同一Windowの重複Binding時の細部
+5. Chrome座標判定のTolerance
+6. マルチモニター時のChrome座標基準
+7. VS Codeの「開いた順番」を取得・保持する具体的方法
+8. Numpad1/2/3のAuto Bindをどこまで固定するか
+9. 4つ目以降のChrome/VS Codeを含む一般候補の優先順位
+10. Auto Bind All / Clear / Slot Clear等のHotkey
+11. Shortcutの引数・Working Directory・表示方法
+12. 設定ファイルの最終形式
+13. GUIの必要性
+14. NumLock状態そのものをどう扱うか
+15. 外付けテンキーと通常キーボードを区別する必要性
 
 ---
 
-## 25. 実装前提
-
-この段階では実装を開始しない。
-
-未確定項目を設計議論で整理した後に、以下の順で進める想定:
+## 25. 実装前の進行順
 
 ```text
-Slotモデル確定
+実機キー情報確認             完了
+  ↓
+キーModeモデル整理           今回反映
+  ↓
+既定キー配置                 今回反映
+  ↓
+Chrome Auto Bind方針         今回反映
+  ↓
+VS Code Auto Bind方針        今回反映
+  ↓
+Shortcut Mode方針            今回反映
+  ↓
+未確定の特別機能を検討
+  ↓
+Manual / Auto優先関係確定
+  ↓
+一般Window Auto Bind確定
   ↓
 Hotkey体系確定
-  ↓
-Window条件モデル確定
-  ↓
-Priority Rule確定
-  ↓
-Auto Bindアルゴリズム確定
   ↓
 設定形式確定
   ↓
 AutoHotkey v2実装
   ↓
-実機テンキーで検証
+実機検証
 ```
