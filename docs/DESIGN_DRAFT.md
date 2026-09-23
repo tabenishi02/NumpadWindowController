@@ -64,14 +64,12 @@ Shortcutキーを再びWindowキーとして使う場合は、設定ファイル
 | `7` | Chrome1 | `8` | Chrome2 | `9` | Chrome3 | `+` | 任意 |
 | `4` | VSCode1 | `5` | VSCode2 | `6` | VSCode3 | DEL | 任意 |
 | `1` | エクスプローラー | `2` | ChatGPTデスクトップ | `3` | pwsh | Enter | 任意 |
-| `0` | 任意 / 特別機能あり | `000` | 使用不可 | `.` | 任意 | Enter | 任意 |
+| `0` | 任意 | `000` | 使用不可 | `.` | 任意 | Enter | 任意 |
 
 注記:
 
 - Enterキーは物理的に縦2行分の大きさで、`1 / 2 / 3` の行と `0 / 000 / .` の行にまたがる。
 - NumLockキーには特別な機能を持たせる予定。
-- `0` キーにも特別な機能を持たせる予定。
-- NumLockと`0`の具体的な特別機能は現時点では未確定。
 - `000` キーはNumpad0を3回送信するだけなので、独立キーとして識別できず、本システムでは使用不可とする。
 - 物理DELキーはAutoHotkey上では `Backspace` として検出される。
 
@@ -551,9 +549,11 @@ Target=C:\Program Files\Example\Example.exe
 
 ## 19. Function Mode
 
-NumLock、およびNumpad0には特別な機能を持たせる予定。
+NumLockにはNumpad Window Controller固有の特別機能を持たせる予定。
 
-現時点では具体的な機能内容が未決定であるため、設定・実装では予約領域として扱う。
+Numpad0は通常の任意キーとして扱い、WindowまたはShortcutの割り当て対象にできる。
+
+NumLockの具体的な機能内容は未決定であるため、設定・実装では予約領域として扱う。
 
 `000` はFunction Modeにも利用しない。
 
@@ -664,20 +664,19 @@ Mode=Disabled
 ## 24. 未確定・再検討予定
 
 1. NumLockの特別機能
-2. Numpad0の特別機能
-3. Manual BindとAuto Bindの最終優先関係
-4. 同一Windowの重複Binding時の細部
-5. Chrome座標判定のTolerance
-6. マルチモニター時のChrome座標基準
-7. VS Codeの「開いた順番」を取得・保持する具体的方法
-8. Numpad1/2/3のAuto Bindをどこまで固定するか
-9. 4つ目以降のChrome/VS Codeを含む一般候補の優先順位
-10. Auto Bind All / Clear / Slot Clear等のHotkey
-11. Shortcutの引数・Working Directory・表示方法
-12. 設定ファイルの最終形式
-13. GUIの必要性
-14. NumLock状態そのものをどう扱うか
-15. 外付けテンキーと通常キーボードを区別する必要性
+2. Manual BindとAuto Bindの最終優先関係
+3. 同一Windowの重複Binding時の細部
+4. Chrome座標判定のTolerance
+5. マルチモニター時のChrome座標基準
+6. VS Codeの「開いた順番」を取得・保持する具体的方法
+7. Numpad1/2/3のAuto Bindをどこまで固定するか
+8. 4つ目以降のChrome/VS Codeを含む一般候補の優先順位
+9. Auto Bind All / Clear / Slot Clear等のHotkey
+10. Shortcutの引数・Working Directory・表示方法
+11. 設定ファイルの最終形式
+12. GUIの必要性
+13. NumLock状態そのものをどう扱うか
+14. 外付けテンキーと通常キーボードを区別する必要性
 
 ---
 
