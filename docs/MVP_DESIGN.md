@@ -5,8 +5,8 @@
 状態: Review Required  
 実装状態: 未実装
 
-> この文書は、まず最低限動作する初期版を実装するために、これまで未確定だった仕様を具体化した設計書である。
-> 実装は本書のレビュー完了後に開始する。
+> この文書は、まず最低限動作する初期版を実装するための全体設計書である。
+> Phase Aの詳細仕様は `docs/PHASE_A_SPEC.md` を正とし、実装は設計レビュー完了後に開始する。
 
 ---
 
@@ -1057,19 +1057,24 @@ MVPの実機運用後、必要性が確認できたものだけ追加する。
 
 ## 31. 実装開始前のレビュー項目
 
-本書レビューでは特に以下を確認する。
+Phase Aに属する以下は採用済み仕様とする。
 
-1. NumLockをAuto Bind Allにしてよいか。
-2. NumLockをON固定してよいか。
-3. Ctrl+NumLockをClear Allにしてよいか。
-4. 任意キーをAuto BindせずManual専用にしてよいか。
-5. Manual BindをAutoより優先してよいか。
-6. Chrome判定をPrimary Monitor座標方式にしてよいか。
-7. VS CodeをFirst Observed Order + Manual補正としてよいか。
-8. 4つ目以降のChrome / VS CodeをMVPでは手動割り当てにしてよいか。
-9. 1/2/3を専用Slotとして制限してよいか。
-10. INI設定＋スクリプト再起動方式でよいか。
-11. 初期実装を単一AHKファイルにしてよいか。
-12. **採用済み:** 000は `Virtual000` として正式採用し、Numpad0には最大約80msの判定遅延を許容する。
+1. **採用済み:** NumLock = Auto Bind All。
+2. **採用済み:** 実行中はNumLockをON固定し、正常終了時に起動前状態へ戻す。
+3. **採用済み:** Ctrl+NumLock = Clear All。
+4. **採用済み:** 任意キーは標準でWindow / AutoBind=OFF。
+5. **採用済み:** Manual BindをAuto Bindより常に優先。
+6. **採用済み:** 1/2/3をExplorer / ChatGPT Desktop / PowerShell系Terminal専用Slotとする。
+7. **採用済み:** 1 HWND : 1 Slot。
+8. **採用済み:** Ctrl+Alt+Key = 個別Auto Bind。
+9. **採用済み:** 000は `Virtual000` として正式採用し、Numpad0には最大約80msの判定遅延を許容する。
 
-この12点に問題がなければ、MVP実装へ進める。
+引き続きレビュー対象:
+
+10. Chrome判定をPrimary Monitor座標方式にする。
+11. VS CodeをFirst Observed Order + Manual補正とする。
+12. 4つ目以降のChrome / VS CodeをMVPでは手動割り当てにする。
+13. INI設定＋スクリプト再起動方式とする。
+14. 初期実装を単一AHKファイルにする。
+
+Phase B以降の技術検証結果に問題があれば該当項目を改訂する。
