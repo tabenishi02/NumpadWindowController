@@ -6,13 +6,14 @@ AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Short
 
 ## 現在の段階
 
-現在は **Phase C完了 / Phase D Configuration設計前** です。本体実装はまだ開始していません。
+現在は **Phase D完了 / Phase E実装設計前** です。本体実装はまだ開始していません。
 
 - [MVP設計書](docs/MVP_DESIGN.md)
 - [Phase A仕様](docs/PHASE_A_SPEC.md)
 - [Phase B PoC手順](docs/PHASE_B_POC.md)
 - [Phase B結果](docs/PHASE_B_RESULT.md)
 - [Phase C仕様](docs/PHASE_C_SPEC.md)
+- [Phase D仕様](docs/PHASE_D_SPEC.md)
 - [暫定設計](docs/DESIGN_DRAFT.md)
 - [設計引き継ぎ](PROJECT_HANDOFF.md)
 - [実装タスク一覧](TASKS.md)
@@ -38,6 +39,8 @@ AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Short
 - 4つ目以降のChrome / VS Codeは自動割り当てせず、必要な場合だけ任意SlotへManual Bind
 - HWNDはRuntime Bindingとして使用し、永続化しない
 - Auto Bindは専用Slot 1～9の欠損補修のみ。任意SlotはManual専用
+- ConfigはKeyBindings.ini（INI / ConfigVersion=1）。Auto Bind Groupはコード側固定
+- 物理DELは通常Backspaceと区別できないため標準Disabled
 - 全Window Bindingを解除する機能を持つ
 - Shortcutからアプリ起動やバッチファイル実行を行えるようにする
 
@@ -51,7 +54,7 @@ Function 任意    任意    任意
 Chrome1  Chrome2 Chrome3 任意
 
 4        5       6       DEL
-VSCode1  VSCode2 VSCode3 任意
+VSCode1  VSCode2 VSCode3 Disabled
 
 1        2       3       Enter
 Explorer ChatGPT pwsh    任意
