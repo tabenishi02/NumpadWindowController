@@ -2,16 +2,17 @@
 
 Windows上で、一般的なテンキーを「ウィンドウ直接切り替え＋ショートカット実行用コントローラー」として利用するためのツールです。
 
-AutoHotkey v2を利用し、テンキーの各キーに `Window / Shortcut / Function / Disabled` の動作種別を割り当てます。
+AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Shortcut / Disabled` の動作種別を割り当てます。NumLockは予約Global Function Keyとして扱います。
 
 ## 現在の段階
 
-現在は **Phase B実機検証完了 / Phase C設計前** です。本体実装はまだ開始していません。
+現在は **Phase C完了 / Phase D Configuration設計前** です。本体実装はまだ開始していません。
 
 - [MVP設計書](docs/MVP_DESIGN.md)
 - [Phase A仕様](docs/PHASE_A_SPEC.md)
 - [Phase B PoC手順](docs/PHASE_B_POC.md)
 - [Phase B結果](docs/PHASE_B_RESULT.md)
+- [Phase C仕様](docs/PHASE_C_SPEC.md)
 - [暫定設計](docs/DESIGN_DRAFT.md)
 - [設計引き継ぎ](PROJECT_HANDOFF.md)
 - [実装タスク一覧](TASKS.md)
@@ -26,16 +27,17 @@ AutoHotkey v2を利用し、テンキーの各キーに `Window / Shortcut / Fun
 - AutoHotkey v2
 - 一般的なUSBテンキーを利用
 - 実機で確認したKey Name / VK / SCを設計資料に記録
-- キーごとに `Window / Shortcut / Function / Disabled` を設定
+- 設定可能キーは `Window / Shortcut / Disabled`。NumLockは予約Global Function
 - Shortcut設定キーはWindow Binding対象外
 - `000` キーは高速な `Numpad0` D-U×3を検出し、仮想キー `Virtual000` として利用
 - `7 / 8 / 9` はChrome専用
 - Chrome優先3ウィンドウは画面上の座標で自動割り当て
 - `4 / 5 / 6` はVS Code専用
-- VS Code優先3ウィンドウは開いた順に自動割り当て
+- VS Code優先3ウィンドウは未使用候補を逆列挙順で4→5→6へ簡易自動割り当て
 - `1 / 2 / 3` の既定用途はExplorer / ChatGPTデスクトップ / pwsh
-- 4つ目以降のChrome / VS Codeは一般候補として扱う
+- 4つ目以降のChrome / VS Codeは自動割り当てせず、必要な場合だけ任意SlotへManual Bind
 - HWNDはRuntime Bindingとして使用し、永続化しない
+- Auto Bindは専用Slot 1～9の欠損補修のみ。任意SlotはManual専用
 - 全Window Bindingを解除する機能を持つ
 - Shortcutからアプリ起動やバッチファイル実行を行えるようにする
 
