@@ -70,7 +70,7 @@ NumLockには特別機能を持たせる予定。Numpad0は通常の任意キー
 
 Chrome Windowは基本的に重ならない運用を前提とする。
 
-4つ目以降のChromeは一般候補扱い。
+4つ目以降のChromeはAuto Bind対象外。必要な場合だけ任意SlotへManual Bindする。
 
 ### VS Code
 
@@ -86,7 +86,7 @@ Chromeの次に優先。
 
 VS Code Windowは重なる運用を前提とする。
 
-4つ目以降のVS Codeは一般候補扱い。
+4つ目以降のVS CodeはAuto Bind対象外。必要な場合だけ任意SlotへManual Bindする。
 
 ## 6. その他の専用Window
 
