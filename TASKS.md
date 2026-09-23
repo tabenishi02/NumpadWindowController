@@ -13,7 +13,7 @@
 - [x] Windows 11 + AutoHotkey v2を基本技術として採用
 - [x] 実機テンキーの主要キーについて Key Name / VK / SC を確認
 - [x] `000` キーが独立キーではなく `Numpad0` を3回送ることを確認
-- [x] キーModeを `Window / Shortcut / Function / Disabled` に整理
+- [x] 設定可能キーのModeを `Window / Shortcut / Disabled` に整理し、NumLockは予約Global Functionとする
 - [x] `7 / 8 / 9` をChrome専用とする方針を決定
 - [x] `4 / 5 / 6` をVS Code専用とする方針を決定
 - [x] `1 / 2 / 3` の既定用途を Explorer / ChatGPTデスクトップ / pwsh とする方針を決定
@@ -191,13 +191,12 @@ Phase C完了。次工程は **Phase D - Configuration仕様確定**。
 - [ ] Label
 - [ ] AllowedProcess
 - [ ] AllowedClass
+- [ ] AllowedTitleContains
 - [ ] AutoBind
 - [ ] AutoBindGroup
-- [ ] AutoBindOrder
 - [ ] ShortcutTarget
 - [ ] ShortcutArguments
 - [ ] ShortcutWorkingDirectory
-- [ ] Function
 
 ## D-3. Shortcut仕様確定
 
@@ -284,7 +283,7 @@ NumpadWindowController/
 - [ ] Slot Auto Bind
 - [ ] Slot Clear
 - [ ] Clear All
-- [ ] Function Mode
+- [ ] NumLock予約Global Function
 - [ ] Shortcut Mode
 - [ ] Disabled Mode
 
@@ -315,14 +314,14 @@ NumpadWindowController/
 - [ ] 左下Chrome判定
 - [ ] 右大Chrome判定
 - [ ] 7/8/9へBinding
-- [ ] 4つ目以降を一般候補へ返す
+- [ ] 4つ目以降をAuto Bind対象外として残す
 
 ## F-6. VS Code Auto Bind
 
 - [ ] VS Code候補列挙
-- [ ] B-5で決めた方式で開いた順を判定
+- [ ] 未使用候補をWinGetList逆順で空き4→5→6へ割り当て
 - [ ] 4/5/6へBinding
-- [ ] 4つ目以降を一般候補へ返す
+- [ ] 4つ目以降をAuto Bind対象外として残す
 
 ## F-7. Explorer / ChatGPT / pwsh Auto Bind
 
@@ -331,19 +330,24 @@ NumpadWindowController/
 - [ ] pwsh判定
 - [ ] 1/2/3への割り当て
 
-## F-8. 一般Window Auto Bind
+## F-8. Auto Bind State整合性
 
-- [ ] 残Window候補の整列
-- [ ] 残り任意Slotの列挙
-- [ ] 1 Window : 1 Slotを保証
-- [ ] Slot不足時の処理
+- [ ] 有効Manual / Auto Bindingを維持
+- [ ] 無効BindingをNoneへ変更
+- [ ] Used HWND Setを構築
+- [ ] Working State上でAuto Bind結果を計算
+- [ ] Commit前に1 HWND : 1 Slotを検証
+- [ ] 一般Windowを任意Slotへ自動割り当てしないことを確認
 
 ## F-9. Lazy Auto Bind
 
-- [ ] HWND無効検知
-- [ ] Slot単位再探索
+- [ ] Binding None / HWND無効 / Allowed違反を検知
+- [ ] Chrome / VS CodeはGroup単位で空Slot補充
+- [ ] 1 / 2 / 3はSlot単位再探索
+- [ ] AutoBind=OFF / Shortcut / Disabledでは実行しない
 - [ ] 成功時Activate
-- [ ] 失敗時通知
+- [ ] 失敗時None維持 + ToolTip
+- [ ] Background Retryを行わない
 
 ## F-10. Clear処理
 
@@ -359,7 +363,7 @@ NumpadWindowController/
 - [ ] Working Directory対応
 - [ ] 実行失敗通知
 
-## F-12. NumLock Function
+## F-12. NumLock Global Function
 
 - [ ] A-1で確定した機能を実装
 
