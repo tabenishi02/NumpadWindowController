@@ -148,7 +148,8 @@ Auto Bind / Clear系の最終Hotkeyは未確定。
 
 1. `PROJECT_HANDOFF.md`
 2. `docs/DESIGN_DRAFT.md`
-3. `README.md`
+3. `TASKS.md`
+4. `README.md`
 
 ## 12. 現在の段階
 
@@ -167,7 +168,11 @@ Auto Bind案
   ↓
 実機配置・Chrome/VS Code優先順位・Shortcut仕様反映  ← 現在
   ↓
+実装タスク一覧を作成            ← 現在
+  ↓
 残りの設計論点を確定
+  ↓
+PoC
   ↓
 実装
 ```
