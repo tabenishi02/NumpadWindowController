@@ -212,72 +212,72 @@ Phase D完了。次工程は **Phase E - 実装設計**。
 
 ---
 
-# Phase E - 実装設計
+# Phase E - 実装設計 ✅ 完了
 
-## E-1. ファイル構成確定
+詳細仕様: [Phase E Implementation Design](docs/PHASE_E_SPEC.md)
 
-候補:
+採用した内容:
 
-```text
-NumpadWindowController/
-├─ NumpadWindowController.ahk
-├─ KeyBindings.ini
-├─ lib/
-│  ├─ Config.ahk
-│  ├─ WindowRegistry.ahk
-│  ├─ AutoBind.ahk
-│  ├─ WindowActions.ahk
-│  ├─ ShortcutActions.ahk
-│  └─ Notifications.ahk
-├─ tests/
-└─ docs/
-```
+- [x] **E-1 ファイル構成**
+  - MVP本体は `NumpadWindowController.ahk` 1ファイル
+  - Configurationは `KeyBindings.ini`
+  - Phase Fでは `lib/` 分割しない
+  - 単一ファイル内を責務Section＋Prefix関数で整理
+- [x] **E-2 Runtime State**
+  - AHK v2の `Map` + 単純Objectを使用
+  - Global入口は1つの `App State`
+  - Config / Key Definitionは起動後Immutable扱い
+  - Runtime Bindingの正本は `App.Slots`
+  - Slot Stateは基本 `Hwnd + BindingSource`
+  - Window metadataは都度取得して永続キャッシュしない
+  - Used HWND SetはAuto Bind処理中だけ生成する一時Map
+  - Auto BindはWorking Stateで計算し、最終Validation後にCommit
+- [x] **E-3 Input / Action責務**
+  - Window Modeだけ通常 / Ctrl / Ctrl+Shift / Ctrl+Alt Controller Hotkeyを登録
+  - Shortcut Modeは通常押下だけ登録
+  - DisabledはHotkeyを登録せずネイティブ入力を通す
+  - Numpad0 / Virtual000だけInputHook Detectorを使用
+  - Logical Key化後は共通Dispatcherへ渡す
+- [x] **E-4 Logging / Diagnostics**
+  - 通常利用では永続Logなし
+  - Debugはコード内定数で明示有効化
+  - Debug時のみ `logs/NumpadWindowController_<timestamp>.log`
+  - 全Key Down/Upは常時記録しない
+  - Auto Bind後のSlot Snapshotを診断出力可能にする
+- [x] **E-5 Startup / Shutdown**
+  - Config Validation完了前にNumLock / Hotkey状態を変更しない
+  - Validation後に元NumLock状態を保存しOnExit登録
+  - 正常終了時にNumLock状態を復元
+- [x] **E-6 実装責務**
+  - Config / Runtime / Input / Zero Detector / Window Probe / Auto Bind / Actions / Notification / Debugを関数Prefixで分離
+  - MVPではClass階層や汎用Rule Engineを作らない
 
-- [ ] 単一ファイル構成か分割構成か決定
-- [ ] 初期版で過剰分割しない方針を決める
-
-## E-2. Runtime Stateモデル
-
-- [ ] Key定義オブジェクト
-- [ ] Window Slot状態
-- [ ] HWND
-- [ ] BindingSource
-- [ ] Window metadata
-- [ ] Used HWND set
-
-をどう保持するか決める。
-
-## E-3. Logging方針
-
-- [ ] 通常利用ではログ不要か決める
-- [ ] Debug Modeを設けるか決める
-- [ ] Auto Bind結果を確認できる診断出力を用意するか決める
+Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 
 ---
 
 # Phase F - AutoHotkey v2実装
 
-## F-1. Skeleton
+## F-1. Skeleton / App State
 
 - [ ] `#Requires AutoHotkey v2.0`
 - [ ] Single Instance設定
-- [ ] 設定ファイル読込
-- [ ] 起動時設定検証
-- [ ] Runtime State初期化
+- [ ] App State生成
+- [ ] Built-in Metadata生成
+- [ ] 起動 / OnExit骨格
+- [ ] Config Validation前にNumLockやHotkeyを変更しないことを確認
 
-## F-2. Hotkey登録
+## F-2. Config / Runtime初期化
 
-- [ ] Window Modeの通常押下
-- [ ] `Ctrl + Key` Manual Bind
-- [ ] Auto Bind All
-- [ ] Slot Auto Bind
-- [ ] Slot Clear
-- [ ] Clear All
-- [ ] NumLock予約Global Function
-- [ ] Shortcut Mode
-- [ ] Disabled Mode
+- [ ] UTF-16 LE BOM INI読込
+- [ ] ConfigVersion / Section / Field Validation
+- [ ] Mode / Allowed / Shortcut Validation
+- [ ] Key Definition生成
+- [ ] Slot State生成
+- [ ] Backspace Warning
+- [ ] Numpad0 / Virtual000整合Validation
 
-## F-3. Window基本操作
+## F-3. Window Probe / 基本操作
 
 - [ ] Active Window取得
 - [ ] HWND存在確認
@@ -353,9 +353,19 @@ NumpadWindowController/
 - [ ] Working Directory対応
 - [ ] 実行失敗通知
 
-## F-12. NumLock Global Function
+## F-12. Input / Hotkey / NumLock / Debug
 
-- [ ] A-1で確定した機能を実装
+- [ ] Window Mode Hotkey登録
+- [ ] Shortcut Mode通常Hotkey登録
+- [ ] Disabled KeyはHotkey未登録
+- [ ] Common Dispatcher
+- [ ] Numpad0 / Virtual000 InputHook Detector
+- [ ] NumLock Auto Bind All
+- [ ] Ctrl+NumLock Clear All
+- [ ] OnExit NumLock復元
+- [ ] ToolTip通知
+- [ ] Debug Log / Slot Snapshot
+- [ ] Debug File I/O失敗がController動作へ波及しないことを確認
 
 ---
 
