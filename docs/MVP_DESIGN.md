@@ -101,20 +101,33 @@ MVPでは、AutoHotkeyから外付けテンキーと通常キーボード側の�
 | `.` | 6E | 053 | NumpadDot |
 | Enter | 0D | 11C | NumpadEnter |
 
-### 4.1 000キー
+### 4.1 000キーとVirtual000
 
-物理 `000` キーは独立したKeyではなく、`Numpad0` のDown/Upを3回発生させる。
+物理 `000` キーは独立したVK/SCを持たず、`Numpad0` のDown/Upを3回高速に発生させる。
 
-したがって:
+PoCでは通常の `0` と `000` を誤認識なく区別できたため、MVPではこの入力列をソフトウェアで検出し、独立した論理キー **`Virtual000`** として扱う。
 
-- `000` 用の独立Bindingは作らない。
-- 設定ファイルにも `000` は定義しない。
-- MVPでは `000` 押下を特別に抑止しない。
-- `000` を押すと、`Numpad0` に設定された処理が短時間に3回呼ばれる可能性がある。
+初期判定条件:
 
-このため、MVP利用時は `000` キーを使用しないことを前提とする。
+- 最初の `Numpad0 Down` から80ms以内。
+- `Down-Up-Down-Up-Down-Up` が連続して成立。
+- 判定中に別キーのDownが割り込まない。
 
-将来版では入力時間差を利用したTriple-0抑止を検討できる。
+判定結果:
+
+```text
+通常の0
+  → Numpad0
+
+高速 D-U × 3
+  → Virtual000
+```
+
+物理 `000` から生成された3回の `Numpad0` は個別の `Numpad0` 操作として実行せず、1回の `Virtual000` 操作へ集約する。
+
+通常の `Numpad0` は `000` 判定のため最大約80msの確定待ち時間を持つ。Window切り替え用途では許容する。
+
+PoCの高頻度ログ書き込みではファイル競合エラーが発生したが、入力識別自体は通常使用の各入力パターンで誤認識なく動作したため、ログ競合はPoC固有事項としてMVP本体の判定仕様には持ち込まない。
 
 ---
 
@@ -132,7 +145,17 @@ MVPでは、AutoHotkeyから外付けテンキーと通常キーボード側の�
 
 NumLockだけは設定ファイル外の予約Function Keyとして扱う。
 
-### 5.1 排他
+### 5.1 Virtual000の扱い
+
+`Virtual000` は物理キー名ではなく、本ツール内部で生成する論理キー名である。
+
+設定・Runtime State・Hotkeyディスパッチでは他のキーと同等に扱い、`Window / Shortcut / Disabled` のいずれも設定可能とする。
+
+INIのSection名は `[Key-Virtual000]` を使用する。
+
+修飾キーも判定時に保持し、例えば `Ctrl + 000` は `Ctrl + Virtual000` として扱う。
+
+### 5.2 排他
 
 1キーは1つのModeだけを持つ。
 
@@ -166,10 +189,11 @@ ShortcutまたはDisabledのキーは:
 | `2` | ChatGPT Desktop | Window | ON |
 | `3` | pwsh / Windows Terminal | Window | ON |
 | `0` | 任意 | Window | OFF |
+| `000` / `Virtual000` | 任意 | Window | OFF |
 | `.` | 任意 | Window | OFF |
 | Enter | 任意 | Window | OFF |
 
-任意キーはMVPでは自動的にWindowを埋めない。
+任意キー（`Virtual000` を含む）はMVPでは自動的にWindowを埋めない。
 
 必要なWindowをユーザーが `Ctrl + Key` で手動Bindingする。
 
@@ -179,7 +203,20 @@ ShortcutまたはDisabledのキーは:
 
 ## 7. 操作仕様
 
-### 7.1 通常押下
+### 7.1 入力正規化
+
+物理入力を直接Window処理へ渡さず、まず論理キーへ正規化する。
+
+```text
+物理Numpad0
+  ↓ 80ms判定
+通常単打      → Numpad0
+高速D-U×3     → Virtual000
+```
+
+以降のWindow / Shortcut / Clear等の処理は、正規化済みの論理キーを対象にする。
+
+### 7.2 通常押下
 
 Window Mode:
 
@@ -202,7 +239,7 @@ Key
 → 何もしない
 ```
 
-### 7.2 Manual Bind
+### 7.3 Manual Bind
 
 ```text
 Ctrl + Key
@@ -216,7 +253,7 @@ Ctrl + Key
 - 固定用途SlotではAllowed条件を満たすこと。
 - Shortcut / Disabledは拒否する。
 
-### 7.3 Slot Clear
+### 7.4 Slot Clear
 
 ```text
 Ctrl + Shift + Key
@@ -226,7 +263,7 @@ Ctrl + Shift + Key
 
 設定ファイルは変更しない。
 
-### 7.4 Auto Bind All
+### 7.5 Auto Bind All
 
 ```text
 NumLock
@@ -236,7 +273,7 @@ NumLock
 
 NumLock本来のON/OFF切り替えは実行しない。
 
-### 7.5 Clear All
+### 7.6 Clear All
 
 ```text
 Ctrl + NumLock
@@ -246,7 +283,7 @@ Ctrl + NumLock
 
 Shortcut設定やINI設定は変更しない。
 
-### 7.6 NumLock状態
+### 7.7 NumLock状態
 
 スクリプト起動時にNumLockをONにし、実行中はON状態を維持する。
 
@@ -713,13 +750,24 @@ KeyBindings.ini
 - Arguments
 - WorkingDirectory
 
-### 20.3 Reserved Key
+### 20.3 Virtual000設定例
+
+```ini
+[Key-Virtual000]
+Mode=Window
+Label=Virtual 000
+AutoBind=false
+```
+
+Shortcutとして利用する場合も、通常キーと同様に `Mode=Shortcut` と `Target` 等を設定する。
+
+### 20.4 Reserved Key
 
 NumLockはINIから変更不可とする。
 
 MVPではGlobal Function Keyとして固定する。
 
-### 20.4 設定変更
+### 20.5 設定変更
 
 INIを編集した後はスクリプトを再起動する。
 
@@ -765,10 +813,11 @@ Shortcut Targetが存在しない場合もMVPではFatal Errorとする。
 3. INIを読み込む。
 4. 設定検証。
 5. Runtime Stateを初期化。
-6. Hotkeyを登録。
-7. VS Code Observation Stateを初期化。
-8. Auto Bind Allを1回実行。
-9. 常駐開始。
+6. Numpad0 / Virtual000入力判定器を初期化。
+7. Hotkeyを登録。
+8. VS Code Observation Stateを初期化。
+9. Auto Bind Allを1回実行。
+10. 常駐開始。
 
 Chrome / VS Code等がまだ起動していなくてもエラーにはしない。
 
@@ -879,6 +928,16 @@ NumpadWindowController/
 
 Auto Bind時の重複を防ぐため、現在Binding済みHWND集合を保持する。
 
+### 26.5 Numpad0 / Virtual000 Detector
+
+- 判定開始Tick
+- D/Uイベント列
+- 判定中Modifier State
+- 80ms判定Timer
+- 判定中断状態
+
+を保持し、物理 `Numpad0` 入力を `Numpad0` または `Virtual000` へ正規化する。
+
 ---
 
 ## 27. エラー処理
@@ -933,7 +992,7 @@ Window Activate失敗:
 
 ### 任意Slot
 
-- `/ * - + DEL 0 . Enter` に任意WindowをManual Bind可能
+- `/ * - + DEL 0 000 . Enter` に任意WindowをManual Bind可能
 - INIでShortcutへ変更可能
 
 ### Global操作
@@ -942,6 +1001,13 @@ Window Activate失敗:
 - Ctrl+NumLock → Clear All
 - Ctrl+Key → Manual Bind
 - Ctrl+Shift+Key → Slot Clear
+
+### Virtual000
+
+- 通常の `0` と物理 `000` を誤認識なく区別できる
+- `000` 1回が `Virtual000` 1回として処理される
+- `000` によって `Numpad0` のWindow処理が3回実行されない
+- `Virtual000` をWindowまたはShortcutとして設定できる
 
 ### Shortcut
 
@@ -954,7 +1020,7 @@ Window Activate失敗:
 
 1. 外付けテンキーと通常キーボードの同一テンキーキーを区別しない。
 2. NumLockはスクリプト実行中ON固定。
-3. 物理 `000` は独立キーとして扱えず、`Numpad0` 処理が3回発生し得る。
+3. 通常の `Numpad0` は `Virtual000` 判定のため最大約80msの入力確定待ち時間を持つ。
 4. Chrome座標判定はPrimary Monitor Work Areaを基準とする。
 5. 複雑なマルチモニター配置は対象外。
 6. VS Codeの真のWindow生成順をスクリプト再起動後に保証しない。
@@ -973,7 +1039,7 @@ MVPの実機運用後、必要性が確認できたものだけ追加する。
 
 候補:
 
-- 000キー抑止
+- Virtual000判定閾値のユーザー設定化
 - 外付けテンキーのデバイス単位識別
 - Multi Monitor対応
 - VS Code順序復元の高度化
@@ -1004,6 +1070,6 @@ MVPの実機運用後、必要性が確認できたものだけ追加する。
 9. 1/2/3を専用Slotとして制限してよいか。
 10. INI設定＋スクリプト再起動方式でよいか。
 11. 初期実装を単一AHKファイルにしてよいか。
-12. 000キーの3回入力問題をMVP Known Limitationとして受け入れるか。
+12. 000を `Virtual000` として正式採用し、Numpad0へ最大約80msの判定遅延を許容するか。
 
 この12点に問題がなければ、MVP実装へ進める。
