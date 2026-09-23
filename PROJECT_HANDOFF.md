@@ -2,7 +2,7 @@
 
 更新日: 2026-09-23  
 対象: NumpadWindowController  
-状態: 初期設計継続中 / 実装前
+状態: MVP設計レビュー / 実装前
 
 ## 1. プロジェクト概要
 
@@ -147,9 +147,10 @@ Auto Bind / Clear系の最終Hotkeyは未確定。
 ## 11. 次回開始時に読む資料
 
 1. `PROJECT_HANDOFF.md`
-2. `docs/DESIGN_DRAFT.md`
-3. `TASKS.md`
-4. `README.md`
+2. `docs/MVP_DESIGN.md`
+3. `docs/DESIGN_DRAFT.md`
+4. `TASKS.md`
+5. `README.md`
 
 ## 12. 現在の段階
 
@@ -176,3 +177,8 @@ PoC
   ↓
 実装
 ```
+
+
+## 13. MVP設計レビュー
+
+`docs/MVP_DESIGN.md` に、最低限動作する v0.1 を実装するための仕様を具体化した。実装はこの設計書のレビュー後に開始する。
