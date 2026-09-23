@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-Persistent
+Persistent()
 
 ; NumpadWindowController - 000 key detection PoC
 ; Goal:
@@ -57,8 +57,13 @@ ShowStatus(
 )
 
 F8::ResetSession()
-F9::Run(LOG_FILE)
-^Esc::ExitApp
+F9::OpenLog()
+^Esc::ExitApp()
+
+OpenLog() {
+    global LOG_FILE
+    Run(LOG_FILE)
+}
 
 OnKeyDown(ih, vk, sc) {
     global gActive, gInterruptedBy
