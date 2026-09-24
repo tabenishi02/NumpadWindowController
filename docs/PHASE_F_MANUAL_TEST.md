@@ -10,7 +10,7 @@
 
 Phase Fの本体実装および自動テストは完了している。
 
-現在の自動テストでは、AutoHotkey v2.0.26環境で136 assertions PASSを確認済みである。
+旧Global Action仕様ではAutoHotkey v2.0.26環境で自動テストPASSを確認済み。NumpadEnter Global Actionへの変更後はR-10で再実行する。
 
 一方、以下は実Desktop環境・物理テンキー・Foreground制御等に依存するため、自動テストだけでは最終確認できない。
 
@@ -294,7 +294,7 @@ ChromeやVS Codeの詳細な再割り当て試験はPhase Gで行うため、Pha
 ### 手順
 
 1. Explorer Windowを1つ開く。
-2. `NumLock` を押してAuto Bindする。
+2. `Ctrl + NumpadEnter` を押してAuto Bind Allする。
 3. `1` を押し、そのExplorerへ移動できることを確認する。
 4. BindingされているExplorer Windowを閉じる。
 5. 新しいExplorer Windowを開く。
@@ -755,9 +755,9 @@ Phase Fでは正常終了時の復元を確認する。
 
 ---
 
-# 12. NumLock Global Action
+# 12. 旧NumLock Global Action（廃止仕様・履歴）
 
-## Test F-16: NumLock = Auto Bind All
+## Test F-16: NumLock = Auto Bind All（旧仕様・廃止）
 
 ### 手順
 
@@ -778,7 +778,7 @@ Phase Fでは正常終了時の復元を確認する。
 
 ---
 
-## Test F-17: Ctrl + NumLock = Clear All
+## Test F-17: Ctrl + NumLock = Clear All（旧仕様・廃止）
 
 ### 手順
 
@@ -803,6 +803,8 @@ Ctrl + NumLock を押しても Clearされない。
 ---
 
 # 12.1 Phase F 修正後再テスト
+
+F-16 / F-17およびR-2 / R-3のNumLock Global Action部分は旧仕様の履歴として残す。現行Global ActionはR-10～R-12で確認する。
 
 初回Manual Testで確認されたF-5 / F-8 / F-13～F-17の問題に対する修正後テスト。
 初回結果は履歴として上記に残し、この節へ2回目の結果を記録する。
@@ -1069,13 +1071,28 @@ poc/NumLockInputPoC.ahk
 
 - [ ] AHK + RAWでNumLockを観測
 - [ ] RAWのみでNumLockを観測
-- [ ] NumLockはAHK / RAWとも観測されない
+- [x] NumLockはAHK / RAWとも観測されない
 - [ ] 判定不能
 
 ログ:
 
 ```text
+Drive log: numlock_input_poc_20260925025920.log
 
+通常NumLock:
+- AHK / RAWともNumLock相当Eventなし。
+
+Ctrl+NumLock:
+- Left Ctrlのみ記録。
+- NumLock相当Eventなし。
+
+Pause比較:
+- AHK / RAW双方で正常にPause Eventを記録。
+
+結論:
+- PoCは正常。
+- 外付けテンキー物理NumLockはWindowsへKeyboard Eventを送らないと判断。
+- NumLock Global Action仕様を廃止し、NumpadEnter Modifier Combinationへ移行する。
 ```
 
 ---
@@ -1114,6 +1131,99 @@ poc/NumLockInputPoC.ahk
 ```
 
 Debug記録:
+
+```text
+
+```
+
+---
+
+## Test R-10: 新Global Action自動テスト
+
+### 実行
+
+```powershell
+.\tests\Run-PhaseFTests.ps1
+.\tests\Run-PhaseFTests.ps1 -Desktop
+```
+
+### 期待結果
+
+- 両方ともExit Code 0
+- FAILなし
+- `Input_GlobalHotkeyPlan()` が `SC11C` のCtrl / CtrlShiftだけをGlobal Actionとして登録する
+- NumpadEnterのGeneric PlanからCtrl / CtrlShiftが除外される
+- Standard Enter `SC01C` がGlobal Action Planへ含まれない
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+記録:
+
+```text
+
+```
+
+---
+
+## Test R-11: NumpadEnter Global Action
+
+### 手順
+
+1. Numpad0等へManual Bindを1つ作成する。
+2. 専用Slot 1～9の一部をClearする。
+3. `Ctrl + NumpadEnter` を押す。
+4. 専用Slotが補充され、Manual Bindが維持されることを確認する。
+5. Auto / Manual Bindingを複数作成する。
+6. `Ctrl + Shift + NumpadEnter` を押す。
+7. 全BindingがClearされることを確認する。
+
+### 期待結果
+
+- `Ctrl + NumpadEnter` = Auto Bind All
+- `Ctrl + Shift + NumpadEnter` = Clear All
+- Clear All直後に自動再Bindingしない
+- Configurationは変更されない
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+記録:
+
+```text
+
+```
+
+---
+
+## Test R-12: NumpadEnter / Standard Enter分離と誤操作防止
+
+### 手順
+
+1. NumpadEnter単押しの現在Config Actionを確認する。
+2. NumpadEnterを単押しし、Auto Bind All / Clear Allが発火しないことを確認する。
+3. 通常Keyboard EnterをText入力欄で5回押す。
+4. 通常Keyboard側で `Ctrl + Enter` と `Ctrl + Shift + Enter` を試す。
+5. テンキー側で `Ctrl + NumpadEnter` / `Ctrl + Shift + NumpadEnter` を再確認する。
+
+### 期待結果
+
+- NumpadEnter単押しはConfigどおりの通常Action
+- 単押しでGlobal Actionは発火しない
+- Standard Enterは通常Enterとして動作する
+- Standard EnterのCtrl系CombinationでGlobal Actionは発火しない
+- Global ActionはNumpadEnter `SC11C` でのみ発火する
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+記録:
 
 ```text
 
@@ -1171,8 +1281,13 @@ Debug記録:
 | F-13 | NumLock OFF → 起動ON | |
 | F-14 | NumLock OFF復元 | |
 | F-15 | NumLock ON復元 | |
-| F-16 | NumLock Auto Bind All | |
-| F-17 | Ctrl+NumLock Clear All | |
+| F-16 | NumLock Auto Bind All（旧仕様・廃止） | FAIL（履歴） |
+| F-17 | Ctrl+NumLock Clear All（旧仕様・廃止） | FAIL（履歴） |
+| R-8 | NumLock Input PoC | PASS（AHK/RAWともNumLock Eventなし） |
+| R-9 | Ctrl押下継続000 | PASS（5/5） |
+| R-10 | 新Global Action自動テスト | |
+| R-11 | NumpadEnter Global Action | |
+| R-12 | NumpadEnter / Standard Enter分離 | |
 
 ---
 

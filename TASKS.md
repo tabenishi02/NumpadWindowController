@@ -31,12 +31,14 @@
 
 採用した内容:
 
-- [x] **A-1 NumLock**
-  - `NumLock` = Auto Bind All
-  - `Ctrl + NumLock` = Clear All
+- [x] **A-1 Global Function / NumLock**
+  - `Ctrl + NumpadEnter` = Auto Bind All
+  - `Ctrl + Shift + NumpadEnter` = Clear All
+  - NumpadEnter単押しはConfigどおりの通常Action
+  - Standard Enter=SC01C / NumpadEnter=SC11Cを実機確認し分離
+  - 物理NumLockはAHK / Raw Input双方でEventなしのためController Actionから除外
   - 起動時に元のNumLock状態を保存してON固定
   - 正常終了時に起動前状態へ復元
-  - NumLockはINIから変更できない予約Global Key
 - [x] **A-2 Manual / Auto優先関係**
   - `Manual > Auto > None`
   - 有効なManual BindはAuto Bindで上書きしない
@@ -156,8 +158,8 @@ Phase B Known Limitation:
   - `Ctrl + Alt + 4/5/6` = VS Code Group補充
   - `Ctrl + Alt + 1/2/3` = 対象Slot補充
 - [x] **完全再構築**
-  - `NumLock` 単体は有効Bindingを維持して欠損補修
-  - 完全再構築は `Ctrl + NumLock → NumLock`
+  - `Ctrl + NumpadEnter` は有効Bindingを維持して欠損補修
+  - 完全再構築は `Ctrl + Shift + NumpadEnter → Ctrl + NumpadEnter`
 - [x] **1 HWND : 1 Slot**
   - Used HWND Setで候補重複を防止
   - Commit前に最終重複検証
@@ -186,7 +188,8 @@ Phase C完了。次工程は **Phase D - Configuration仕様確定**。
   - 共通Fieldは `Mode / Label`
   - Window Modeは `AllowedProcess / AllowedClass / AllowedTitleContains`
   - `AutoBind / AutoBindGroup / AutoBindOrder` はConfigから除外し、コード側Built-in Metadataへ固定
-  - NumLockはConfig対象外
+  - NumLockはController入力ではないためConfig対象外
+  - NumpadEnterのCtrl / Ctrl+ShiftはGlobal ActionとしてConfig Modeより優先
 - [x] **D-3 Shortcut**
   - Target対応: `.exe / .bat / .cmd / .lnk`
   - Arguments / WorkingDirectory対応
@@ -365,8 +368,9 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 - [x] Disabled KeyはHotkey未登録
 - [x] Common Dispatcher
 - [x] Numpad0 / Virtual000 InputHook Detector
-- [ ] NumLock Auto Bind All（物理SC145修正版の再テスト待ち）
-- [ ] Ctrl+NumLock Clear All（^Pause修正版の再テスト待ち）
+- [x] 旧NumLock Global Actionを廃止
+- [x] Ctrl+NumpadEnter Auto Bind Allを実装
+- [x] Ctrl+Shift+NumpadEnter Clear Allを実装
 - [ ] OnExit NumLock復元（再テスト待ち）
 - [x] ToolTip通知
 - [x] Debug Log / Slot Snapshot
@@ -378,9 +382,9 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
   - 初回記録はユーザーの誤認
   - 実機物理キーもBackspace
   - `Key-Backspace` を維持
-- [x] 通常NumLockを物理 `SC145` Hotkeyへ変更
-- [x] Ctrl+NumLockをAutoHotkey仕様どおり `^Pause` Hotkeyへ変更
-- [x] NumLock Global Action後にAlwaysOnを再適用・ON確認
+- [x] 初回NumLock Hotkey修正案（SC145 / ^Pause）を検証
+- [x] NumLock Input PoCでAHK / Raw InputともEventなしを確認
+- [x] NumLock Global Action案を廃止しNumpadEnter Modifier Combinationへ移行
 - [x] 初回修正としてModifier付きVirtual000判定窓を120msへ拡張
 - [x] R-7ログ解析で失敗原因が時間超過ではなくInterruptと確認
 - [x] 通常 / Modifier付き000の判定窓を80msへ統一
@@ -388,9 +392,12 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 - [x] その他のInterruptへVK / SC / ignored診断を追加
 - [x] Ctrl押下継続中000の自動Regression Testを追加
 - [x] NumLock InputHook + Raw Input観測PoCを追加
-- [ ] NumLock PoC実機試験 R-8
-- [ ] Ctrl押下継続000実機試験 R-9
-- [ ] NumLock仕様の継続 / 代替キー化をPoC結果から決定
+- [x] NumLock PoC実機試験 R-8
+- [x] Ctrl押下継続000実機試験 R-9（5/5 PASS）
+- [x] Global ActionをNumpadEnterへ変更
+- [ ] R-10 新Global Action自動テスト
+- [ ] R-11 NumpadEnter Global Action実機試験
+- [ ] R-12 NumpadEnter / Standard Enter分離
 - [ ] Phase F最終完了判定
 
 ---
@@ -541,8 +548,12 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-初回Phase F Manual Testで見つかった入力系問題への修正版を実装済み。
-R-7ログ解析まで完了。
-次は [Phase F Manual Test Guide](docs/PHASE_F_MANUAL_TEST.md) のR-8（NumLock Input PoC）とR-9（Ctrl押下継続000）を優先する。
-NumLockはPoC結果により通常Hotkey継続、Raw Input採用、またはGlobal Function Key変更のいずれかを決定する。
-R-8/R-9反映後にPhase F最終判定へ進む。
+NumLock Input PoCとCtrl+000 Regressionは完了した。
+次は [Phase F Manual Test Guide](docs/PHASE_F_MANUAL_TEST.md) のR-10～R-12を実施する。
+
+- Ctrl + NumpadEnter = Auto Bind All
+- Ctrl + Shift + NumpadEnter = Clear All
+- NumpadEnter単押しは通常Action
+- Standard EnterはGlobal Action非対象
+
+あわせて未解決のNumLock ON固定 / OnExit復元を確認し、Phase F最終判定へ進む。

@@ -68,6 +68,37 @@ NumLock:
 
 次の実機試験は `docs/PHASE_F_MANUAL_TEST.md` のR-8 / R-9を優先する。
 
+## 2026-09-25 NumLock PoC確定 / Global Action移行
+
+`numlock_input_poc_20260925025920.log` を確認した。
+
+- 通常NumLock操作はAHK InputHook / Windows Raw Inputの双方でEventなし。
+- Ctrl+NumLock操作はLeft Ctrl Eventのみで、NumLock Eventなし。
+- 比較用PauseはAHK / Raw Input双方で正常に観測された。
+- したがってPoCは正常であり、外付けテンキー物理NumLockはWindowsへKeyboard Eventを送らないと判断する。
+
+Global Action仕様を次へ変更した。
+
+```text
+Ctrl + NumpadEnter
+→ Auto Bind All
+
+Ctrl + Shift + NumpadEnter
+→ Clear All
+```
+
+実機Key Historyで通常Enter=`VK0D/SC01C`、NumpadEnter=`VK0D/SC11C` を確認済み。
+通常Keyboard EnterはGlobal Action対象外。
+
+NumpadEnter単押しはConfigどおりの通常Actionを維持する。
+Window ModeでもCtrl / Ctrl+ShiftはManual Bind / Slot ClearではなくGlobal Actionとして予約する。
+
+NumLockの状態保存 / ON固定 / 正常終了時復元要件は今回変更しない。
+
+Ctrl+000はR-9で5/5 PASSし、割込み元がLeft Ctrl (`vk=A2/sc=01D`) であることと、修正版で `ignored=1` として正しく無視されることを確認した。
+
+次の実機確認はR-10～R-12。
+
 ## 実装範囲
 
 F-1～F-12の本体コードを`NumpadWindowController.ahk`へ実装した。Configurationは`KeyBindings.ini`だけを使用する。Phase A～Eの仕様変更、`lib/`への分割、常時Window監視は行っていない。
@@ -76,7 +107,7 @@ F-1～F-12の本体コードを`NumpadWindowController.ahk`へ実装した。Con
 - App State、Built-in Metadata、Window Probe、Manual Bind、Clear。
 - Chrome / VS Code / Explorer / ChatGPT / PowerShellのAuto BindとLazy Auto Bind。
 - Working State、Used HWND、Commit前Validationによる重複防止。
-- Shortcut実行、Mode別Hotkey、InputHookによる0/000、NumLock Global操作。
+- Shortcut実行、Mode別Hotkey、InputHookによる0/000、NumpadEnter Modifier CombinationによるGlobal操作。
 - ToolTip、Backspace起動Warning、任意DebugログとSlot Snapshot。
 
 ## 自動検証
@@ -113,7 +144,7 @@ PASSは確認できたassertionの件数であり、PENDINGを含めた受入合
 | Binding | Manual登録・移動、Allowed拒否時の保持、Disabled拒否、1 HWND : 1 Slot、Commit失敗時の保持、Clear / Clear All |
 | Auto Bind | 合成候補によるChrome Threshold/Score・Primary判定・最大化/最小化の新規除外、VS Code逆列挙、1/2/3条件、非最小化優先、余剰候補除外、既存Manual/Auto維持、例外時のState保持 |
 | Lazy | 無効HWND解除、候補なし時None、対象外Groupの保持、Manual専用Slotの非補充 |
-| Input | Mode別登録Plan、実Hotkey登録API、Hook開始/停止、両0キーDisabledでHookなし、NumLock操作のDispatcher経路 |
+| Input | Mode別登録Plan、実Hotkey登録API、Hook開始/停止、両0キーDisabledでHookなし、NumpadEnter Global Action経路、Standard Enter非対象 |
 | Zero Detector | D-U×3、80ms境界、通常0、二連打、割込み、遅延Timer、長押しRepeat抑止、Modifier Snapshot |
 | Windows API | HWND/Process/Class/Title、候補列挙、Primary Work Area、実候補Auto Bind、テストWindowのRestore |
 | 実行 | EXE/BAT/CMD/LNK、空白入りPath/Arguments、WorkingDirectory、Target消失時の継続 |
@@ -121,39 +152,19 @@ PASSは確認できたassertionの件数であり、PENDINGを含めた受入合
 
 ## 修正版の再テスト待ち
 
-初回Manual TestでPASSしたForeground / Manual Bind / Restore / Lazy Activate等は確認済みとする。
+R-8 NumLock PoCは完了し、物理NumLockをGlobal Actionへ使えないことを確定した。
+R-9 Ctrl+000 Regressionは5/5 PASS。
 
-修正版では次を再確認する。
+残る優先確認:
 
-1. 自動テスト通常版 / Desktop版がFAIL・PENDINGなしで完了すること。
-2. 物理NumLockがAuto Bind Allとして動作し、NumLockをOFFへToggleしないこと。
-3. Ctrl+NumLockがClear Allとして動作すること。
-4. Ctrl+000がVirtual000として安定してManual Bindできること。
-5. Numpad0 Clear後の通常0が `No window found: Zero` となり、誤ったNumLock Dispatchが発生しないこと。
-6. 起動前OFF / ONの双方で正常終了後に元のNumLock状態へ復元すること。
-7. 4または5が失敗した場合、Debug LogのInput Dispatch / Zero timingで原因を記録すること。
+1. 新Global Action対応後の通常 / Desktop自動テスト。
+2. `Ctrl + NumpadEnter` がAuto Bind Allとして動作する。
+3. `Ctrl + Shift + NumpadEnter` がClear Allとして動作する。
+4. NumpadEnter単押しがConfigどおりの通常Actionを維持する。
+5. Standard Enter (`SC01C`) およびそのCtrl系CombinationでGlobal Actionが発火しない。
+6. 起動前OFF / ONの双方で正常終了後に元のNumLock状態へ復元する。
 
-具体的手順は `docs/PHASE_F_MANUAL_TEST.md` のR-1～R-7を使用する。
-
-## 実装詳細と制限
-
-仕様との差分はない。次は仕様の範囲内で決めた実装詳細。
-
-- Shiftによるテンキー名の変化を避け、Hotkeyには物理Scan Codeと`HotIf`のModifier条件を使う。定義した組合せでだけController Hotkeyが有効になる。
-- 0/000の不成立列は実Down回数分のNumpad0へ変換する。長押しRepeatはPoC同様に実Upまで抑止する。
-- InputHook Callbackは状態判定とQueue追加を行い、Actionは別Timerで処理する。Window監視やAuto BindのBackground Retryは行わない。
-- INIはRaw読込と小さな構造Parserで重複検出とArguments保持を行う。
-- Working Stateの変更中はCritical区間で入力Callbackとの書き換え競合を避ける。
-
-既定の制限:
-
-- 同一キーを出す入力デバイス同士は区別しない。Backspace有効化時は通常Keyboardも対象。
-- Detector有効時はSC052を消費する。Virtual000がDisabledでもその3打鍵は再送しない。未定義Modifier付き0も再送しない。ネイティブ0が必要なら両方Disabledにする。
-- 通常0の判定待ちは約80ms。物理的な高速三連打と000を完全には区別できない。
-- Chrome新規分類はPrimary MonitorのNormal Windowのみ。VS Codeは真のOpen順を保証しない。
-- PowerShellはTerminalのTitle条件に依存する。手動登録でもAllowed条件は適用される。
-- HWNDは永続化しない。終了・再起動後にManual Bindingを引き継がない。
-- 強制Process KillではNumLock復元を保証しない。
+詳細は `docs/PHASE_F_MANUAL_TEST.md` のR-10～R-12を参照する。
 
 ## 次の実機確認手順
 

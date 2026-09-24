@@ -5,6 +5,26 @@
 - `TripleZeroDetectionPoC.ahk`: 通常0と物理000の識別。
 - `NumLockInputPoC.ahk`: 外付けテンキーNumLockがAHK / Windows Raw Inputへ何を送るかを観測。
 
+## NumLock Input PoC 実機結果（2026-09-25）
+
+`numlock_input_poc_20260925025920.log` で次を確認した。
+
+- 外付けテンキーNumLock: AHK InputHookにEventなし。
+- 外付けテンキーNumLock: Windows Raw InputにもEventなし。
+- Ctrl+NumLock: Left Ctrlだけ記録され、NumLock Eventなし。
+- 比較用Pause: AHK / Raw Input双方で正常に記録。
+
+このため、外付けテンキーNumLockはController Actionには使用しない。
+Global Actionは次へ移行した。
+
+```text
+Ctrl + NumpadEnter         -> Auto Bind All
+Ctrl + Shift + NumpadEnter -> Clear All
+```
+
+通常Keyboard Enter=`SC01C`、NumpadEnter=`SC11C` の分離も実機確認済み。
+
+---
 ## NumLock Input PoC
 
 Phase F実機試験で、外付けテンキーのNumLockがAutoHotkey Key Historyへ現れないことを確認した。

@@ -2,11 +2,11 @@
 
 Windows上で、一般的なテンキーを「ウィンドウ直接切り替え＋ショートカット実行用コントローラー」として利用するためのツールです。
 
-AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Shortcut / Disabled` の動作種別を割り当てます。NumLockは予約Global Function Keyとして扱います。
+AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Shortcut / Disabled` の動作種別を割り当てます。Global操作はNumpadEnterのCtrl系Modifier Combinationへ予約します。
 
 ## 現在の段階
 
-現在は **Phase F実装済み / 自動検証済み / 実機確認待ち** です。AutoHotkey v2.0.26で136件のassertionを確認しました。前面化、物理テンキー入力、NumLock OFF復元などは実機確認が必要です。
+現在は **Phase F実装済み / 新Global Actionの再検証待ち** です。NumLock PoCとCtrl+000修正は実機確認済みで、NumpadEnter Global Action用の自動・実機テストを追加しています。
 
 - [Phase F実装・検証結果と実機手順](docs/PHASE_F_RESULT.md)
 
@@ -34,8 +34,10 @@ AutoHotkey v2をインストールしたWindowsで、`NumpadWindowController.ahk
 | Ctrl + Key | Active WindowをManual Bind |
 | Ctrl + Shift + Key | Slot Clear |
 | Ctrl + Alt + Key | 専用Slot / Groupの欠損補修 |
-| NumLock | 有効Bindingを維持してAuto Bind All |
-| Ctrl + NumLock | 全Binding解除 |
+| Ctrl + NumpadEnter | 有効Bindingを維持してAuto Bind All |
+| Ctrl + Shift + NumpadEnter | 全Binding解除 |
+
+通常Keyboard Enterは `SC01C`、NumpadEnterは `SC11C` と実機確認済みで、Global操作はNumpadEnterだけを対象にします。
 
 実行中はNumLockをON固定し、正常終了時に元の状態へ戻します。0/000判定中はSC052を消費し、未定義Modifier付き0も再送しません。通常の0入力を維持したい場合はNumpad0とVirtual000を両方Disabledにしてください。
 
@@ -47,7 +49,7 @@ AutoHotkey v2をインストールしたWindowsで、`NumpadWindowController.ahk
 - AutoHotkey v2
 - 一般的なUSBテンキーを利用
 - 実機で確認したKey Name / VK / SCを設計資料に記録
-- 設定可能キーは `Window / Shortcut / Disabled`。NumLockは予約Global Function
+- 設定可能キーは `Window / Shortcut / Disabled`。Ctrl+NumpadEnter / Ctrl+Shift+NumpadEnterは予約Global Combination
 - Shortcut設定キーはWindow Binding対象外
 - `000` キーは高速な `Numpad0` D-U×3を検出し、仮想キー `Virtual000` として利用
 - `7 / 8 / 9` はChrome専用
@@ -69,7 +71,7 @@ AutoHotkey v2をインストールしたWindowsで、`NumpadWindowController.ahk
 
 ```text
 NumLock  /       *       -
-Function 任意    任意    任意
+未使用   任意    任意    任意
 
 7        8       9       +
 Chrome1  Chrome2 Chrome3 任意

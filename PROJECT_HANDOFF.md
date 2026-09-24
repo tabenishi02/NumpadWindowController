@@ -12,7 +12,7 @@
 - `tests/Run-PhaseFTests.ps1`: AHKの終了コードを確認する実行入口。
 - [Phase F検証結果](docs/PHASE_F_RESULT.md): 確認済み範囲、未確認事項、次の実機手順。
 
-Phase A～Eの仕様変更は行っていない。PoCの入力判定方式、候補Filter、Chrome Threshold / Scoreを本実装へ移した。`lib/` 分割はしていない。
+Phase A～Eは2026-09-25のGlobal Action変更を反映済み。PoCの入力判定方式、候補Filter、Chrome Threshold / Scoreを本実装へ移した。`lib/` 分割はしていない。
 
 ## 実装済みの操作
 
@@ -22,20 +22,20 @@ Phase A～Eの仕様変更は行っていない。PoCの入力判定方式、候
 | Ctrl + Key | Manual Bind |
 | Ctrl + Shift + Key | Slot Clear |
 | Ctrl + Alt + Key | Group / Slot Auto Bind |
-| NumLock | Auto Bind All |
-| Ctrl + NumLock | Clear All |
+| Ctrl + NumpadEnter | Auto Bind All |
+| Ctrl + Shift + NumpadEnter | Clear All |
 
 専用Slotは7/8/9=Chrome、4/5/6=VS Code、1=Explorer、2=ChatGPT Desktop、3=PowerShell 7用Windows Terminal。任意SlotはManual専用で、自動補充しない。Backspaceは標準Disabled。
 
-Auto Bindは有効なManual / Auto Bindingを維持し、欠損だけ補修する。完全再構築はCtrl+NumLock → NumLock。VS Codeは未使用候補の逆列挙順で空き4→5→6へ補充する。
+Auto Bindは有効なManual / Auto Bindingを維持し、欠損だけ補修する。完全再構築はCtrl+Shift+NumpadEnter → Ctrl+NumpadEnter。VS Codeは未使用候補の逆列挙順で空き4→5→6へ補充する。
 
 ## 実装上の重要点
 
-- Config Validation後にNumLock状態保存、OnExit登録、ON固定、Runtime / Hook / Hotkey初期化、Auto Bind Allを行う。通常NumLockはSC145、Ctrl+NumLockはWindows/AutoHotkey仕様により^Pauseで捕捉する。
+- Config Validation後にNumLock状態保存、OnExit登録、ON固定、Runtime / Hook / Hotkey初期化、Auto Bind Allを行う。Global Actionは物理NumpadEnter(SC11C)のCtrl / Ctrl+Shiftへ登録し、Standard Enter(SC01C)は対象外。
 - Runtime Binding正本は`App.Slots`のみ。Working Stateの整合性を確認してからCommitする。
 - Window metadataは都度取得。既存BindingのValidityと新規候補のEligibilityを分離する。
 - Hotkeyは物理Scan Codeと正確なModifier条件を組み合わせる。Shortcutは通常押下だけ、Disabledは未登録。
-- 0/000はInputHookでSC052を消費する。通常入力は80ms、Modifier付き入力は120ms以内のD-U×3をVirtual000へ変換し、Action実行はQueue経由で入力記録から分離する。
+- 0/000はInputHookでSC052を消費する。全Modifierで80ms以内のD-U×3をVirtual000へ変換し、同一Modifier状態の再DownだけをInterrupt対象外とする。Action実行はQueue経由で入力記録から分離する。
 - Debugは先頭の`DEBUG_ENABLED`で明示ONにした場合だけ。通常は永続ログなし。ログI/O失敗は内部で処理する。
 - ConfigにAutoBind属性やNumLock設定、HWNDは保存しない。Configの変更は再起動で反映する。
 
@@ -52,21 +52,22 @@ PASS:
 - Ctrl Manual Bind / Ctrl+Alt Auto Bind / 未定義Modifier
 - Backspace Disabled / Backspace Warning
 
-初回テストで見つかった入力系問題に対し、次を修正済み。
+初回テスト以降の入力系調査・修正結果:
 
-- 通常NumLockを物理SC145で登録。
-- Ctrl+NumLockを^Pauseで登録。
-- NumLock Global Action後にAlwaysOnを再適用しONを検証。
-- R-7ログから000失敗は時間超過ではなく途中Interruptと判明。判定窓は全Modifierで80msへ戻し、同一Modifier状態の再Downだけを無視する修正を追加。
-- Debug LogへLogical DispatchとZero Detector timingを追加。
-- 自動テストへNumLock専用Hotkey定義とCtrl押下継続000のRegressionを追加。
-- `poc/NumLockInputPoC.ahk` を追加し、AHK InputHookとWindows Raw Inputを同時観測可能にした。
+- Ctrl+000失敗のInterrupt元はLeft Ctrl (vk=A2/sc=01D) と確定。
+- 同一Modifier状態の再Downを無視する修正後、R-9は5/5 PASS。
+- NumLock Input PoCでは通常NumLock / Ctrl+NumLockともAHK / Raw InputにNumLock Eventなし。
+- 比較用Pauseは両経路で観測され、PoCは正常。
+- 物理NumLockをGlobal Actionに使う設計を廃止。
+- Ctrl+NumpadEnter=Auto Bind All、Ctrl+Shift+NumpadEnter=Clear Allへ変更。
+- Standard Enter=SC01C / NumpadEnter=SC11Cを実機確認済み。
+- `poc/NumLockInputPoC.ahk` は設計変更の根拠PoCとして保持。
 
 初回テスト時の「物理キーはDEL」という記録はユーザーの誤認として撤回した。
 実機のキー表記はBackspaceであり、`Key-Backspace` の現行設計を維持する。
 
-次は `docs/PHASE_F_MANUAL_TEST.md` のR-8（NumLock Input PoC）とR-9（Ctrl押下継続000）を優先する。
-Phase Fはこれらの結果を反映するまで閉じない。Phase G/Hの受入確認は未実施。
+次は `docs/PHASE_F_MANUAL_TEST.md` のR-10～R-12（新Global Action自動テスト / NumpadEnter Global Action / Standard Enter分離）を優先する。
+加えてNumLock ON固定 / OnExit復元は未解決。Phase Fはこれらの確認まで閉じない。Phase G/Hの受入確認は未実施。
 
 ## 次回読む資料
 
