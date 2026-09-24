@@ -304,17 +304,21 @@ Input_HotkeyPlan(keys) {
     for id, key in keys {
         if key.Mode = "Disabled" || key.InputStrategy = "ZeroDetector"
             continue
-        for modifier in (key.Mode = "Window" ? ["Normal", "Ctrl", "CtrlShift", "CtrlAlt"] : ["Normal"])
+        for modifier in (key.Mode = "Window" ? ["Normal", "Ctrl", "CtrlShift", "CtrlAlt"] : ["Normal"]) {
+            ; Ctrl+NumpadEnter and Ctrl+Shift+NumpadEnter are reserved Global Actions.
+            if id = "NumpadEnter" && (modifier = "Ctrl" || modifier = "CtrlShift")
+                continue
             plan.Push({Id: id, Key: key.AhkKey, Modifier: modifier})
+        }
     }
     return plan
 }
 
-Input_NumLockHotkeyPlan() {
-    ; AutoHotkey/Windows reports Ctrl+NumLock as Ctrl+Pause.
+Input_GlobalHotkeyPlan() {
+    ; NumpadEnter is SC11C. Standard keyboard Enter is SC01C and is unaffected.
     return [
-        {Hotkey: "*SC145", Modifier: "Normal", Context: "Normal"},
-        {Hotkey: "^Pause", Modifier: "Ctrl", Context: ""}
+        {Action: "AutoBindAll", Key: "SC11C", Modifier: "Ctrl"},
+        {Action: "ClearAll", Key: "SC11C", Modifier: "CtrlShift"}
     ]
 }
 
@@ -328,35 +332,36 @@ Input_RegisterHotkeys() {
                 Hotkey("*" entry.Key, Input_Dispatch.Bind(entry.Id, modifier))
     }
 
-    ; NumLock needs a dedicated physical path. Ctrl+NumLock is reported as Ctrl+Pause.
-    for entry in Input_NumLockHotkeyPlan() {
-        if entry.Context != ""
-            HotIf(Input_Context.Bind(entry.Context))
-        else
-            HotIf()
-        Hotkey(entry.Hotkey, Input_Dispatch.Bind("NumLock", entry.Modifier))
+    globalPlan := Input_GlobalHotkeyPlan()
+    for entry in globalPlan {
+        HotIf(Input_Context.Bind(entry.Modifier))
+        Hotkey("*" entry.Key, Input_GlobalDispatch.Bind(entry.Action))
     }
+
     HotIf()
-    Debug_Log("Hotkey registration: " (plan.Length + Input_NumLockHotkeyPlan().Length))
+    Debug_Log("Hotkey registration: " (plan.Length + globalPlan.Length))
+}
+
+Input_GlobalDispatch(action, *) {
+    Debug_Log("Global input dispatch: " action)
+    try {
+        switch action {
+            case "AutoBindAll":
+                AutoBind_Run()
+                Notify_Info("Auto Bind completed")
+            case "ClearAll":
+                Binding_Clear()
+        }
+    } catch as err {
+        Debug_Log("Global action failed: " action " / " err.Message)
+        Notify_Info("Global action failed: " action)
+    }
 }
 
 Input_Dispatch(id, modifier, *) {
     global App
     Debug_Log("Input dispatch: " id " / " modifier)
     try {
-        if id = "NumLock" {
-            try {
-                if modifier = "Normal" {
-                    AutoBind_Run()
-                    Notify_Info("Auto Bind completed")
-                } else if modifier = "Ctrl"
-                    Binding_Clear()
-            } finally {
-                if App.NumLockSaved
-                    NumLock_ForceOn()
-            }
-            return
-        }
         key := App.Keys[id]
         if key.Mode = "Disabled"
             return

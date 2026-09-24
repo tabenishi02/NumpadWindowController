@@ -316,13 +316,18 @@ Test_Input() {
     Test_Assert(counts["NumpadDiv"] = 1, "Shortcut registers Normal only")
     Test_Assert(!counts.Has("Backspace"), "Disabled registers no hotkeys")
     Test_Assert(!counts.Has("Numpad0") && !counts.Has("Virtual000"), "Zero input uses detector only")
-    Test_Assert(!counts.Has("NumLock"), "NumLock uses dedicated physical registration")
-    numPlan := Input_NumLockHotkeyPlan()
-    Test_Assert(numPlan.Length = 2, "NumLock has two dedicated physical hotkeys")
-    Test_Assert(numPlan[1].Hotkey = "*SC145" && numPlan[1].Modifier = "Normal"
-        && numPlan[1].Context = "Normal", "Normal NumLock uses physical SC145")
-    Test_Assert(numPlan[2].Hotkey = "^Pause" && numPlan[2].Modifier = "Ctrl",
-        "Ctrl NumLock uses Ctrl+Pause")
+    Test_Assert(counts["NumpadEnter"] = 2,
+        "NumpadEnter generic plan keeps Normal and CtrlAlt only")
+    globalPlan := Input_GlobalHotkeyPlan()
+    Test_Assert(globalPlan.Length = 2, "NumpadEnter has two reserved global actions")
+    Test_Assert(globalPlan[1].Action = "AutoBindAll"
+        && globalPlan[1].Key = "SC11C" && globalPlan[1].Modifier = "Ctrl",
+        "Ctrl NumpadEnter routes to Auto Bind All")
+    Test_Assert(globalPlan[2].Action = "ClearAll"
+        && globalPlan[2].Key = "SC11C" && globalPlan[2].Modifier = "CtrlShift",
+        "Ctrl Shift NumpadEnter routes to Clear All")
+    Test_Assert(globalPlan[1].Key != "SC01C" && globalPlan[2].Key != "SC01C",
+        "Standard Enter SC01C is not a Global Action key")
     Test_Assert(Input_ModifierKind(1, 1, 1) = "Unsupported", "Reject Ctrl Shift Alt")
     Test_Assert(Input_ModifierKind(0, 1, 0) = "Unsupported", "Shift alone passes through")
     Test_Assert(Input_ModifierKind(1, 1, 0) = "CtrlShift", "Ctrl Shift mapping")
@@ -373,13 +378,17 @@ Test_Lazy() {
     App.Keys["Virtual000"].Mode := "Disabled"
     Input_StartZeroDetector()
     Test_Assert(!IsObject(App.Hook), "Both zero keys disabled means no InputHook")
-    ; Recreate consistent configuration before checking global dispatch.
+    ; Recreate consistent configuration before checking Global Actions.
     App.Keys := Test_Load().Keys
     App.Slots := Runtime_Init(App.Keys)
-    Input_Dispatch("NumLock", "Normal")
-    Test_Assert(Runtime_Validate(App.Slots, App.Keys) is Map, "NumLock routes to Auto Bind All")
-    Input_Dispatch("NumLock", "Ctrl")
-    Test_Assert(Runtime_Validate(App.Slots, App.Keys).Count = 0, "Ctrl NumLock routes to Clear All")
+    Input_GlobalDispatch("AutoBindAll")
+    Test_Assert(Runtime_Validate(App.Slots, App.Keys) is Map,
+        "Ctrl NumpadEnter Global Action routes to Auto Bind All")
+    App.Slots["Numpad0"] := {Hwnd: 0x12345, BindingSource: "Manual"}
+    Input_GlobalDispatch("ClearAll")
+    Test_Assert(Runtime_Validate(App.Slots, App.Keys).Count = 0
+        && !App.Slots["Numpad0"].Hwnd,
+        "Ctrl Shift NumpadEnter Global Action routes to Clear All")
     SetTimer(Notify_Clear, 0)
     Notify_Clear()
 }
