@@ -381,11 +381,16 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 - [x] 通常NumLockを物理 `SC145` Hotkeyへ変更
 - [x] Ctrl+NumLockをAutoHotkey仕様どおり `^Pause` Hotkeyへ変更
 - [x] NumLock Global Action後にAlwaysOnを再適用・ON確認
-- [x] Modifier付きVirtual000判定窓を120msへ拡張
-- [x] 通常0/000の80ms判定窓は維持
-- [x] Debug LogへInput Dispatch / Zero timing診断を追加
-- [x] NumLock / Modifier付き000の自動テストを追加
-- [ ] Manual Test R-1～R-7をPASS
+- [x] 初回修正としてModifier付きVirtual000判定窓を120msへ拡張
+- [x] R-7ログ解析で失敗原因が時間超過ではなくInterruptと確認
+- [x] 通常 / Modifier付き000の判定窓を80msへ統一
+- [x] 同一Modifier状態の再DownをZero DetectorのInterrupt対象外へ変更
+- [x] その他のInterruptへVK / SC / ignored診断を追加
+- [x] Ctrl押下継続中000の自動Regression Testを追加
+- [x] NumLock InputHook + Raw Input観測PoCを追加
+- [ ] NumLock PoC実機試験 R-8
+- [ ] Ctrl押下継続000実機試験 R-9
+- [ ] NumLock仕様の継続 / 代替キー化をPoC結果から決定
 - [ ] Phase F最終完了判定
 
 ---
@@ -537,6 +542,7 @@ Phase I  初期版完成処理
 ## 最優先タスク
 
 初回Phase F Manual Testで見つかった入力系問題への修正版を実装済み。
-次は [Phase F Manual Test Guide](docs/PHASE_F_MANUAL_TEST.md) のR-1～R-7を実施する。
-特に物理NumLock / Ctrl+NumLock、Ctrl+000、Numpad0 Clear後通知、NumLock終了時復元を確認する。
-すべてPASS後にPhase Fを閉じ、Phase G/Hへ進む。
+R-7ログ解析まで完了。
+次は [Phase F Manual Test Guide](docs/PHASE_F_MANUAL_TEST.md) のR-8（NumLock Input PoC）とR-9（Ctrl押下継続000）を優先する。
+NumLockはPoC結果により通常Hotkey継続、Raw Input採用、またはGlobal Function Key変更のいずれかを決定する。
+R-8/R-9反映後にPhase F最終判定へ進む。

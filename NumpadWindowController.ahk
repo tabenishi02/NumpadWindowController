@@ -398,9 +398,30 @@ Zero_New() {
 }
 
 Zero_WindowMs(modifier) {
-    ; Preserve the original 80 ms latency for normal 0/000 input.
-    ; Modified 000 sequences get a wider window based on the first manual-test result.
-    return modifier = "Normal" ? 80 : 120
+    ; The second manual-test log showed successful Ctrl+000 sequences at 31-47 ms.
+    ; Failures were caused by an Interrupt, not by the elapsed-time threshold.
+    ; Keep one 80 ms window for all modifier states.
+    return 80
+}
+
+Zero_IsModifierVk(vk) {
+    ; Generic and left/right-specific modifier VK values.
+    return vk = 0x10 || vk = 0x11 || vk = 0x12
+        || vk = 0xA0 || vk = 0xA1 || vk = 0xA2 || vk = 0xA3
+        || vk = 0xA4 || vk = 0xA5 || vk = 0x5B || vk = 0x5C
+}
+
+Zero_ShouldIgnoreInterrupt(state, vk, modifier) {
+    ; A held modifier can emit another KeyDown while the physical 000 key is
+    ; producing SC052 D/U events. Ignore only that same modifier state.
+    ; A newly pressed modifier changes Input_Modifier() and still interrupts.
+    return state.Active && Zero_IsModifierVk(vk) && modifier = state.Modifier
+}
+
+Zero_FeedInput(state, kind, tick, modifier := "Normal", vk := 0) {
+    if kind = "Interrupt" && Zero_ShouldIgnoreInterrupt(state, vk, modifier)
+        return []
+    return Zero_Feed(state, kind, tick, modifier)
 }
 
 Zero_Finish(state, triple := false) {
@@ -466,33 +487,45 @@ Input_StartZeroDetector() {
 }
 
 Zero_OnDown(ih, vk, sc) {
-    Zero_Process(sc = 0x052 ? "D" : "Interrupt")
+    Zero_Process(sc = 0x052 ? "D" : "Interrupt", vk, sc)
 }
 
 Zero_OnUp(ih, vk, sc) {
     if sc = 0x052
-        Zero_Process("U")
+        Zero_Process("U", vk, sc)
 }
 
 Zero_OnTimer() {
     Zero_Process("Timer")
 }
 
-Zero_Process(kind) {
+Zero_Process(kind, vk := 0, sc := 0) {
     global App
     Critical("On")
     try {
         tick := A_TickCount
         modifier := Input_Modifier()
-        if kind != "Interrupt" || App.ZeroDetector.Active
+        ignoredModifierInterrupt := kind = "Interrupt"
+            && Zero_ShouldIgnoreInterrupt(App.ZeroDetector, vk, modifier)
+
+        if kind = "Interrupt" && App.ZeroDetector.Active {
+            Debug_Log("Zero interrupt: vk=" Format("{:02X}", vk)
+                " sc=" Format("{:03X}", sc)
+                " modifier=" modifier
+                " ignored=" ignoredModifierInterrupt
+                " pattern=" App.ZeroDetector.Pattern)
+        } else if kind != "Interrupt" || App.ZeroDetector.Active {
             Debug_Log("Zero input: kind=" kind " tick=" tick " modifier=" modifier
                 " active=" App.ZeroDetector.Active " start=" App.ZeroDetector.Start
                 " pattern=" App.ZeroDetector.Pattern)
-        for event in Zero_Feed(App.ZeroDetector, kind, tick, modifier) {
+        }
+
+        for event in Zero_FeedInput(App.ZeroDetector, kind, tick, modifier, vk) {
             Debug_Log("Zero queued: " event.Id " / " event.Modifier
                 " elapsed=" (tick - App.ZeroDetector.Start))
             App.InputQueue.Push(event)
         }
+
         timeout := App.ZeroDetector.Active ? Zero_WindowMs(App.ZeroDetector.Modifier) : 0
         SetTimer(Zero_OnTimer, App.ZeroDetector.Active
             ? -Max(1, timeout + 1 - (A_TickCount - App.ZeroDetector.Start)) : 0)

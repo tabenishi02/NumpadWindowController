@@ -57,15 +57,16 @@ PASS:
 - 通常NumLockを物理SC145で登録。
 - Ctrl+NumLockを^Pauseで登録。
 - NumLock Global Action後にAlwaysOnを再適用しONを検証。
-- Modifier付き000の判定窓を120msへ拡張。通常0/000は80msを維持。
+- R-7ログから000失敗は時間超過ではなく途中Interruptと判明。判定窓は全Modifierで80msへ戻し、同一Modifier状態の再Downだけを無視する修正を追加。
 - Debug LogへLogical DispatchとZero Detector timingを追加。
-- 自動テストへNumLock専用Hotkey定義とModifier別000境界を追加。
+- 自動テストへNumLock専用Hotkey定義とCtrl押下継続000のRegressionを追加。
+- `poc/NumLockInputPoC.ahk` を追加し、AHK InputHookとWindows Raw Inputを同時観測可能にした。
 
 初回テスト時の「物理キーはDEL」という記録はユーザーの誤認として撤回した。
 実機のキー表記はBackspaceであり、`Key-Backspace` の現行設計を維持する。
 
-次は `docs/PHASE_F_MANUAL_TEST.md` のR-1～R-7を実施する。
-Phase Fは再テスト完了まで閉じない。Phase G/Hの受入確認は未実施。
+次は `docs/PHASE_F_MANUAL_TEST.md` のR-8（NumLock Input PoC）とR-9（Ctrl押下継続000）を優先する。
+Phase Fはこれらの結果を反映するまで閉じない。Phase G/Hの受入確認は未実施。
 
 ## 次回読む資料
 

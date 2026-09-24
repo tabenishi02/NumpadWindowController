@@ -925,10 +925,10 @@ AutoHotkey / WindowsではCtrlを押したNumLockは `Ctrl + Pause` として報
 
 ### 結果
 
-- [x] PASS
-- [ ] FAIL
+- [ ] PASS
+- [x] FAIL
 
-成功回数:
+初回修正版の結果（FAIL）:
 
 ```text
 ctrl + Virtual000 について以下の挙動を確認。
@@ -1026,6 +1026,95 @@ R-7確認結果:
 - 失敗するCtrl+000では途中に Interrupt が発生し、DUD / DUDU / DUDUD 等の途中状態でNumpad0へフォールバックする。
 - 失敗は120msの時間超過ではなく、非SC052 KeyDownによるInterruptが直接原因。
 - 次の診断ではInterrupt発生時のvk/scをログへ追加し、割込み元キーを特定する。
+```
+
+---
+
+## Test R-8: NumLock Input PoC
+
+### 目的
+
+外付けテンキーNumLockが、AutoHotkey Keyboard HookまたはWindows Raw Inputへ実際に届いているかを確定する。
+
+### 前提
+
+本体NumpadWindowControllerと他のKeyboard Hookを終了する。
+
+### 実行
+
+```text
+poc/NumLockInputPoC.ahk
+```
+
+### 手順
+
+1. PoCを起動する。
+2. F6を押し、外付けテンキーNumLockを5回押す。
+3. F7を押し、Ctrlを押したまま外付けテンキーNumLockを5回押す。
+4. F8を押し、通常KeyboardのPauseを2回押す。
+5. F9でログを開く。
+6. PoCを終了する。
+
+### 確認観点
+
+ログの `AHK ...` と `RAW ...` を比較する。
+
+- AHK + RAW: 通常のKeyboard入力として捕捉可能。
+- RAWのみ: 本体にRaw Input経路を追加する候補。
+- AHK / RAWとも無し、Pauseは記録あり: 外付けテンキー内部処理の可能性が高く、NumLock Global Function設計を再検討する。
+
+### 結果
+
+- [ ] AHK + RAWでNumLockを観測
+- [ ] RAWのみでNumLockを観測
+- [ ] NumLockはAHK / RAWとも観測されない
+- [ ] 判定不能
+
+ログ:
+
+```text
+
+```
+
+---
+
+## Test R-9: Ctrl押下継続中の000 Regression
+
+### 目的
+
+同一Modifier状態のCtrl再DownをZero Detectorが誤Interruptとして扱わないことを確認する。
+
+### 手順
+
+1. 任意WindowをForegroundにする。
+2. CtrlをDownしたまま維持する。
+3. 物理000を5回、約0.5～1秒間隔で押す。
+4. Ctrlを離す。
+5. 各000がVirtual000へのManual Bindとして扱われたか確認する。
+6. 可能ならDebugを有効にして同じ操作を再実施する。
+
+### 期待結果
+
+- 5回すべて `Virtual000 / Ctrl` として処理される。
+- Numpad0への誤Manual Bindが発生しない。
+- Modifier再Downが割込んだ場合は `Zero interrupt ... ignored=1` と記録される。
+- Modifier以外の割込みは `ignored=0` となり、従来どおり000候補を中断する。
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+成功回数:
+
+```text
+/5
+```
+
+Debug記録:
+
+```text
+
 ```
 
 ---

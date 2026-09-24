@@ -250,20 +250,53 @@ Test_Zero() {
         Zero_Feed(state, kind, (i - 1) * 10)
     events := Zero_Feed(state, "U", 81)
     Test_Assert(events.Length = 3 && events[1].Id = "Numpad0", "Late Up cannot become triple")
-    Test_Assert(Zero_WindowMs("Normal") = 80 && Zero_WindowMs("Ctrl") = 120,
-        "Modifier-specific zero detector window")
+    Test_Assert(Zero_WindowMs("Normal") = 80 && Zero_WindowMs("Ctrl") = 80,
+        "Zero detector keeps one 80ms window")
+    Test_Assert(Zero_IsModifierVk(0x11) && Zero_IsModifierVk(0xA2)
+        && Zero_IsModifierVk(0xA1) && Zero_IsModifierVk(0xA5)
+        && Zero_IsModifierVk(0x5B), "Modifier VK classification")
+    Test_Assert(!Zero_IsModifierVk(0x41), "Non-modifier VK classification")
+
     state := Zero_New()
-    for i, kind in StrSplit("DUDUD")
-        Zero_Feed(state, kind, (i - 1) * 20, "Ctrl")
-    events := Zero_Feed(state, "U", 120, "Ctrl")
+    Zero_FeedInput(state, "D", 0, "Ctrl")
+    Zero_FeedInput(state, "U", 10, "Ctrl")
+    events := Zero_FeedInput(state, "Interrupt", 15, "Ctrl", 0xA2)
+    Test_Assert(events.Length = 0 && state.Active && state.Pattern = "DU",
+        "Repeated held Ctrl does not interrupt 000 candidate")
+    Zero_FeedInput(state, "D", 20, "Ctrl")
+    Zero_FeedInput(state, "U", 30, "Ctrl")
+    Zero_FeedInput(state, "D", 40, "Ctrl")
+    events := Zero_FeedInput(state, "U", 50, "Ctrl")
     Test_Assert(events.Length = 1 && events[1].Id = "Virtual000"
-        && events[1].Modifier = "Ctrl", "Ctrl triple accepted at 120ms boundary")
+        && events[1].Modifier = "Ctrl",
+        "Ctrl+000 survives held-Ctrl repeat interrupt")
+
+    state := Zero_New()
+    Zero_FeedInput(state, "D", 0, "Ctrl")
+    Zero_FeedInput(state, "U", 10, "Ctrl")
+    events := Zero_FeedInput(state, "Interrupt", 15, "Ctrl", 0x41)
+    Test_Assert(events.Length = 1 && events[1].Id = "Numpad0" && !state.Active,
+        "Non-modifier key still interrupts 000 candidate")
+
+    state := Zero_New()
+    Zero_FeedInput(state, "D", 0, "Ctrl")
+    Zero_FeedInput(state, "U", 10, "Ctrl")
+    events := Zero_FeedInput(state, "Interrupt", 15, "CtrlShift", 0xA0)
+    Test_Assert(events.Length = 1 && !state.Active,
+        "New modifier state still interrupts 000 candidate")
+
     state := Zero_New()
     for i, kind in StrSplit("DUDUD")
-        Zero_Feed(state, kind, (i - 1) * 20, "Ctrl")
-    events := Zero_Feed(state, "U", 121, "Ctrl")
+        Zero_FeedInput(state, kind, (i - 1) * 10, "Ctrl")
+    events := Zero_FeedInput(state, "U", 80, "Ctrl")
+    Test_Assert(events.Length = 1 && events[1].Id = "Virtual000",
+        "Ctrl triple accepted at 80ms boundary")
+    state := Zero_New()
+    for i, kind in StrSplit("DUDUD")
+        Zero_FeedInput(state, kind, (i - 1) * 10, "Ctrl")
+    events := Zero_FeedInput(state, "U", 81, "Ctrl")
     Test_Assert(events.Length = 3 && events[1].Id = "Numpad0",
-        "Ctrl triple rejected outside 120ms window")
+        "Ctrl triple rejected outside 80ms window")
     state := Zero_New()
     Zero_Feed(state, "D", 0)
     Zero_Feed(state, "U", 10)

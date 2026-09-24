@@ -30,7 +30,7 @@ PASS:
 - Windows / AutoHotkey仕様に合わせ、Ctrl+NumLockは `^Pause` で捕捉する。
 - NumLock Global Action後にAlwaysOnを再適用し、ON状態を検証する。
 - 通常0/000の判定窓80msは維持する。
-- Ctrl等Modifier付き000のみ判定窓を120msへ拡張する。
+- 初回修正ではModifier付き000を120msへ拡張したが、ログ解析で時間超過が原因ではないと判明したため80msへ戻した。
 - Debug時にLogical DispatchとZero Detectorのtick / elapsedを記録する。
 - 自動テストへ専用NumLock Hotkey定義とModifier別000境界を追加する。
 
@@ -44,6 +44,29 @@ PASS:
 KeypadDel等への名称変更は行わない。
 
 再テストは `docs/PHASE_F_MANUAL_TEST.md` のR-1～R-7を使用する。
+
+## 2026-09-25 Ctrl+000ログ解析とNumLock追加PoC
+
+Driveへ保存された `NumpadWindowController_20260925022556.log` を解析した。
+
+Ctrl+000:
+
+- 成功時は `D-U-D-U-D-U` が31～47ms程度で完成し、`Virtual000 / Ctrl` へ確定した。
+- 失敗時は15～78ms程度の途中で `Interrupt` が入り、Numpad0へフォールバックした。
+- したがって120msへの判定窓拡大は原因対策ではなかった。
+- 判定窓は通常 / Modifier付きとも80msへ戻す。
+- 同一Modifier状態のCtrl/Shift/Alt/Win再DownだけはZero候補を中断しない。
+- 新しいModifier追加や通常キーDownは従来どおりInterruptとする。
+- InterruptログへVK / SC / ignoredフラグを追加した。
+
+NumLock:
+
+- 実機試験では外付けテンキーNumLockがAutoHotkey Key Historyに現れなかった。
+- 本体側のHotkey指定だけでは原因を判定できない。
+- `poc/NumLockInputPoC.ahk` を追加し、AHK InputHookとWindows Raw Inputを同時記録する。
+- PoC結果が得られるまで、NumLockのGlobal Function仕様を確定済みとして扱わない。
+
+次の実機試験は `docs/PHASE_F_MANUAL_TEST.md` のR-8 / R-9を優先する。
 
 ## 実装範囲
 

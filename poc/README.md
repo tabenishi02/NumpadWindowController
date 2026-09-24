@@ -1,3 +1,50 @@
+# NumpadWindowController PoC
+
+このDirectoryには、実機入力を観測する小さなPoCを置く。
+
+- `TripleZeroDetectionPoC.ahk`: 通常0と物理000の識別。
+- `NumLockInputPoC.ahk`: 外付けテンキーNumLockがAHK / Windows Raw Inputへ何を送るかを観測。
+
+## NumLock Input PoC
+
+Phase F実機試験で、外付けテンキーのNumLockがAutoHotkey Key Historyへ現れないことを確認した。
+本PoCは本体を停止した状態で実行し、同じ操作を **AutoHotkey InputHook** と **Windows Raw Input** の両方で記録する。
+
+ログ:
+
+```text
+poc/logs/numlock_input_poc_<timestamp>.log
+```
+
+操作:
+
+| 操作 | 動作 |
+|---|---|
+| F6 | 通常NumLock試験の開始Marker |
+| F7 | Ctrl+NumLock試験の開始Marker |
+| F8 | Keyboard Pause比較試験の開始Marker |
+| F9 | ログを開く |
+| Ctrl+Esc | 終了 |
+
+推奨手順:
+
+1. NumpadWindowControllerと他のKeyboard Hookを終了する。
+2. `NumLockInputPoC.ahk` を起動する。
+3. F6 → 外付けテンキーNumLockを5回。
+4. F7 → Ctrlを押しながら外付けテンキーNumLockを5回。
+5. F8 → 通常KeyboardのPauseを2回。
+6. F9でログを開き、終了する。
+
+判定:
+
+- NumLock操作に `AHK` と `RAW` の両方が出る: 通常Hotkey/InputHook経路で捕捉可能。
+- `RAW` だけが出る: Windows Raw Inputでは届くため、本体にRaw Input経路を追加する余地がある。
+- `AHK` / `RAW` の両方に出ず、Pause比較だけ記録される: 外付けテンキー側で内部処理され、PCへKeyboard eventを送っていない可能性が高い。この場合はNumLockをGlobal Function Keyとして使う設計を再検討する。
+
+本PoCはNumLock状態を変更せず、`SetNumLockState()` も呼ばない。
+
+---
+
 # Triple Zero Detection PoC
 
 ## 目的
