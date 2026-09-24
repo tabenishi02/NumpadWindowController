@@ -328,6 +328,15 @@ Test_Input() {
         "Ctrl Shift NumpadEnter routes to Clear All")
     Test_Assert(globalPlan[1].Key != "SC01C" && globalPlan[2].Key != "SC01C",
         "Standard Enter SC01C is not a Global Action key")
+    keys["NumpadEnter"].Mode := "Disabled"
+    disabledEnterPlan := Input_HotkeyPlan(keys)
+    hasGenericEnter := false
+    for entry in disabledEnterPlan
+        if entry.Id = "NumpadEnter"
+            hasGenericEnter := true
+    Test_Assert(!hasGenericEnter, "Disabled NumpadEnter has no generic hotkeys")
+    Test_Assert(Input_GlobalHotkeyPlan().Length = 2,
+        "NumpadEnter Global Actions remain reserved regardless of Config Mode")
     Test_Assert(Input_ModifierKind(1, 1, 1) = "Unsupported", "Reject Ctrl Shift Alt")
     Test_Assert(Input_ModifierKind(0, 1, 0) = "Unsupported", "Shift alone passes through")
     Test_Assert(Input_ModifierKind(1, 1, 0) = "CtrlShift", "Ctrl Shift mapping")
