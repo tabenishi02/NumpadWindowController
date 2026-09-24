@@ -133,13 +133,13 @@ Manual Testを行う前に、現在のBaselineが正常であることを確認�
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
 
 ```text
-
+PASS 119 assertions (AHK 2.0.26)
 ```
 
 ---
@@ -157,7 +157,7 @@ Manual Testを行う前に、現在のBaselineが正常であることを確認�
 基本的には以下と同等以上であること。
 
 ```text
-PASS 136 assertions
+PASS 138 assertions (AHK 2.0.26)
 ```
 
 環境によって以下のPENDINGは許容する。
@@ -171,19 +171,19 @@ PENDING: NumLock 0 restoration
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 Assertion数:
 
 ```text
-
+138
 ```
 
 PENDING:
 
 ```text
-
+0
 ```
 
 ---
@@ -221,14 +221,14 @@ PENDING:
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
 
 ```text
-対象Window:
-結果:
+対象Window:Chrome
+結果:OK
 備考:
 ```
 
@@ -254,7 +254,7 @@ Binding済みWindowが最小化されている場合にRestoreしてForeground�
 
 ### 結果
 
-- [ ] PASS
+- [o] PASS
 - [ ] FAIL
 
 記録:
@@ -311,7 +311,7 @@ ChromeやVS Codeの詳細な再割り当て試験はPhase Gで行うため、Pha
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
@@ -348,7 +348,7 @@ Numpad0へ任意WindowをManual Bindしておく。
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
@@ -387,12 +387,16 @@ Numpad0とVirtual000に異なるWindowを登録する。
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
 記録:
 
 ```text
-
+Virtual000の登録自体は可能
+しかし判定が人間に知覚が難しいほどにシビア
+多くの場合0に登録されてしまう
+判定の改善が必要
+ただし、登録時以外の000は正常に機能する。Ctrl + Virtual000 が特別に判定が難しい可能性がある。
 ```
 
 ---
@@ -425,7 +429,7 @@ Numpad0とVirtual000に異なるWindowを登録する。
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
@@ -452,7 +456,7 @@ Numpad0とVirtual000に異なるWindowを登録する。
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 ---
@@ -474,7 +478,16 @@ Numpad0とVirtual000に異なるWindowを登録する。
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
+
+記録:
+
+```text
+- Numpad0 SlotがClearされる ok
+- Numpad0はManual専用なので自動補充されない ok
+- `0` 押下時にWindowが存在しない旨が通知される ng
+0押下時に、Auto Bind completed と表示される。
+```
 
 ---
 
@@ -498,7 +511,7 @@ Numpad1 / Explorer。
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 ---
@@ -524,16 +537,16 @@ ControllerのActionとして誤実行されない。
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
 
 ```text
-Shift:
-Alt:
-Ctrl+Shift+Alt:
-Win:
+Shift:ok
+Alt:ok
+Ctrl+Shift+Alt:ok
+Win:ok
 ```
 
 ---
@@ -564,7 +577,7 @@ Mode=Disabled
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 ---
@@ -616,13 +629,14 @@ Warningを閉じて起動後、通常KeyboardのBackspaceもController側の対�
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
 
 ```text
-
+テンキーに物理設置されているキー設定はBackspaceではなくDELである。
+したがって、現在のBackspace基準の設定ではなく、DELキー設定としたい。
 ```
 
 ### 復旧
@@ -637,7 +651,7 @@ Label=Physical DEL / Backspace
 
 再起動して通常Backspaceが復旧したことも確認する。
 
-- [ ] 標準設定へ復旧済み
+- [x] 標準設定へ復旧済み
 
 ---
 
@@ -660,7 +674,7 @@ Label=Physical DEL / Backspace
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
 ---
 
@@ -688,12 +702,14 @@ Test F-13から続ける。
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
 記録:
 
 ```text
-
+スクリプトの起動時のNumLock状態はそのまま維持される。
+スクリプト起動中でもNumLock状態は切り替え可能。
+スクリプトの終了時のNumLock状態はそのまま維持される。
 ```
 
 ---
@@ -717,7 +733,7 @@ Test F-13から続ける。
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
 ---
 
@@ -756,7 +772,7 @@ Phase Fでは正常終了時の復元を確認する。
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
 ---
 
@@ -776,7 +792,11 @@ Phase Fでは正常終了時の復元を確認する。
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
+
+```text
+Ctrl + NumLock を押しても Clearされない。
+```
 
 ---
 
@@ -784,13 +804,13 @@ Phase Fでは正常終了時の復元を確認する。
 
 すべての試験を通じて以下を観察する。
 
-- [ ] Scriptが予期せず終了しない
-- [ ] AutoHotkey Error Dialogが表示されない
+- [x] Scriptが予期せず終了しない
+- [x] AutoHotkey Error Dialogが表示されない
 - [ ] 同一HWNDが複数Slotへ残らない
-- [ ] 操作不能になるほどHotkeyが奪われない
-- [ ] ToolTipが消えずに残り続けない
+- [x] 操作不能になるほどHotkeyが奪われない
+- [x] ToolTipが消えずに残り続けない
 - [ ] NumLockが異常な状態に残らない
-- [ ] Standard Backspace設定復旧後にBackspaceが正常動作する
+- [x] Standard Backspace設定復旧後にBackspaceが正常動作する
 
 異常があった場合:
 
