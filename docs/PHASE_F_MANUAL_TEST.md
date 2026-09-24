@@ -1104,13 +1104,13 @@ poc/NumLockInputPoC.ahk
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 成功回数:
 
 ```text
-/5
+5/5
 ```
 
 Debug記録:
