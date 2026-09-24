@@ -1157,7 +1157,7 @@ Debug記録:
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
@@ -1190,12 +1190,12 @@ Debug記録:
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
 記録:
 
 ```text
-
+Ctrl + Shift + Numpad で各スロットをClearした際、自動で再Bindされてしまう。
 ```
 
 ---
@@ -1220,7 +1220,7 @@ Debug記録:
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
@@ -1240,7 +1240,7 @@ Debug記録:
 - [x] 同一HWNDが複数Slotへ残らない
 - [x] 操作不能になるほどHotkeyが奪われない
 - [x] ToolTipが消えずに残り続けない
-- [ ] NumLockが異常な状態に残らない
+- [x] NumLockが異常な状態に残らない
 - [x] Standard Backspace設定復旧後にBackspaceが正常動作する
 
 異常があった場合:
