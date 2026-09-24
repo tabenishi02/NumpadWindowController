@@ -408,6 +408,8 @@ Phase F固有の未解決事項はない。
 
 # Phase G - テスト
 
+詳細手順: [Phase G Test Guide](docs/PHASE_G_TEST.md)
+
 Phase A～Fで確定した現行仕様を基準に、実Window / 実Configを使って機能を網羅確認する。
 Phase Fの自動テストで確認済みの内部ロジックも、Phase Gではユーザー操作から見た期待結果で再確認する。
 
