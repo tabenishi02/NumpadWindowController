@@ -13,7 +13,7 @@
 - [x] Windows 11 + AutoHotkey v2を基本技術として採用
 - [x] 実機テンキーの主要キーについて Key Name / VK / SC を確認
 - [x] `000` キーが独立キーではなく `Numpad0` を3回送ることを確認
-- [x] 設定可能キーのModeを `Window / Shortcut / Disabled` に整理し、NumLockは予約Global Functionとする
+- [x] 設定可能キーのModeを `Window / Shortcut / Disabled` に整理し、Global ActionはNumpadEnterのCtrl系Combinationへ割り当てる
 - [x] `7 / 8 / 9` をChrome専用とする方針を決定
 - [x] `4 / 5 / 6` をVS Code専用とする方針を決定
 - [x] `1 / 2 / 3` の既定用途を Explorer / ChatGPTデスクトップ / pwsh とする方針を決定
@@ -260,10 +260,11 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 
 ---
 
-# Phase F - AutoHotkey v2実装
+# Phase F - AutoHotkey v2実装 ✅ 完了
 
-初回実機テストまで実施済み。Window制御系は概ねPASSし、特殊入力系の修正版を実装した。
-現在は [Phase F Manual Test Guide](docs/PHASE_F_MANUAL_TEST.md) のR-1～R-7による再テスト待ち。
+本体実装、自動テスト、実機Smoke Test、入力系Regression Testまで完了。
+R-13でClear AllとLazy Auto Bindを分離確認し、R-14でNumLock lifecycleもPASSした。
+Phase F固有の未解決事項はない。
 詳細: [Phase F検証結果](docs/PHASE_F_RESULT.md)。
 
 ## F-1. Skeleton / App State
@@ -372,7 +373,7 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 - [x] 旧NumLock Global Actionを廃止
 - [x] Ctrl+NumpadEnter Auto Bind Allを実装
 - [x] Ctrl+Shift+NumpadEnter Clear Allを実装
-- [ ] OnExit NumLock復元（再テスト待ち）
+- [x] OnExit NumLock復元（R-14実機PASS）
 - [x] ToolTip通知
 - [x] Debug Log / Slot Snapshot
 - [x] Debug File I/O失敗がController動作へ波及しないことを確認
@@ -397,11 +398,11 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 - [x] Ctrl押下継続000実機試験 R-9（5/5 PASS）
 - [x] Global ActionをNumpadEnterへ変更
 - [x] R-10 新Global Action自動テスト
-- [ ] R-11 NumpadEnter Global Action初回確認は判定保留
+- [x] R-11 NumpadEnter Global Action初回確認（R-13でLazy Auto Bindと確定）
 - [x] R-12 NumpadEnter / Standard Enter分離
-- [ ] R-13 Clear All直後 / Lazy Auto Bind分離再試験
-- [ ] R-14 NumLock lifecycle再試験（OFF復元 / ON復元 / 実行中ON固定）
-- [ ] Phase F最終完了判定
+- [x] R-13 Clear All直後 / Lazy Auto Bind分離再試験
+- [x] R-14 NumLock lifecycle再試験（OFF復元 / ON復元 / 実行中ON固定）
+- [x] Phase F最終完了判定
 
 ---
 
@@ -551,15 +552,9 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-R-10はPASS、R-12もPASS。
-R-11はClear All直後の再Bindと、その後の専用Slot押下によるLazy Auto Bindを区別できていないため判定保留とする。
+Phase Fは正式完了。
 
-次は [Phase F Manual Test Guide](docs/PHASE_F_MANUAL_TEST.md) の以下を実施する。
+次工程は **Phase G - テスト**。
+まずG-1設定読込テストから開始し、その後Manual Bind、Chrome / VS Code Auto Bind、1/2/3、Shortcut、Clear / Lazy Bind、長時間常駐テストへ進む。
 
-- R-13: Clear All直後 / Lazy Auto Bind分離再試験
-- R-14: NumLock lifecycle再試験
-  - 起動前OFF → 実行中ON → 正常終了後OFF
-  - 起動前ON → 実行中ON → 正常終了後ON
-  - 実行中にWindows側NumLockをOFFへ切り替えられないこと
-
-R-13 / R-14完了後にPhase F最終判定へ進む。
+Phase HはPhase G完了後の実機受入試験、Phase Iは初期版完成処理として実施する。

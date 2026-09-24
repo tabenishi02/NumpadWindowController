@@ -2,7 +2,7 @@
 
 更新日: 2026-09-25
 対象: NumpadWindowController
-状態: Phase F初回実機テスト済み / 入力系修正版実装済み / 再テスト待ち
+状態: Phase F完了 / 次工程 Phase G - テスト
 
 ## 現在の成果物
 
@@ -67,20 +67,18 @@ PASS:
 実機のキー表記はBackspaceであり、`Key-Backspace` の現行設計を維持する。
 
 R-10新Global Action自動テストはPASS、R-12 NumpadEnter / Standard Enter分離もPASS。
-R-11はClear後の確認操作でLazy Auto Bindが発動した可能性があり、Clear All自体のFAILとはまだ確定していない。
+R-13ではClear All直後に即時Auto Bindがないことと、専用Slot押下時だけLazy Auto Bindすることをログで確認した。
+これによりR-11で観測した再BindingはClear Allの不具合ではなく、仕様どおりのLazy Auto Bindと確定した。
+R-14ではWindows側NumLockについて、OFF→起動ON→終了OFF、ON→起動ON→終了ON、実行中ON固定をすべてPASSした。
 
-次は `docs/PHASE_F_MANUAL_TEST.md` のR-13 / R-14を優先する。
-
-- R-13: Clear All直後のSlot Snapshotと、その後のLazy Auto BindをDebug Logで分離確認。
-- R-14: Windows側NumLockについて、OFF→起動ON→終了OFF、ON→起動ON→終了ON、実行中ON固定を再確認。
-
-Phase FはR-13 / R-14の確認まで閉じない。Phase G/Hの受入確認は未実施。
+Phase Fは正式完了。Phase F固有の未解決事項はない。
+次工程はPhase G - テスト。Phase Hの実機受入試験はPhase G完了後に実施する。
 
 ## 次回読む資料
 
 1. 本書
 2. `docs/PHASE_F_RESULT.md`
-3. `TASKS.md`のPhase F残項目とPhase G/H
+3. `TASKS.md`のPhase G/H
 4. 変更対象に関係する`docs/PHASE_E_SPEC.md` / `PHASE_D_SPEC.md` / `PHASE_C_SPEC.md`
 
 既存設計の根拠はPhase A～E仕様書、実機識別の根拠は`docs/PHASE_B_RESULT.md`。PoCは`poc/`に保持している。
