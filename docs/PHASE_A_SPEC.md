@@ -23,29 +23,41 @@ Phase Aでは以下を確定する。
 
 ---
 
-# 2. A-1 NumLock機能
+# 2. A-1 Global Function操作 / NumLock状態
 
-## 2.1 決定
+## 2.1 Global Function操作
 
-MVPでは物理 `NumLock` を Numpad Window Controller のGlobal Function Keyとして予約する。
+Phase F実機PoCにより、使用中の外付けテンキーの物理NumLockはAutoHotkey InputHook / Windows Raw Inputの双方へKeyboard Eventを送らないことを確認した。
+このためNumLockをController Actionの入口として使用する旧仕様を廃止する。
 
-通常押下:
+Global Functionは実機で独立して観測できる `NumpadEnter` (`SC11C`) のModifier Combinationへ移す。
 
 ~~~text
-NumLock
+Ctrl + NumpadEnter
 → Auto Bind All
-~~~
 
-修飾操作:
-
-~~~text
-Ctrl + NumLock
+Ctrl + Shift + NumpadEnter
 → Clear All
 ~~~
 
-NumLock本来のON/OFFトグルは、スクリプト実行中は行わせない。
+誤操作防止のため、Global ActionはNumpadEnter単押しには割り当てない。
 
-## 2.2 NumLock状態
+通常KeyboardのEnterは `SC01C`、テンキーEnterは `SC11C` と実機確認済みであり、通常Keyboard EnterはGlobal Actionの対象外とする。
+
+## 2.2 NumpadEnterの通常用途
+
+`NumpadEnter` 自体は引き続き通常の設定可能Keyとして扱う。
+
+- Normal: ConfigのModeに従うWindow Activate / Shortcut。
+- Ctrl: Auto Bind Allとして予約。
+- Ctrl + Shift: Clear Allとして予約。
+- Ctrl + Alt: Window Mode時の従来Dispatcherへ渡す。AutoBind=OFFなら個別Auto Bindは実行しない。
+
+したがってNumpadEnterがWindow Modeでも、CtrlによるManual BindとCtrl+ShiftによるSlot Clearは行わない。
+
+## 2.3 NumLock状態
+
+Global Action用途から外しても、MVPでは既存のNumLock lifecycle要件を維持する。
 
 スクリプト起動時に:
 
@@ -56,28 +68,21 @@ NumLock本来のON/OFFトグルは、スクリプト実行中は行わせない�
 
 目的:
 
-- `Numpad0` ～ `Numpad9` 等の認識を安定させる。
-- MVPの入力処理を単純化する。
-- NumLockをGlobal Function Keyとして利用する。
+- Windows側のテンキー入力状態を一定にする。
+- 入力処理の前提を単純化する。
 
-## 2.3 異常終了時
+物理外付けテンキーNumLockはController Actionとして使用しない。
 
-プロセス強制終了等ではNumLock状態を復元できない場合がある。
+## 2.4 異常終了時
 
-これはMVPのKnown Limitationとする。
+プロセス強制終了等ではNumLock状態を復元できない場合がある。これはMVPのKnown Limitationとする。
 
-次回起動時には再びNumLockをONへ設定する。
+## 2.5 Configuration上の扱い
 
-## 2.4 NumLockをINI設定対象にしない
+NumLockはController入力Keyとして使用しないため、`KeyBindings.ini` のSectionを持たない。
 
-NumLockは予約Global Keyとし、`KeyBindings.ini` から用途変更不可とする。
-
-理由:
-
-- Auto Bind All / Clear Allへの入口を常に確保する。
-- 設定ミスで復旧操作自体を失うことを防ぐ。
-
----
+一方、NumpadEnterは通常用途を持つため `[Key-NumpadEnter]` を維持する。
+ただし `Ctrl + NumpadEnter` と `Ctrl + Shift + NumpadEnter` はModeに関係なくGlobal Actionとして予約する。
 
 # 3. A-2 Manual BindとAuto Bindの優先関係
 
@@ -124,7 +129,7 @@ AutoBind=ONのSlotでもClear直後にはAuto Bindしない。
 
 - そのSlotの通常押下によるLazy Auto Bind
 - `Ctrl + Alt + Key` による個別Auto Bind
-- NumLockによるAuto Bind All
+- Ctrl + NumpadEnterによるAuto Bind All
 
 これにより「Clearした瞬間に元へ戻る」挙動を避ける。
 
@@ -406,14 +411,14 @@ Shortcut / Disabled:
 ## 7.2 Global操作
 
 ~~~text
-NumLock
+Ctrl + NumpadEnter
 → Auto Bind All
 
-Ctrl + NumLock
+Ctrl + Shift + NumpadEnter
 → Clear All
 ~~~
 
-MVPではこれ以外のNumLock修飾操作を定義しない。
+NumpadEnter単押しはConfigどおりの通常Actionとし、Global Actionには使用しない。
 
 ## 7.3 Virtual000
 
@@ -480,7 +485,7 @@ Ctrl + Alt + Numpad1
 
 | 物理キー | 論理キー | 標準用途 | Mode | AutoBind |
 |---|---|---|---|---|
-| NumLock | NumLock | Auto Bind All | Reserved | - |
+| NumLock | - | Controller Actionなし（外付けテンキー内部用途） | - | - |
 | / | NumpadDiv | 任意Window | Window | OFF |
 | * | NumpadMult | 任意Window | Window | OFF |
 | - | NumpadSub | 任意Window | Window | OFF |
@@ -521,8 +526,8 @@ Manual > Auto > None
   初期状態はWindow / AutoBind OFF
 
 Global:
-  NumLock = Auto Bind All
-  Ctrl+NumLock = Clear All
+  Ctrl+NumpadEnter = Auto Bind All
+  Ctrl+Shift+NumpadEnter = Clear All
 ~~~
 
 ---

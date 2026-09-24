@@ -420,14 +420,20 @@ Controller Hotkeyを一切登録しない。
 
 これはPhase DのBackspace安全方針に必要。
 
-## 11.2 NumLock
+## 11.2 NumpadEnter Global Function
 
-Configと無関係に予約Hotkeyとして登録する。
+Global ActionはConfig Modeと独立して、物理 `NumpadEnter = SC11C` のModifier Combinationへ登録する。
 
-- `NumLock` → Auto Bind All
-- `Ctrl + NumLock` → Clear All
+- `Ctrl + NumpadEnter` → Auto Bind All
+- `Ctrl + Shift + NumpadEnter` → Clear All
 
-NumLock本来のToggleは抑止する。
+通常KeyboardのEnterは `SC01C` なので対象外。
+
+`NumpadEnter` のNormal押下は従来どおりConfig Modeに従う。
+Window ModeであってもCtrl / Ctrl+ShiftはGeneric Manual Bind / Slot Clearへ登録せず、Global Actionが優先する。
+
+物理NumLockはPhase F PoCでAHK / Raw Inputの双方にEventが届かないことを確認したため、Global Hotkeyとして登録しない。
+NumLock状態の保存 / ON固定 / OnExit復元は別責務として維持する。
 
 ## 11.3 Unsupported Modifier
 
@@ -857,7 +863,7 @@ Phase Fでは次の順に実装する。
 8. Shortcut
 9. Hotkey Registration
 10. Numpad0 / Virtual000 Detector
-11. NumLock Global Function
+11. NumpadEnter Global Function
 12. Notification / Debug
 13. Integration Test
 

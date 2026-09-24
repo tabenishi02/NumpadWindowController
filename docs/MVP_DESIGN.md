@@ -101,6 +101,8 @@ MVPでは、AutoHotkeyから外付けテンキーと通常キーボード側の�
 | `.` | 6E | 053 | NumpadDot |
 | Enter | 0D | 11C | NumpadEnter |
 
+通常Keyboard Enterは `VK=0D / SC=01C`、テンキーEnterは `VK=0D / SC=11C` と実機確認済みであり、両者は区別してHotkey登録できる。
+
 ### 4.1 000キーとVirtual000
 
 物理 `000` キーは独立したVK/SCを持たず、`Numpad0` のDown/Upを3回高速に発生させる。
@@ -143,7 +145,7 @@ PoCの高頻度ログ書き込みではファイル競合エラーが発生し�
 
 従来案にあった汎用 `Function` ModeはMVPでは採用しない。
 
-NumLockだけは設定ファイル外の予約Function Keyとして扱う。
+`Ctrl + NumpadEnter` / `Ctrl + Shift + NumpadEnter` を設定ファイル外の予約Global Combinationとして扱う。NumLockはController Actionには使用しない。
 
 ### 5.1 Virtual000の扱い
 
@@ -173,7 +175,7 @@ ShortcutまたはDisabledのキーは:
 
 | キー | MVP既定用途 | Mode | Auto Bind |
 |---|---|---|---|
-| NumLock | Auto Bind All | 予約Function | - |
+| NumLock | Controller Actionなし | - | - |
 | `/` | 任意 | Window | OFF |
 | `*` | 任意 | Window | OFF |
 | `-` | 任意 | Window | OFF |
@@ -274,8 +276,8 @@ NumLock
 完全に再構築する場合は:
 
 ```text
-Ctrl + NumLock
-NumLock
+Ctrl + Shift + NumpadEnter
+Ctrl + NumpadEnter
 ```
 
 の順でClear All後にAuto Bind Allを実行する。
@@ -299,7 +301,6 @@ Shortcut設定やINI設定は変更しない。
 理由:
 
 - `Numpad7` 等のAutoHotkey Key Nameを安定させる。
-- NumLockを本ツールのGlobal Function Keyとして利用する。
 
 Known Limitation:
 
@@ -697,7 +698,7 @@ AutoBind=ONでも、その場では再Auto Bindしない。
 
 ### 18.2 Clear All
 
-`Ctrl + NumLock`
+`Ctrl + Shift + NumpadEnter`
 
 全Window Slot:
 
@@ -708,15 +709,15 @@ AutoBind=ONでも、その場では再Auto Bindしない。
 
 Auto Bindは自動実行しない。
 
-再構築したい場合はNumLockを押す。
+再構築したい場合はCtrl + NumpadEnterを押す。
 
 これにより:
 
 ```text
-Ctrl + NumLock
+Ctrl + Shift + NumpadEnter
 → 全解除
 
-NumLock
+Ctrl + NumpadEnter
 → Auto対象だけ再構築
 ```
 
@@ -819,11 +820,12 @@ DisabledではController Hotkeyを登録せず、ネイティブBackspace入力�
 
 明示的にWindow / Shortcutへ変更した場合は、通常キーボードBackspaceも同じActionを発火するため起動時Warningを表示する。
 
-### 20.5 Reserved Key
+### 20.5 Reserved Global Combination
 
-NumLockはINIから変更不可とする。
+`Ctrl + NumpadEnter` はAuto Bind All、`Ctrl + Shift + NumpadEnter` はClear Allとして予約する。
 
-MVPではGlobal Function Keyとして固定する。
+NumpadEnter単押しはConfig対象のままとし、通常Keyboard Enter (`SC01C`) は対象外。
+NumLockはController Actionとして使用しない。
 
 ### 20.6 設定変更
 
@@ -889,7 +891,7 @@ Config Fatal Error時はNumLockやHotkeyを変更する前に終了する。
 
 Chrome / VS Code等がまだ起動していなくてもエラーにはしない。
 
-後からWindowが起動した場合はLazy Auto BindまたはNumLockで取得する。
+後からWindowが起動した場合はLazy Auto BindまたはCtrl + NumpadEnterで取得する。
 
 ---
 
@@ -1041,7 +1043,7 @@ Window Activate失敗:
 - Numpad7 → 左上Chrome
 - Numpad8 → 左下Chrome
 - Numpad9 → 右大Chrome
-- Chrome再起動後、NumLockまたはLazy Auto Bindで復旧可能
+- Chrome再起動後、Ctrl + NumpadEnterまたはLazy Auto Bindで復旧可能
 
 ### VS Code
 
@@ -1062,8 +1064,8 @@ Window Activate失敗:
 
 ### Global操作
 
-- NumLock → Auto Bind All
-- Ctrl+NumLock → Clear All
+- Ctrl+NumpadEnter → Auto Bind All
+- Ctrl+Shift+NumpadEnter → Clear All
 - Ctrl+Key → Manual Bind
 - Ctrl+Shift+Key → Slot Clear
 
@@ -1124,9 +1126,9 @@ MVPの実機運用後、必要性が確認できたものだけ追加する。
 
 Phase Aに属する以下は採用済み仕様とする。
 
-1. **採用済み:** NumLock = Auto Bind All。
+1. **採用済み:** Ctrl+NumpadEnter = Auto Bind All。
 2. **採用済み:** 実行中はNumLockをON固定し、正常終了時に起動前状態へ戻す。
-3. **採用済み:** Ctrl+NumLock = Clear All。
+3. **採用済み:** Ctrl+Shift+NumpadEnter = Clear All。
 4. **採用済み:** 任意キーは標準でWindow / AutoBind=OFF。
 5. **採用済み:** Manual BindをAuto Bindより常に優先。
 6. **採用済み:** 1/2/3をExplorer / ChatGPT Desktop / PowerShell系Terminal専用Slotとする。

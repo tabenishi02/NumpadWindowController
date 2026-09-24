@@ -1,5 +1,18 @@
 # Numpad Window Controller - 暫定設計
 
+## 0. 2026-09-25 Global Action仕様更新
+
+本書の旧NumLock Function記述は後続Phase仕様により上書きされた。現行仕様は次のとおり。
+
+- 物理NumLockはAHK InputHook / Windows Raw Inputの双方へEventを送らないためController Actionには使用しない。
+- `Ctrl + NumpadEnter` = Auto Bind All。
+- `Ctrl + Shift + NumpadEnter` = Clear All。
+- NumpadEnter単押しは従来どおり設定可能Key。
+- 通常Keyboard Enter (`SC01C`) とNumpadEnter (`SC11C`) は区別する。
+- NumLock状態の保存 / ON固定 / 正常終了時復元要件は維持する。
+
+旧節に残るNumLock Function案は履歴情報として扱い、この節とPhase A～F仕様を優先する。
+
 更新日: 2026-09-23  
 状態: Draft / 設計継続中
 
@@ -60,7 +73,7 @@ Shortcutキーを再びWindowキーとして使う場合は、設定ファイル
 
 | キー | 割り当て | キー | 割り当て | キー | 割り当て | キー | 割り当て |
 |---|---|---|---|---|---|---|---|
-| NumLock | 機能キー | `/` | 任意 | `*` | 任意 | `-` | 任意 |
+| NumLock | Controller未使用 | `/` | 任意 | `*` | 任意 | `-` | 任意 |
 | `7` | Chrome1 | `8` | Chrome2 | `9` | Chrome3 | `+` | 任意 |
 | `4` | VSCode1 | `5` | VSCode2 | `6` | VSCode3 | Backspace | 任意 |
 | `1` | エクスプローラー | `2` | ChatGPTデスクトップ | `3` | pwsh | Enter | 任意 |
@@ -69,7 +82,7 @@ Shortcutキーを再びWindowキーとして使う場合は、設定ファイル
 注記:
 
 - Enterキーは物理的に縦2行分の大きさで、`1 / 2 / 3` の行と `0 / 000 / .` の行にまたがる。
-- NumLockキーには特別な機能を持たせる予定。
+- NumLockキーはController Actionには使用しない。Global ActionはNumpadEnterのCtrl系組合せへ移行済み。
 - `000` キーは独立VK/SCを持たないが、高速な `Numpad0` D-U×3を検出し、論理キー `Virtual000` として扱う。PoCで通常使用時の識別を確認済み。
 - 外付けテンキーの物理キー表記も `Backspace` であり、AutoHotkey上でも `Backspace` として検出される。
 

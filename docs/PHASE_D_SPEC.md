@@ -134,8 +134,11 @@ Key-NumpadEnter
 
 Enterは物理的に縦2キー分だが、論理Sectionは1つだけ。
 
-NumLockは予約Global Function KeyなのでConfig Sectionを持たない。
+実機では通常Keyboard Enter=`SC01C`、テンキーEnter=`SC11C` と区別できる。
+`[Key-NumpadEnter]` は通常押下のWindow / Shortcut / Disabled用途を設定する。
+ただし `Ctrl + NumpadEnter` と `Ctrl + Shift + NumpadEnter` はModeに関係なくGlobal Actionとして予約する。
 
+NumLockはController入力として利用しないためConfig Sectionを持たない。
 `[Key-NumLock]` が存在した場合はFatal Errorとする。
 
 ## 2.3 全Section必須
@@ -164,7 +167,7 @@ Disabled
 
 大文字小文字は区別しないが、サンプルでは上記表記を使用する。
 
-NumLockのGlobal FunctionはModeではない。
+NumpadEnterの予約Global Modifier CombinationはModeではなく、Configで変更不可とする。
 
 ## 3.1 Window
 

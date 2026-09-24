@@ -40,7 +40,7 @@ Auto Bind対象は次の専用Slotだけとする。
 
 ## 2.1 Auto Bind Allの意味
 
-`NumLock` のAuto Bind Allは「現在有効なBindingを全部並べ替える」処理ではなく、次の処理とする。
+`Ctrl + NumpadEnter` のAuto Bind Allは「現在有効なBindingを全部並べ替える」処理ではなく、次の処理とする。
 
 1. 現在Bindingを検証する。
 2. 有効なManual Bindを維持する。
@@ -48,15 +48,15 @@ Auto Bind対象は次の専用Slotだけとする。
 4. 無効なBindingだけNoneへ落とす。
 5. 空いたAutoBind=ON Slotだけを補充する。
 
-これにより、日常操作中にNumLockを押しても既存割り当てが不用意に入れ替わらない。
+これにより、日常操作中にAuto Bind Allを実行しても既存割り当てが不用意に入れ替わらない。
 
 完全にAuto Bindを再構築したい場合は既存操作を使用する。
 
 ~~~text
-Ctrl + NumLock
+Ctrl + Shift + NumpadEnter
 → Clear All
 
-NumLock
+Ctrl + NumpadEnter
 → Auto Bind All
 ~~~
 
@@ -487,7 +487,7 @@ Ctrl + Shift + Key
 
 - 通常押下 → Lazy Auto Bind
 - Ctrl + Alt + Key → 個別Auto Bind
-- NumLock → Auto Bind All
+- Ctrl + NumpadEnter → Auto Bind All
 
 のいずれかで補充可能。
 
@@ -505,9 +505,9 @@ Ctrl + Alt + Key
 全体:
 
 ~~~text
-Ctrl + NumLock
+Ctrl + Shift + NumpadEnter
 → Clear All
-NumLock
+Ctrl + NumpadEnter
 → Auto Bind All
 ~~~
 
@@ -557,7 +557,7 @@ Commit
 - Auto Bind対象は専用Slot 1～9だけ。
 - 任意Slotは自動配分しない。
 - Auto Bind Allは有効Manual / Auto Bindingを維持し、欠損だけ補充する。
-- 完全再構築は `Ctrl+NumLock → NumLock`。
+- 完全再構築は `Ctrl+Shift+NumpadEnter → Ctrl+NumpadEnter`。
 - Chromeは新規割り当て時だけ座標分類する。
 - Binding済みChromeは移動 / Minimize / Maximizeしても維持する。
 - VS Codeは未使用候補を逆列挙順で空き4→5→6へ補充する。
