@@ -906,8 +906,10 @@ AutoHotkey / WindowsではCtrlを押したNumLockは `Ctrl + Pause` として報
 
 ### 目的
 
-修飾キー付きVirtual000の判定窓を120msへ拡張した効果を確認する。
-通常0/000は従来どおり80msのため、通常操作の遅延は増やさない。
+初回修正版で行った120ms拡張の結果を記録する。
+その後のR-7ログ解析により、失敗原因は時間超過ではなく途中Interruptと判明したため、
+現在の実装は通常 / Modifier付きとも80msへ戻し、同一Modifier状態の再DownだけをInterrupt対象外としている。
+現行修正版の再確認はR-9で行う。
 
 ### 手順
 
@@ -1025,7 +1027,7 @@ R-7確認結果:
 - 成功するCtrl+000では D-U-D-U-D-U が最後まで成立し、Virtual000 / Ctrlへ確定する。
 - 失敗するCtrl+000では途中に Interrupt が発生し、DUD / DUDU / DUDUD 等の途中状態でNumpad0へフォールバックする。
 - 失敗は120msの時間超過ではなく、非SC052 KeyDownによるInterruptが直接原因。
-- 次の診断ではInterrupt発生時のvk/scをログへ追加し、割込み元キーを特定する。
+- 修正版ではInterrupt発生時のvk/sc/ignoredをログへ追加済み。R-9で割込み元キーを確認する。
 ```
 
 ---
