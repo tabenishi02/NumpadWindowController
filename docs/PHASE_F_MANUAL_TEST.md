@@ -183,7 +183,7 @@ Assertion数:
 PENDING:
 
 ```text
-0
+
 ```
 
 ---
@@ -1377,12 +1377,12 @@ Windowsが認識する通常Keyboard側NumLock、またはWindowsスクリーン
 
 Case A:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 Case B:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 総合:
