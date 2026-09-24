@@ -66,8 +66,9 @@
   - `Ctrl + Key` = Manual Bind
   - `Ctrl + Shift + Key` = Slot Clear
   - `Ctrl + Alt + Key` = 個別Auto Bind
-  - `NumLock` = Auto Bind All
-  - `Ctrl + NumLock` = Clear All
+  - 例外: `Ctrl + NumpadEnter` = Auto Bind All
+  - 例外: `Ctrl + Shift + NumpadEnter` = Clear All
+  - NumpadEnterでは上記Global ActionがGeneric Manual Bind / Slot Clearより優先
   - NumpadWindowControllerが扱うHotkeyは元アプリへ渡さない
 
 Phase A完了条件を満たしたため、次工程は **Phase B - Window識別方式の技術検証** とする。
