@@ -66,8 +66,15 @@ PASS:
 初回テスト時の「物理キーはDEL」という記録はユーザーの誤認として撤回した。
 実機のキー表記はBackspaceであり、`Key-Backspace` の現行設計を維持する。
 
-次は `docs/PHASE_F_MANUAL_TEST.md` のR-10～R-12（新Global Action自動テスト / NumpadEnter Global Action / Standard Enter分離）を優先する。
-加えてNumLock ON固定 / OnExit復元は未解決。Phase Fはこれらの確認まで閉じない。Phase G/Hの受入確認は未実施。
+R-10新Global Action自動テストはPASS、R-12 NumpadEnter / Standard Enter分離もPASS。
+R-11はClear後の確認操作でLazy Auto Bindが発動した可能性があり、Clear All自体のFAILとはまだ確定していない。
+
+次は `docs/PHASE_F_MANUAL_TEST.md` のR-13 / R-14を優先する。
+
+- R-13: Clear All直後のSlot Snapshotと、その後のLazy Auto BindをDebug Logで分離確認。
+- R-14: Windows側NumLockについて、OFF→起動ON→終了OFF、ON→起動ON→終了ON、実行中ON固定を再確認。
+
+Phase FはR-13 / R-14の確認まで閉じない。Phase G/Hの受入確認は未実施。
 
 ## 次回読む資料
 

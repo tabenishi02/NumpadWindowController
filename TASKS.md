@@ -396,9 +396,11 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 - [x] NumLock PoC実機試験 R-8
 - [x] Ctrl押下継続000実機試験 R-9（5/5 PASS）
 - [x] Global ActionをNumpadEnterへ変更
-- [ ] R-10 新Global Action自動テスト
-- [ ] R-11 NumpadEnter Global Action実機試験
-- [ ] R-12 NumpadEnter / Standard Enter分離
+- [x] R-10 新Global Action自動テスト
+- [ ] R-11 NumpadEnter Global Action初回確認は判定保留
+- [x] R-12 NumpadEnter / Standard Enter分離
+- [ ] R-13 Clear All直後 / Lazy Auto Bind分離再試験
+- [ ] R-14 NumLock lifecycle再試験（OFF復元 / ON復元 / 実行中ON固定）
 - [ ] Phase F最終完了判定
 
 ---
@@ -549,12 +551,15 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-NumLock Input PoCとCtrl+000 Regressionは完了した。
-次は [Phase F Manual Test Guide](docs/PHASE_F_MANUAL_TEST.md) のR-10～R-12を実施する。
+R-10はPASS、R-12もPASS。
+R-11はClear All直後の再Bindと、その後の専用Slot押下によるLazy Auto Bindを区別できていないため判定保留とする。
 
-- Ctrl + NumpadEnter = Auto Bind All
-- Ctrl + Shift + NumpadEnter = Clear All
-- NumpadEnter単押しは通常Action
-- Standard EnterはGlobal Action非対象
+次は [Phase F Manual Test Guide](docs/PHASE_F_MANUAL_TEST.md) の以下を実施する。
 
-あわせて未解決のNumLock ON固定 / OnExit復元を確認し、Phase F最終判定へ進む。
+- R-13: Clear All直後 / Lazy Auto Bind分離再試験
+- R-14: NumLock lifecycle再試験
+  - 起動前OFF → 実行中ON → 正常終了後OFF
+  - 起動前ON → 実行中ON → 正常終了後ON
+  - 実行中にWindows側NumLockをOFFへ切り替えられないこと
+
+R-13 / R-14完了後にPhase F最終判定へ進む。

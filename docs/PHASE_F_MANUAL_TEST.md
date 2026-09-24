@@ -1168,7 +1168,7 @@ Debug記録:
 
 ---
 
-## Test R-11: NumpadEnter Global Action
+## Test R-11: NumpadEnter Global Action（初回確認・判定保留）
 
 ### 手順
 
@@ -1197,6 +1197,14 @@ Debug記録:
 ```text
 Ctrl + Shift + Numpad で各スロットをClearした際、自動で再Bindされてしまう。
 ```
+
+### 判定補足
+
+このFAILだけでは、Clear All直後に自動再Bindingされたのか、
+Clear後の確認として専用Slotキー（1～9）を押した結果、仕様どおりLazy Auto Bindが発動したのかを区別できない。
+
+本体実装の `Binding_Clear()` 自体は `AutoBind_Run()` を呼ばない。
+したがってR-11は「初回確認・判定保留」とし、R-13でClear All直後の状態とLazy Auto Bindをログで分離して再判定する。
 
 ---
 
@@ -1228,6 +1236,171 @@ Ctrl + Shift + Numpad で各スロットをClearした際、自動で再Bindさ�
 ```text
 
 ```
+
+---
+
+## Test R-13: Clear All直後 / Lazy Auto Bind分離再試験
+
+### 目的
+
+R-11で観測した「Clear後に再Bindされた」現象が、
+
+1. Clear All自身が即時Auto Bindしている不具合
+2. Clear後に専用Slotキーを押したことで仕様どおりLazy Auto Bindした
+
+のどちらかを確定する。
+
+### 前提
+
+1. `NumpadWindowController.ahk` の `DEBUG_ENABLED := true` にする。
+2. Controllerを再起動する。
+3. Auto / Manual Bindingを複数作成する。
+
+### 手順A: Clear All直後を確認
+
+1. `Ctrl + Shift + NumpadEnter` を1回だけ押す。
+2. **その後、1～9、Ctrl+NumpadEnter、Ctrl+Alt+Keyを押さない。**
+3. 1～2秒待つ。
+4. Controllerを正常終了する。
+5. 最新の `logs/NumpadWindowController_<timestamp>.log` を確認する。
+
+### 期待ログ
+
+Clear All操作に対して、概ね次の順序になる。
+
+```text
+Global input dispatch: ClearAll
+Clear: All
+Slots:
+Numpad0 None ...
+Numpad1 None ...
+...
+Numpad9 None ...
+...
+```
+
+このClear Allと次の意図的操作の間に、次のログが**存在しない**こと。
+
+```text
+Auto Bind start:
+```
+
+### 手順B: Lazy Auto Bindを意図的に確認
+
+1. Controllerを再起動する。
+2. `Ctrl + Shift + NumpadEnter` でClear Allする。
+3. Clear直後に専用Slotの `1` を1回押す。
+4. ログを確認する。
+
+### 期待結果
+
+- Clear All直後は全BindingがNone。
+- Clear All自身はAuto Bindを開始しない。
+- その後 `1` を押した時点でExplorer用Lazy Auto Bindが発動する。
+- このLazy Auto Bindは仕様どおりであり、Clear Allの失敗とは扱わない。
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+記録:
+
+```text
+
+```
+
+### 復旧
+
+試験後、`DEBUG_ENABLED := false` に戻す。
+
+---
+
+## Test R-14: NumLock lifecycle再試験
+
+### 目的
+
+旧F-13～F-15でFAILとなったNumLock lifecycleを、Global Action用途から切り離して再確認する。
+
+確認対象:
+
+- 起動前状態の保存
+- 起動後ON固定
+- 実行中のON維持
+- 正常終了時の起動前状態復元
+
+### 重要
+
+外付けテンキーの物理NumLockはPoCでWindowsへKeyboard Eventを送らないことが確認済みである。
+**初期状態の変更・確認には外付けテンキーのNumLockを使用しない。**
+
+Windowsが認識する通常Keyboard側NumLock、またはWindowsスクリーンキーボード（`osk.exe`）を使用する。
+
+### Case A: 起動前OFF → 実行中ON → 終了後OFF
+
+1. Controllerを終了する。
+2. Windows側NumLockをOFFにする。
+3. `osk.exe` 等でOFFを確認する。
+4. Controllerを起動する。
+5. Windows側NumLockがONになったことを確認する。
+6. 実行中に通常Keyboard側NumLockを1回押し、OFFへ切り替わらずONが維持されることを確認する。
+7. AutoHotkey Tray IconからControllerを正常終了する。
+8. Windows側NumLockがOFFへ復元されたことを確認する。
+
+期待:
+
+```text
+起動前: OFF
+実行中: ON
+通常Keyboard NumLock操作後: ON
+終了後: OFF
+```
+
+### Case B: 起動前ON → 実行中ON → 終了後ON
+
+1. Controller終了状態でWindows側NumLockをONにする。
+2. ONを確認する。
+3. Controllerを起動する。
+4. 実行中ONであることを確認する。
+5. AutoHotkey Tray Iconから正常終了する。
+6. Windows側NumLockがONのままであることを確認する。
+
+期待:
+
+```text
+起動前: ON
+実行中: ON
+終了後: ON
+```
+
+### 結果
+
+Case A:
+
+- [ ] PASS
+- [ ] FAIL
+
+Case B:
+
+- [ ] PASS
+- [ ] FAIL
+
+総合:
+
+- [ ] PASS
+- [ ] FAIL
+
+記録:
+
+```text
+Case A:
+Case B:
+備考:
+```
+
+### 注意
+
+`taskkill /F`、Process強制終了、OS crash等はOnExit復元保証の対象外。
 
 ---
 
@@ -1285,9 +1458,11 @@ Ctrl + Shift + Numpad で各スロットをClearした際、自動で再Bindさ�
 | F-17 | Ctrl+NumLock Clear All（旧仕様・廃止） | FAIL（履歴） |
 | R-8 | NumLock Input PoC | PASS（AHK/RAWともNumLock Eventなし） |
 | R-9 | Ctrl押下継続000 | PASS（5/5） |
-| R-10 | 新Global Action自動テスト | |
-| R-11 | NumpadEnter Global Action | |
-| R-12 | NumpadEnter / Standard Enter分離 | |
+| R-10 | 新Global Action自動テスト | PASS |
+| R-11 | NumpadEnter Global Action（初回確認） | 判定保留（R-13で再判定） |
+| R-12 | NumpadEnter / Standard Enter分離 | PASS |
+| R-13 | Clear All直後 / Lazy Auto Bind分離 | |
+| R-14 | NumLock lifecycle再試験 | |
 
 ---
 

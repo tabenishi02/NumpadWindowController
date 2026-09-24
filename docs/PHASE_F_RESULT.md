@@ -97,7 +97,7 @@ NumLockの状態保存 / ON固定 / 正常終了時復元要件は今回変更�
 
 Ctrl+000はR-9で5/5 PASSし、割込み元がLeft Ctrl (`vk=A2/sc=01D`) であることと、修正版で `ignored=1` として正しく無視されることを確認した。
 
-次の実機確認はR-10～R-12。
+R-10 / R-12はPASS。R-11は判定保留のため、次の実機確認はR-13 / R-14。
 
 ## 実装範囲
 
@@ -154,17 +154,23 @@ PASSは確認できたassertionの件数であり、PENDINGを含めた受入合
 
 R-8 NumLock PoCは完了し、物理NumLockをGlobal Actionへ使えないことを確定した。
 R-9 Ctrl+000 Regressionは5/5 PASS。
+R-10 新Global Action自動テストはPASS。
+R-12 NumpadEnter / Standard Enter分離もPASS。
+
+R-11ではClear後の再Bindingを観測したが、Clear All直後の即時Auto Bindなのか、
+その後の専用Slot押下による仕様どおりのLazy Auto Bindなのかを区別できていない。
+本体の `Binding_Clear()` 自体は `AutoBind_Run()` を呼ばないため、R-11は判定保留とする。
 
 残る優先確認:
 
-1. 新Global Action対応後の通常 / Desktop自動テスト。
-2. `Ctrl + NumpadEnter` がAuto Bind Allとして動作する。
-3. `Ctrl + Shift + NumpadEnter` がClear Allとして動作する。
-4. NumpadEnter単押しがConfigどおりの通常Actionを維持する。
-5. Standard Enter (`SC01C`) およびそのCtrl系CombinationでGlobal Actionが発火しない。
-6. 起動前OFF / ONの双方で正常終了後に元のNumLock状態へ復元する。
+1. R-13でClear All直後のSlot SnapshotをDebug Logで確認し、即時Auto Bindがないことを確認する。
+2. R-13後半で専用Slotを意図的に押し、Lazy Auto Bindとの違いを確認する。
+3. R-14でNumLock lifecycleをWindows側状態として再確認する。
+   - 起動前OFF → 実行中ON → 正常終了後OFF。
+   - 起動前ON → 実行中ON → 正常終了後ON。
+   - 実行中ON固定。
 
-詳細は `docs/PHASE_F_MANUAL_TEST.md` のR-10～R-12を参照する。
+詳細は `docs/PHASE_F_MANUAL_TEST.md` のR-13 / R-14を参照する。
 
 ## 次の実機確認手順
 
