@@ -838,7 +838,7 @@ F-16 / F-17およびR-2 / R-3のNumLock Global Action部分は旧仕様の履歴
 
 ---
 
-## Test R-2: NumLock物理入力 + ON固定
+## Test R-2: NumLock物理入力 + ON固定（旧Global Action仕様の履歴）
 
 ### 手順
 
@@ -871,7 +871,7 @@ Key history and script info に NumLock を押した際にキー入力が記録�
 
 ---
 
-## Test R-3: Ctrl + NumLock Clear All
+## Test R-3: Ctrl + NumLock Clear All（旧Global Action仕様の履歴）
 
 AutoHotkey / WindowsではCtrlを押したNumLockは `Ctrl + Pause` として報告されるため、
 修正版ではこの経路を専用Hotkeyとして扱う。
