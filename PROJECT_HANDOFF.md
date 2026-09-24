@@ -10,7 +10,7 @@
 - `KeyBindings.ini`: Phase D標準設定、UTF-16 LE BOM、ConfigVersion=1。
 - `tests/PhaseF.Tests.ahk`: 本体を直接includeする設定・状態・入力判定・Windows API検証。
 - `tests/Run-PhaseFTests.ps1`: AHKの終了コードを確認する実行入口。
-- [Phase F検証結果](docs/PHASE_F_RESULT.md): 確認済み範囲、未確認事項、次の実機手順。
+- [Phase F検証結果](docs/PHASE_F_RESULT.md): 実装範囲、再試験結果、Phase F最終判定。
 
 Phase A～Eは2026-09-25のGlobal Action変更を反映済み。PoCの入力判定方式、候補Filter、Chrome Threshold / Scoreを本実装へ移した。`lib/` 分割はしていない。
 
@@ -39,7 +39,7 @@ Auto Bindは有効なManual / Auto Bindingを維持し、欠損だけ補修す�
 - Debugは先頭の`DEBUG_ENABLED`で明示ONにした場合だけ。通常は永続ログなし。ログI/O失敗は内部で処理する。
 - ConfigにAutoBind属性やNumLock設定、HWNDは保存しない。Configの変更は再起動で反映する。
 
-## 検証結果と未完了項目
+## 検証結果
 
 初回Manual TestではWindow制御系の主要経路を確認できた。
 
