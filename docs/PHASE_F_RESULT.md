@@ -1,7 +1,7 @@
 # Phase F 実装・検証結果
 
 更新日: 2026-09-24
-状態: 初回実機テスト実施済み / 入力系修正版実装済み / 再テスト待ち
+状態: 実装済み / 自動検証済み / 実機検証済み / Phase F完了
 
 ## 2026-09-25 初回Manual Testと修正版
 
@@ -97,11 +97,11 @@ NumLockの状態保存 / ON固定 / 正常終了時復元要件は今回変更�
 
 Ctrl+000はR-9で5/5 PASSし、割込み元がLeft Ctrl (`vk=A2/sc=01D`) であることと、修正版で `ignored=1` として正しく無視されることを確認した。
 
-R-10 / R-12はPASS。R-11は判定保留のため、次の実機確認はR-13 / R-14。
+R-10 / R-12はPASS。R-13でR-11の再Bindingが仕様どおりのLazy Auto Bindと確定し、R-14でNumLock lifecycleもPASSした。
 
 ## 実装範囲
 
-F-1～F-12の本体コードを`NumpadWindowController.ahk`へ実装した。Configurationは`KeyBindings.ini`だけを使用する。Phase A～Eの仕様変更、`lib/`への分割、常時Window監視は行っていない。
+F-1～F-12の本体コードを`NumpadWindowController.ahk`へ実装した。Configurationは`KeyBindings.ini`だけを使用する。Global Action変更はPhase A～E仕様へ反映済み。`lib/`への分割、常時Window監視は行っていない。
 
 - Config構造・Mode・Allowed条件・Shortcut・0/000制約の起動時Validation。
 - App State、Built-in Metadata、Window Probe、Manual Bind、Clear。
@@ -150,36 +150,47 @@ PASSは確認できたassertionの件数であり、PENDINGを含めた受入合
 | 実行 | EXE/BAT/CMD/LNK、空白入りPath/Arguments、WorkingDirectory、Target消失時の継続 |
 | 終了・診断 | Hook停止、起動前ONへのNumLock復元、通常ログなし、Debug I/O失敗の隔離 |
 
-## 修正版の再テスト待ち
+## 最終再テスト結果
 
-R-8 NumLock PoCは完了し、物理NumLockをGlobal Actionへ使えないことを確定した。
+R-8 NumLock PoCで、外付けテンキー物理NumLockがAHK / Raw Inputの双方へEventを送らないことを確定した。
 R-9 Ctrl+000 Regressionは5/5 PASS。
 R-10 新Global Action自動テストはPASS。
-R-12 NumpadEnter / Standard Enter分離もPASS。
+R-12 NumpadEnter / Standard Enter分離はPASS。
 
-R-11ではClear後の再Bindingを観測したが、Clear All直後の即時Auto Bindなのか、
-その後の専用Slot押下による仕様どおりのLazy Auto Bindなのかを区別できていない。
-本体の `Binding_Clear()` 自体は `AutoBind_Run()` を呼ばないため、R-11は判定保留とする。
+R-13ではDriveログを確認し、Clear All直後は全SlotがNoneのままで即時Auto Bindが発生しないことを確認した。
+その後Numpad1 / Numpad2を押した時点でだけExplorer / ChatGPTのLazy Auto Bindが発生している。
+したがってR-11で観測した再BindingはClear Allの不具合ではなく、仕様どおりのLazy Auto Bindだった。
 
-残る優先確認:
+確認ログ:
 
-1. R-13でClear All直後のSlot SnapshotをDebug Logで確認し、即時Auto Bindがないことを確認する。
-2. R-13後半で専用Slotを意図的に押し、Lazy Auto Bindとの違いを確認する。
-3. R-14でNumLock lifecycleをWindows側状態として再確認する。
-   - 起動前OFF → 実行中ON → 正常終了後OFF。
-   - 起動前ON → 実行中ON → 正常終了後ON。
-   - 実行中ON固定。
+- `NumpadWindowController_20260925065317.log`: Clear All後、Shutdownまで `Auto Bind start:` なし。
+- `NumpadWindowController_20260925065458.log`: Clear All後、Numpad1 / Numpad2押下時にだけLazy Auto Bind。
 
-詳細は `docs/PHASE_F_MANUAL_TEST.md` のR-13 / R-14を参照する。
+R-14ではNumLock lifecycleを再確認し、以下をPASSした。
 
-## 次の実機確認手順
+- 起動前OFF → 実行中ON → 正常終了後OFF。
+- 起動前ON → 実行中ON → 正常終了後ON。
+- 実行中に通常Keyboard側NumLockを操作してもON固定を維持。
 
-1. PoCや他のテンキーHookを終了し、NumLockをOFFにする。本体を起動しONになることを確認する。標準Backspaceが通常入力できることを確認する。
-2. ChromeをPrimary Monitorの左上・左下・右大へ通常配置し、VS Code、Explorer、ChatGPT、PowerShell 7用Terminalを開く。NumLockを押し、1～9で対応Windowへ移動することを確認する。
-3. 任意WindowをActiveにし、Ctrl+0とCtrl+000で別Slotへ登録する。通常0と物理000で意図したWindowへ切り替わることを確認する。各Ctrl+Shift操作でClearする。
-4. 同じWindowを別SlotへManual Bindして旧Slotが空になること、専用Slotへの異種アプリ登録が拒否されることを確認する。NumLockで有効Manual/Autoが維持されることを確認する。
-5. Chromeを移動・最小化・最大化して既存Bindingから移動できることを確認する。対象を閉じて新しいWindowを開き、通常押下またはCtrl+Alt+Keyで補修する。Ctrl+NumLock直後は空、NumLock後は専用Slotだけ補充されることを確認する。
-6. INIの任意SlotをShortcutへ変更して再起動する。通常押下だけ実行され、Ctrl付きは元アプリへ渡ることを確認する。Disabledと未定義Modifierも確認する。試験後は標準設定へ戻す。
-7. トレイのAutoHotkeyアイコンからExitし、NumLockが起動前のOFFへ戻ることを確認する。起動前ONでも同様に試す。
+以上によりPhase F完了条件を満たした。Phase F固有の未解決事項はない。
 
-結果を受けて`TASKS.md`の未チェック項目とPhase G/Hを更新する。本実装の自動検証だけで実機受入完了とはしない。
+## Phase F最終判定
+
+**PASS - Phase F完了**
+
+確認済み:
+
+1. Window Manual Bind / Restore / Activate。
+2. Lazy Auto Bind。
+3. 物理0 / Virtual000とModifier付き000。
+4. NumpadEnter Global Action。
+5. Standard Enterとの分離。
+6. Clear AllとLazy Auto Bindの分離。
+7. NumLock ON固定と正常終了時復元。
+8. Backspace安全方針。
+9. 1 HWND : 1 Slot整合性。
+
+旧NumLock Global ActionのFAILは廃止仕様の履歴であり、現行仕様の未解決事項ではない。
+次工程はPhase Gの網羅的機能テスト。
+
+Phase G/HはPhase Fより広い条件の機能テスト・受入試験として別工程で実施する。

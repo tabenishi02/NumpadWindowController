@@ -1301,13 +1301,29 @@ Auto Bind start:
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
 
 ```text
+Drive log A: NumpadWindowController_20260925065317.log
+- 06:53:27 Global input dispatch: ClearAll
+- 06:53:27 Clear: All
+- 全SlotがNone
+- 06:53:35 Shutdown
+- Clear AllからShutdownまで Auto Bind start は発生していない
 
+Drive log B: NumpadWindowController_20260925065458.log
+- 06:55:08 ClearAll後、全SlotがNone
+- 06:55:11 Numpad1 / Normal押下
+- Auto Bind start: Explorer / Lazy Auto Bind: Numpad1
+- 06:55:14 Numpad2 / Normal押下
+- Auto Bind start: ChatGPT / Lazy Auto Bind: Numpad2
+
+結論:
+- Clear All自身は即時Auto Bindしない。
+- R-11で観測した再Bindingは、Clear後の専用Slot押下による仕様どおりのLazy Auto Bindだった。
 ```
 
 ### 復旧
@@ -1387,15 +1403,23 @@ Case B:
 
 総合:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
 
 ```text
-Case A:
-Case B:
+Case A: PASS
+- 起動前OFF → 実行中ON
+- 通常Keyboard側NumLock操作後もON維持
+- 正常終了後OFFへ復元
+
+Case B: PASS
+- 起動前ON → 実行中ON
+- 正常終了後ONを維持
+
 備考:
+- 外付けテンキー物理NumLockは使用せず、Windowsが認識するNumLock状態で確認。
 ```
 
 ### 注意
@@ -1437,32 +1461,32 @@ Case B:
 
 | Test | 内容 | 結果 |
 |---|---|---|
-| A-1 | 通常自動テスト | |
-| A-2 | Desktop自動テスト | |
-| F-1 | Active Window Manual Bind | |
-| F-2 | Restore + Activate | |
-| F-3 | Lazy Auto Bind + Activate | |
-| F-4 | 物理0 | |
-| F-5 | 物理000 | |
-| F-6 | 0連続入力 | |
-| F-7 | Ctrl Manual Bind | |
-| F-8 | Ctrl+Shift Clear | |
-| F-9 | Ctrl+Alt Auto Bind | |
-| F-10 | 未定義Modifier | |
-| F-11 | Disabled Backspace | |
-| F-12 | Backspace Warning | |
-| F-13 | NumLock OFF → 起動ON | |
-| F-14 | NumLock OFF復元 | |
-| F-15 | NumLock ON復元 | |
+| A-1 | 通常自動テスト | PASS |
+| A-2 | Desktop自動テスト | PASS |
+| F-1 | Active Window Manual Bind | PASS |
+| F-2 | Restore + Activate | PASS |
+| F-3 | Lazy Auto Bind + Activate | PASS |
+| F-4 | 物理0 | PASS |
+| F-5 | 物理000 | 初回FAIL → R-9で解消 |
+| F-6 | 0連続入力 | PASS |
+| F-7 | Ctrl Manual Bind | PASS |
+| F-8 | Ctrl+Shift Clear | 初回FAIL → R-5で解消 |
+| F-9 | Ctrl+Alt Auto Bind | PASS |
+| F-10 | 未定義Modifier | PASS |
+| F-11 | Disabled Backspace | PASS |
+| F-12 | Backspace Warning | PASS |
+| F-13 | NumLock OFF → 起動ON | 初回FAIL → R-14で解消 |
+| F-14 | NumLock OFF復元 | 初回FAIL → R-14で解消 |
+| F-15 | NumLock ON復元 | 初回FAIL → R-14で解消 |
 | F-16 | NumLock Auto Bind All（旧仕様・廃止） | FAIL（履歴） |
 | F-17 | Ctrl+NumLock Clear All（旧仕様・廃止） | FAIL（履歴） |
 | R-8 | NumLock Input PoC | PASS（AHK/RAWともNumLock Eventなし） |
 | R-9 | Ctrl押下継続000 | PASS（5/5） |
 | R-10 | 新Global Action自動テスト | PASS |
-| R-11 | NumpadEnter Global Action（初回確認） | 判定保留（R-13で再判定） |
+| R-11 | NumpadEnter Global Action（初回確認） | R-13でPASS確定 |
 | R-12 | NumpadEnter / Standard Enter分離 | PASS |
-| R-13 | Clear All直後 / Lazy Auto Bind分離 | |
-| R-14 | NumLock lifecycle再試験 | |
+| R-13 | Clear All直後 / Lazy Auto Bind分離 | PASS |
+| R-14 | NumLock lifecycle再試験 | PASS |
 
 ---
 
@@ -1478,26 +1502,28 @@ Case B:
 
 修正後再テスト判定:
 
-- [ ] PASS - Phase F完了
+- [x] PASS - Phase F完了
 - [ ] CONDITIONAL PASS - Known Limitationのみ
 - [ ] FAIL - 追加修正が必要
 
 ## 未解決事項
 
 ```text
-
+Phase F内の未解決事項なし。
 ```
 
 ## 新たに確認されたKnown Limitation
 
 ```text
-
+- 外付けテンキーの物理NumLockはWindowsへKeyboard Eventを送らない。
+  Global ActionはNumpadEnterへ移行済みのため、Phase Fの阻害要因ではない。
+- 物理000は高速なNumpad0 D-U×3として識別するため、人間による極端に高速な0三連打との完全分離は保証しない。
 ```
 
 ## 修正が必要な問題
 
 ```text
-
+なし。
 ```
 
 ---
