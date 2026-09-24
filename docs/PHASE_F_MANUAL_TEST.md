@@ -1019,7 +1019,13 @@ R-4またはR-5がFAILした場合だけ実施する。
 記録:
 
 ```text
+Drive log: NumpadWindowController_20260925022556.log
 
+R-7確認結果:
+- 成功するCtrl+000では D-U-D-U-D-U が最後まで成立し、Virtual000 / Ctrlへ確定する。
+- 失敗するCtrl+000では途中に Interrupt が発生し、DUD / DUDU / DUDUD 等の途中状態でNumpad0へフォールバックする。
+- 失敗は120msの時間超過ではなく、非SC052 KeyDownによるInterruptが直接原因。
+- 次の診断ではInterrupt発生時のvk/scをログへ追加し、割込み元キーを特定する。
 ```
 
 ---
@@ -1030,7 +1036,7 @@ R-4またはR-5がFAILした場合だけ実施する。
 
 - [x] Scriptが予期せず終了しない
 - [x] AutoHotkey Error Dialogが表示されない
-- [ ] 同一HWNDが複数Slotへ残らない
+- [x] 同一HWNDが複数Slotへ残らない
 - [x] 操作不能になるほどHotkeyが奪われない
 - [x] ToolTipが消えずに残り続けない
 - [ ] NumLockが異常な状態に残らない
