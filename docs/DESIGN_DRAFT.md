@@ -62,7 +62,7 @@ Shortcutキーを再びWindowキーとして使う場合は、設定ファイル
 |---|---|---|---|---|---|---|---|
 | NumLock | 機能キー | `/` | 任意 | `*` | 任意 | `-` | 任意 |
 | `7` | Chrome1 | `8` | Chrome2 | `9` | Chrome3 | `+` | 任意 |
-| `4` | VSCode1 | `5` | VSCode2 | `6` | VSCode3 | DEL | 任意 |
+| `4` | VSCode1 | `5` | VSCode2 | `6` | VSCode3 | Backspace | 任意 |
 | `1` | エクスプローラー | `2` | ChatGPTデスクトップ | `3` | pwsh | Enter | 任意 |
 | `0` | 任意 | `000` | 仮想キー（任意） | `.` | 任意 | Enter | 任意 |
 
@@ -71,7 +71,7 @@ Shortcutキーを再びWindowキーとして使う場合は、設定ファイル
 - Enterキーは物理的に縦2行分の大きさで、`1 / 2 / 3` の行と `0 / 000 / .` の行にまたがる。
 - NumLockキーには特別な機能を持たせる予定。
 - `000` キーは独立VK/SCを持たないが、高速な `Numpad0` D-U×3を検出し、論理キー `Virtual000` として扱う。PoCで通常使用時の識別を確認済み。
-- 物理DELキーはAutoHotkey上では `Backspace` として検出される。
+- 外付けテンキーの物理キー表記も `Backspace` であり、AutoHotkey上でも `Backspace` として検出される。
 
 ---
 
@@ -92,7 +92,7 @@ Key Historyで確認した値を実機情報として記録する。
 | `4` | 64 | 04B | Numpad4 |
 | `5` | 65 | 04C | Numpad5 |
 | `6` | 66 | 04D | Numpad6 |
-| DEL | 08 | 00E | Backspace |
+| Backspace | 08 | 00E | Backspace |
 | `1` | 61 | 04F | Numpad1 |
 | `2` | 62 | 050 | Numpad2 |
 | `3` | 63 | 051 | Numpad3 |

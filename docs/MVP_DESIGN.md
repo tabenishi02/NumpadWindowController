@@ -93,7 +93,7 @@ MVPでは、AutoHotkeyから外付けテンキーと通常キーボード側の�
 | `4` | 64 | 04B | Numpad4 |
 | `5` | 65 | 04C | Numpad5 |
 | `6` | 66 | 04D | Numpad6 |
-| DEL | 08 | 00E | Backspace |
+| Backspace | 08 | 00E | Backspace |
 | `1` | 61 | 04F | Numpad1 |
 | `2` | 62 | 050 | Numpad2 |
 | `3` | 63 | 051 | Numpad3 |
@@ -184,7 +184,7 @@ ShortcutまたはDisabledのキーは:
 | `4` | VSCode1 | Window | ON |
 | `5` | VSCode2 | Window | ON |
 | `6` | VSCode3 | Window | ON |
-| DEL / Backspace | 任意 | Disabled | OFF |
+| Backspace | 任意 | Disabled | OFF |
 | `1` | Explorer | Window | ON |
 | `2` | ChatGPT Desktop | Window | ON |
 | `3` | pwsh / Windows Terminal | Window | ON |
@@ -811,9 +811,9 @@ AllowedTitleContains=
 
 Shortcutとして利用する場合も、通常キーと同様に `Mode=Shortcut` と `Target` 等を設定する。
 
-### 20.4 Backspace / 物理DEL
+### 20.4 Backspace
 
-物理DELは通常キーボードの `Backspace` と区別できないため、標準Configでは `Mode=Disabled` とする。
+外付けテンキーのBackspaceは通常キーボードの `Backspace` と入力上区別できないため、標準Configでは `Mode=Disabled` とする。
 
 DisabledではController Hotkeyを登録せず、ネイティブBackspace入力を維持する。
 
@@ -1057,7 +1057,7 @@ Window Activate失敗:
 
 ### 任意Slot
 
-- `/ * - + DEL 0 000 . Enter` に任意WindowをManual Bind可能
+- `/ * - + Backspace 0 000 . Enter` に任意WindowをManual Bind可能
 - INIでShortcutへ変更可能
 
 ### Global操作

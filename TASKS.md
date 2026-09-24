@@ -54,7 +54,7 @@
   - Manual Bindでも専用用途のAllowed条件を強制
   - 実際のProcess/Class/Title判定値はPhase Bで確定
 - [x] **A-5 任意キー**
-  - `/ * - + DEL 0 000 . Enter` を初期 `Window / AutoBind=OFF`
+  - `/ * - + Backspace 0 000 . Enter` を初期 `Window / AutoBind=OFF`
   - `000` は論理キー `Virtual000`
   - 標準Shortcut割り当てはなし
   - サポート対象キーはINIで `Window / Shortcut / Disabled` を必ず明示
@@ -143,7 +143,7 @@ Phase B Known Limitation:
   - 必要な場合だけManual Bind
 - [x] **C-3 一般Window**
   - 一般Window Auto Bind自体をMVPでは実装しない
-  - 任意Slot `/ * - + DEL 0 000 . Enter` はManual専用
+  - 任意Slot `/ * - + Backspace 0 000 . Enter` はManual専用
   - 一般Windowの優先順位 / 自動Slot順は定義しない
 - [x] **C-4 Lazy Auto Bind**
   - Binding None / HWND消滅 / Allowed条件違反時のみ発動
@@ -203,7 +203,7 @@ Phase C完了。次工程は **Phase D - Configuration仕様確定**。
   - Numpad3へ `AllowedTitleContains=PowerShell 7` を正式採用
   - `Numpad0=Disabled` の場合は `Virtual000=Disabled` を必須
 - [x] **Backspace安全方針**
-  - 物理DELは通常Keyboard Backspaceと区別不可
+  - 外付けテンキーのBackspaceは通常Keyboard Backspaceと区別不可
   - 標準Configは `Key-Backspace Mode=Disabled`
   - Disabled KeyはController Hotkeyを登録せずネイティブ入力を通す
   - Backspaceを有効化した場合は起動時Warning

@@ -93,7 +93,7 @@ NumpadWindowController以外が同じキーをHookしていない状態で試験
 ```ini
 [Key-Backspace]
 Mode=Disabled
-Label=Physical DEL / Backspace
+Label=Backspace
 ```
 
 専用Slotは以下である。
@@ -588,7 +588,7 @@ Mode=Disabled
 
 ### 目的
 
-物理テンキーDELと通常Keyboard Backspaceを区別できない危険性について、起動時Warningが表示されることを確認する。
+外付けテンキーのBackspaceと通常Keyboard Backspaceを入力上区別できないことについて、起動時Warningが表示されることを確認する。
 
 ### 注意
 
@@ -601,7 +601,7 @@ Mode=Disabled
 ```ini
 [Key-Backspace]
 Mode=Window
-Label=Physical DEL / Backspace
+Label=Backspace
 AllowedProcess=
 AllowedClass=
 AllowedTitleContains=
@@ -618,7 +618,7 @@ AllowedTitleContains=
 起動時に以下の内容を示すWarningが表示される。
 
 - Backspaceが有効である
-- テンキーDELと通常Keyboard Backspaceを区別できない
+- 外付けテンキーBackspaceと通常Keyboard Backspaceを区別できない
 - 両方がController Actionの対象になる
 
 ### 追加確認
@@ -648,7 +648,7 @@ Warningを閉じて起動後、通常KeyboardのBackspaceもController側の対�
 ```ini
 [Key-Backspace]
 Mode=Disabled
-Label=Physical DEL / Backspace
+Label=Backspace
 ```
 
 再起動して通常Backspaceが復旧したことも確認する。

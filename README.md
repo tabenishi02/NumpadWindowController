@@ -60,7 +60,7 @@ AutoHotkey v2をインストールしたWindowsで、`NumpadWindowController.ahk
 - Auto Bindは専用Slot 1～9の欠損補修のみ。任意SlotはManual専用
 - ConfigはKeyBindings.ini（INI / ConfigVersion=1）。Auto Bind Groupはコード側固定
 - MVP本体は単一AHKファイル。内部を責務Section / Prefix関数で分離
-- 物理DELは通常Backspaceと区別できないため標準Disabled
+- 外付けテンキーのBackspaceは通常キーボードのBackspaceと区別できないため標準Disabled
 - 通常利用では永続ログなし。必要時のみDebug Log
 - 全Window Bindingを解除する機能を持つ
 - Shortcutからアプリ起動やバッチファイル実行を行えるようにする
@@ -74,7 +74,7 @@ Function 任意    任意    任意
 7        8       9       +
 Chrome1  Chrome2 Chrome3 任意
 
-4        5       6       DEL
+4        5       6       Backspace
 VSCode1  VSCode2 VSCode3 Disabled
 
 1        2       3       Enter

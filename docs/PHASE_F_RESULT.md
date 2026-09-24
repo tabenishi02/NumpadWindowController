@@ -96,16 +96,21 @@ PASSは確認できたassertionの件数であり、PENDINGを含めた受入合
 | 実行 | EXE/BAT/CMD/LNK、空白入りPath/Arguments、WorkingDirectory、Target消失時の継続 |
 | 終了・診断 | Hook停止、起動前ONへのNumLock復元、通常ログなし、Debug I/O失敗の隔離 |
 
-## 実機確認待ち
+## 修正版の再テスト待ち
 
-1. Foreground Activate成功と、実際にActiveなWindowのManual Bind。
-2. 起動前NumLock OFFの状態保存、実行中ON固定、正常終了後OFF復元。
-3. 物理0/000・Ctrl/Shift/Alt組合せ・未定義Modifier入力・Disabled入力の配信。
-4. Backspaceを明示有効化した際のWarning表示と通常Keyboardへの影響。
-5. 実アプリの配置、Window Close / 再起動、Chrome移動・最小化・最大化後のBinding保持。
-6. 長時間常駐、Sleep/Resume、Explorer再起動などPhase G/Hの項目。
+初回Manual TestでPASSしたForeground / Manual Bind / Restore / Lazy Activate等は確認済みとする。
 
-Foreground化失敗時もBindingを保持して処理継続できた。NumLock OFFはControllerを使わない単独スクリプトでも設定できなかったため、この環境ではOFF復元をPASSにできない。
+修正版では次を再確認する。
+
+1. 自動テスト通常版 / Desktop版がFAIL・PENDINGなしで完了すること。
+2. 物理NumLockがAuto Bind Allとして動作し、NumLockをOFFへToggleしないこと。
+3. Ctrl+NumLockがClear Allとして動作すること。
+4. Ctrl+000がVirtual000として安定してManual Bindできること。
+5. Numpad0 Clear後の通常0が `No window found: Zero` となり、誤ったNumLock Dispatchが発生しないこと。
+6. 起動前OFF / ONの双方で正常終了後に元のNumLock状態へ復元すること。
+7. 4または5が失敗した場合、Debug LogのInput Dispatch / Zero timingで原因を記録すること。
+
+具体的手順は `docs/PHASE_F_MANUAL_TEST.md` のR-1～R-7を使用する。
 
 ## 実装詳細と制限
 

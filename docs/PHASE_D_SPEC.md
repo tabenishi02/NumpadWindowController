@@ -190,9 +190,9 @@ MVPではDisabled KeyのAction Hotkeyを登録せず、元のWindows入力をそ
 
 ---
 
-# 4. Backspace / 物理DELの安全方針
+# 4. Backspaceの安全方針
 
-実機の物理DELキーは:
+実機の外付けテンキーBackspaceは:
 
 ~~~text
 VK 08
@@ -207,7 +207,7 @@ AHK Backspace
 ~~~ini
 [Key-Backspace]
 Mode=Disabled
-Label=Physical DEL / Backspace
+Label=Backspace
 ~~~
 
 とする。
@@ -216,7 +216,7 @@ Label=Physical DEL / Backspace
 
 ユーザーが明示的に `Window` または `Shortcut` へ変更することは許可するが、その場合:
 
-- 外付けテンキーDEL
+- 外付けテンキーBackspace
 - 通常キーボードBackspace
 
 の両方が同じController Actionを発火する。
@@ -755,7 +755,7 @@ BackspaceがDisabled以外の場合はFatalではなくWarning。
 
 ~~~text
 Backspace is enabled.
-The physical keypad DEL and the normal keyboard Backspace cannot be distinguished.
+The keypad Backspace and the standard keyboard Backspace cannot be distinguished.
 Both will trigger this controller action.
 ~~~
 
@@ -873,7 +873,7 @@ AllowedTitleContains=
 
 [Key-Backspace]
 Mode=Disabled
-Label=Physical DEL / Backspace
+Label=Backspace
 
 [Key-Numpad1]
 Mode=Window

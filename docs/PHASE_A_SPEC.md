@@ -268,7 +268,7 @@ MVPの任意キーは以下とする。
 - `NumpadMult` (`*`)
 - `NumpadSub` (`-`)
 - `NumpadAdd` (`+`)
-- `Backspace`（物理DEL）
+- `Backspace`
 - `Numpad0` (`0`)
 - `Virtual000` (`000`)
 - `NumpadDot` (`.`)
@@ -285,7 +285,7 @@ HWND = None
 BindingSource = None
 ~~~
 
-ただし物理DELは実測上 `Backspace` であり、通常キーボードのBackspaceと区別できないため、MVP標準Configでは `Backspace` だけ `Mode=Disabled` とする。
+外付けテンキーのBackspaceは通常キーボードのBackspaceと入力上区別できないため、MVP標準Configでは `Backspace` だけ `Mode=Disabled` とする。
 
 それ以外の任意キーは空のManual Window Slotとして扱う。
 
@@ -334,7 +334,7 @@ MVPではDisabled KeyのAction Hotkeyを登録せず、元のWindows入力をそ
 
 独立したPassThrough Modeは設けず、「Controller管理外」というDisabledの意味にネイティブ動作を含める。
 
-この定義により、通常キーボードBackspaceを維持したまま物理DELを既定Disabledにできる。
+この定義により、通常キーボードBackspaceを維持したまま外付けテンキー側Backspaceを既定Disabledにできる。
 
 ---
 
@@ -491,7 +491,7 @@ Ctrl + Alt + Numpad1
 | 4 | Numpad4 | VSCode1 | Window | ON |
 | 5 | Numpad5 | VSCode2 | Window | ON |
 | 6 | Numpad6 | VSCode3 | Window | ON |
-| DEL | Backspace | 任意Window | Window | OFF |
+| Backspace | Backspace | 任意Window | Window | OFF |
 | 1 | Numpad1 | Explorer専用 | Window | ON |
 | 2 | Numpad2 | ChatGPT Desktop専用 | Window | ON |
 | 3 | Numpad3 | PowerShell系Terminal専用 | Window | ON |
@@ -517,7 +517,7 @@ Manual > Auto > None
   3 = PowerShell系Terminal
 
 任意Slot:
-  / * - + DEL 0 000 . Enter
+  / * - + Backspace 0 000 . Enter
   初期状態はWindow / AutoBind OFF
 
 Global:
