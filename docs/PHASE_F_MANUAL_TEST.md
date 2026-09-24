@@ -825,7 +825,7 @@ Ctrl + NumLock を押しても Clearされない。
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
@@ -856,12 +856,15 @@ Ctrl + NumLock を押しても Clearされない。
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
 記録:
 
 ```text
-
+症状としては前回と同じ。
+Auto Bind completedは表示されない。
+Key history and script info に NumLock を押した際にキー入力が記録されない。
+キーボード側にあるPauseキーは認識される。(Pause=VK:13,SC:045,Elapsed key:Pause)
 ```
 
 ---
@@ -889,7 +892,7 @@ AutoHotkey / WindowsではCtrlを押したNumLockは `Ctrl + Pause` として報
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
 記録:
 
@@ -922,13 +925,16 @@ AutoHotkey / WindowsではCtrlを押したNumLockは `Ctrl + Pause` として報
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 成功回数:
 
 ```text
-/5
+ctrl + Virtual000 について以下の挙動を確認。
+・ctrlキーをdownさせ、000を押すと000に登録できる。
+・000に登録後、ctrlキーをdownさせ続け、000を押すと0に登録されてしまう。それ以降、ctrlをdown中は何度000キーを押しても0に登録される。
+・ctrlキーをdownさせ、ctrlキーをupさせたあと、もう一度ctrlキーをdownさせ、000を押すと、前回の登録が0でも、000で登録できる。これは000に正常登録した後でも、0に誤登録したあとでも同じ挙動。
 ```
 
 ---
@@ -950,7 +956,7 @@ AutoHotkey / WindowsではCtrlを押したNumLockは `Ctrl + Pause` として報
 
 ### 結果
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
@@ -984,7 +990,7 @@ AutoHotkey / WindowsではCtrlを押したNumLockは `Ctrl + Pause` として報
 ### 結果
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
 記録:
 
