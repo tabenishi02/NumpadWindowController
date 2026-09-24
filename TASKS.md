@@ -1,6 +1,6 @@
 # Numpad Window Controller - Implementation Tasks
 
-更新日: 2026-09-23  
+更新日: 2026-09-24
 対象: NumpadWindowController  
 目的: 現在の暫定設計から、AutoHotkey v2による初期実装と実機検証までを完了するためのタスク一覧
 
@@ -258,114 +258,118 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 
 # Phase F - AutoHotkey v2実装
 
+実装済み。AHK v2.0.26で136 assertions PASS。前面化・物理入力・NumLock OFF復元は実機確認待ち。
+詳細と手順: [Phase F検証結果](docs/PHASE_F_RESULT.md)。未チェック項目もコードは実装済みだが、成功動作の確認が未完了。
+
 ## F-1. Skeleton / App State
 
-- [ ] `#Requires AutoHotkey v2.0`
-- [ ] Single Instance設定
-- [ ] App State生成
-- [ ] Built-in Metadata生成
-- [ ] 起動 / OnExit骨格
-- [ ] Config Validation前にNumLockやHotkeyを変更しないことを確認
+- [x] `#Requires AutoHotkey v2.0`
+- [x] Single Instance設定
+- [x] App State生成
+- [x] Built-in Metadata生成
+- [x] 起動 / OnExit骨格
+- [x] Config Validation前にNumLockやHotkeyを変更しないことを確認
 
 ## F-2. Config / Runtime初期化
 
-- [ ] UTF-16 LE BOM INI読込
-- [ ] ConfigVersion / Section / Field Validation
-- [ ] Mode / Allowed / Shortcut Validation
-- [ ] Key Definition生成
-- [ ] Slot State生成
+- [x] UTF-16 LE BOM INI読込
+- [x] ConfigVersion / Section / Field Validation
+- [x] Mode / Allowed / Shortcut Validation
+- [x] Key Definition生成
+- [x] Slot State生成
 - [ ] Backspace Warning
-- [ ] Numpad0 / Virtual000整合Validation
+- [x] Numpad0 / Virtual000整合Validation
 
 ## F-3. Window Probe / 基本操作
 
 - [ ] Active Window取得
-- [ ] HWND存在確認
-- [ ] Process / Class / Title取得
-- [ ] Minimized判定
-- [ ] Restore
+- [x] HWND存在確認
+- [x] Process / Class / Title取得
+- [x] Minimized判定
+- [x] Restore
 - [ ] Activate
-- [ ] Window候補列挙
+- [x] Window候補列挙
 
 ## F-4. Manual Bind
 
-- [ ] Window Mode確認
-- [ ] Allowed条件確認
-- [ ] 重複処理
-- [ ] HWND登録
-- [ ] BindingSource=Manual
-- [ ] 成功/失敗通知
+- [x] Window Mode確認
+- [x] Allowed条件確認
+- [x] 重複処理
+- [x] HWND登録
+- [x] BindingSource=Manual
+- [x] 成功/失敗通知
 
 ## F-5. Chrome Auto Bind
 
-- [ ] Chrome候補列挙
-- [ ] Monitor / Position / Size取得
-- [ ] 左上Chrome判定
-- [ ] 左下Chrome判定
-- [ ] 右大Chrome判定
-- [ ] 7/8/9へBinding
-- [ ] 4つ目以降をAuto Bind対象外として残す
+- [x] Chrome候補列挙
+- [x] Monitor / Position / Size取得
+- [x] 左上Chrome判定
+- [x] 左下Chrome判定
+- [x] 右大Chrome判定
+- [x] 7/8/9へBinding
+- [x] 4つ目以降をAuto Bind対象外として残す
 
 ## F-6. VS Code Auto Bind
 
-- [ ] VS Code候補列挙
-- [ ] 未使用候補をWinGetList逆順で空き4→5→6へ割り当て
-- [ ] 4/5/6へBinding
-- [ ] 4つ目以降をAuto Bind対象外として残す
+- [x] VS Code候補列挙
+- [x] 未使用候補をWinGetList逆順で空き4→5→6へ割り当て
+- [x] 4/5/6へBinding
+- [x] 4つ目以降をAuto Bind対象外として残す
 
 ## F-7. Explorer / ChatGPT / pwsh Auto Bind
 
-- [ ] Explorer判定
-- [ ] ChatGPT判定
-- [ ] pwsh判定
-- [ ] 1/2/3への割り当て
+- [x] Explorer判定
+- [x] ChatGPT判定
+- [x] pwsh判定
+- [x] 1/2/3への割り当て
 
 ## F-8. Auto Bind State整合性
 
-- [ ] 有効Manual / Auto Bindingを維持
-- [ ] 無効BindingをNoneへ変更
-- [ ] Used HWND Setを構築
-- [ ] Working State上でAuto Bind結果を計算
-- [ ] Commit前に1 HWND : 1 Slotを検証
-- [ ] 一般Windowを任意Slotへ自動割り当てしないことを確認
+- [x] 有効Manual / Auto Bindingを維持
+- [x] 無効BindingをNoneへ変更
+- [x] Used HWND Setを構築
+- [x] Working State上でAuto Bind結果を計算
+- [x] Commit前に1 HWND : 1 Slotを検証
+- [x] 一般Windowを任意Slotへ自動割り当てしないことを確認
 
 ## F-9. Lazy Auto Bind
 
-- [ ] Binding None / HWND無効 / Allowed違反を検知
-- [ ] Chrome / VS CodeはGroup単位で空Slot補充
-- [ ] 1 / 2 / 3はSlot単位再探索
-- [ ] AutoBind=OFF / Shortcut / Disabledでは実行しない
+- [x] Binding None / HWND無効 / Allowed違反を検知
+- [x] Chrome / VS CodeはGroup単位で空Slot補充
+- [x] 1 / 2 / 3はSlot単位再探索
+- [x] AutoBind=OFF / Shortcut / Disabledでは実行しない
 - [ ] 成功時Activate
-- [ ] 失敗時None維持 + ToolTip
-- [ ] Background Retryを行わない
+- [x] 失敗時None維持 + ToolTip
+- [x] Background Retryを行わない
 
 ## F-10. Clear処理
 
-- [ ] Slot Clear
-- [ ] Clear All
-- [ ] Configurationを消さないことを確認
+- [x] Slot Clear
+- [x] Clear All
+- [x] Configurationを消さないことを確認
 
 ## F-11. Shortcut実行
 
-- [ ] exe起動
-- [ ] bat/cmd実行
-- [ ] Arguments対応
-- [ ] Working Directory対応
-- [ ] 実行失敗通知
+- [x] exe起動
+- [x] bat/cmd実行
+- [x] lnk実行
+- [x] Arguments対応
+- [x] Working Directory対応
+- [x] 実行失敗通知
 
 ## F-12. Input / Hotkey / NumLock / Debug
 
-- [ ] Window Mode Hotkey登録
-- [ ] Shortcut Mode通常Hotkey登録
-- [ ] Disabled KeyはHotkey未登録
-- [ ] Common Dispatcher
-- [ ] Numpad0 / Virtual000 InputHook Detector
-- [ ] NumLock Auto Bind All
-- [ ] Ctrl+NumLock Clear All
+- [x] Window Mode Hotkey登録
+- [x] Shortcut Mode通常Hotkey登録
+- [x] Disabled KeyはHotkey未登録
+- [x] Common Dispatcher
+- [x] Numpad0 / Virtual000 InputHook Detector
+- [x] NumLock Auto Bind All
+- [x] Ctrl+NumLock Clear All
 - [ ] OnExit NumLock復元
-- [ ] ToolTip通知
-- [ ] Debug Log / Slot Snapshot
-- [ ] Debug File I/O失敗がController動作へ波及しないことを確認
+- [x] ToolTip通知
+- [x] Debug Log / Slot Snapshot
+- [x] Debug File I/O失敗がController動作へ波及しないことを確認
 
 ---
 
@@ -515,14 +519,6 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-Phase BのPoC実装は完了済み。
-
-次の作業はコード追加ではなく、`docs/PHASE_B_POC.md` の手順に従った実機実行と結果回収。
-
-結果受領後:
-
-1. B-1～B-8をまとめて評価
-2. `docs/PHASE_B_RESULT.md` を作成
-3. Window識別条件を確定
-4. Phase Bを完了
-5. Phase Cへ進む
+Phase Fの本体実装と自動検証は完了。
+次は [Phase F検証結果](docs/PHASE_F_RESULT.md) の実機確認手順で、前面化、物理0/000、修飾キー、NumLock OFF復元を確認する。
+その後、Phase G/Hのアプリ別・長時間常駐・受入試験へ進む。

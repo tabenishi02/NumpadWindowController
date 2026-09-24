@@ -6,7 +6,9 @@ AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Short
 
 ## 現在の段階
 
-現在は **Phase E完了 / Phase F本実装前** です。本体実装はまだ開始していません。
+現在は **Phase F実装済み / 自動検証済み / 実機確認待ち** です。AutoHotkey v2.0.26で136件のassertionを確認しました。前面化、物理テンキー入力、NumLock OFF復元などは実機確認が必要です。
+
+- [Phase F実装・検証結果と実機手順](docs/PHASE_F_RESULT.md)
 
 - [MVP設計書](docs/MVP_DESIGN.md)
 - [Phase A仕様](docs/PHASE_A_SPEC.md)
@@ -20,8 +22,24 @@ AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Short
 - [実装タスク一覧](TASKS.md)
 - [000キー識別PoC](poc/README.md)
 
-> [!NOTE]
-> 現在の設計は確定版ではありません。今後の議論で変更する前提の暫定スナップショットです。
+## 起動と設定
+
+AutoHotkey v2をインストールしたWindowsで、`NumpadWindowController.ahk`と`KeyBindings.ini`を同じDirectoryに置き、本体を起動してください。終了はトレイのAutoHotkeyアイコンからExitを選びます。PoCと同時には起動しないでください。
+
+`KeyBindings.ini`はUTF-16 LE BOMを維持して編集し、反映には本体を再起動します。標準設定ではShortcutは未登録、BackspaceはDisabledです。詳細な設定形式とShortcut例は[Phase D仕様](docs/PHASE_D_SPEC.md)を参照してください。個人用Path等を含む実設定はコミットしないでください。
+
+| 操作 | 動作 |
+|---|---|
+| Key | Window切替 / Shortcut起動 |
+| Ctrl + Key | Active WindowをManual Bind |
+| Ctrl + Shift + Key | Slot Clear |
+| Ctrl + Alt + Key | 専用Slot / Groupの欠損補修 |
+| NumLock | 有効Bindingを維持してAuto Bind All |
+| Ctrl + NumLock | 全Binding解除 |
+
+実行中はNumLockをON固定し、正常終了時に元の状態へ戻します。0/000判定中はSC052を消費し、未定義Modifier付き0も再送しません。通常の0入力を維持したい場合はNumpad0とVirtual000を両方Disabledにしてください。
+
+検証は`.\tests\Run-PhaseFTests.ps1`で実行できます。デスクトップ操作を伴う確認と既知の制限は[Phase F検証結果](docs/PHASE_F_RESULT.md)に記載しています。
 
 ## 現時点の主要方針
 

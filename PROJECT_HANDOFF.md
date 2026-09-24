@@ -1,290 +1,64 @@
 # PROJECT_HANDOFF
 
-更新日: 2026-09-23  
-対象: NumpadWindowController  
-状態: Phase E完了 / Phase F実装前
+更新日: 2026-09-24
+対象: NumpadWindowController
+状態: Phase F実装済み / 自動検証済み / 実機確認待ち
 
-## 1. プロジェクト概要
+## 現在の成果物
 
-一般的なUSBテンキーを、Windows上の複数ウィンドウへ直接切り替えるためのコントローラーとして利用する。
+- `NumpadWindowController.ahk`: 単一ファイルのAutoHotkey v2本体。
+- `KeyBindings.ini`: Phase D標準設定、UTF-16 LE BOM、ConfigVersion=1。
+- `tests/PhaseF.Tests.ahk`: 本体を直接includeする設定・状態・入力判定・Windows API検証。
+- `tests/Run-PhaseFTests.ps1`: AHKの終了コードを確認する実行入口。
+- [Phase F検証結果](docs/PHASE_F_RESULT.md): 確認済み範囲、未確認事項、次の実機手順。
 
-現在は、Window切り替えだけでなく、キーごとにShortcutや特別機能も持てる設計へ拡張している。
+Phase A～Eの仕様変更は行っていない。PoCの入力判定方式、候補Filter、Chrome Threshold / Scoreを本実装へ移した。`lib/` 分割はしていない。
 
-## 2. 技術方針
+## 実装済みの操作
 
-- Windows 11
-- AutoHotkey v2
-- 一般的なUSBテンキー
-- 実行中Window識別はHWND
-- HWNDは永続化しない
-- 永続ConfigurationとRuntime Bindingを分離する
+| 操作 | 動作 |
+|---|---|
+| Key | Window Activate / Shortcut起動 |
+| Ctrl + Key | Manual Bind |
+| Ctrl + Shift + Key | Slot Clear |
+| Ctrl + Alt + Key | Group / Slot Auto Bind |
+| NumLock | Auto Bind All |
+| Ctrl + NumLock | Clear All |
 
-## 3. キー動作モデル
+専用Slotは7/8/9=Chrome、4/5/6=VS Code、1=Explorer、2=ChatGPT Desktop、3=PowerShell 7用Windows Terminal。任意SlotはManual専用で、自動補充しない。Backspaceは標準Disabled。
 
-設定可能な通常キーは次のいずれかのModeを持つ。
+Auto Bindは有効なManual / Auto Bindingを維持し、欠損だけ補修する。完全再構築はCtrl+NumLock → NumLock。VS Codeは未使用候補の逆列挙順で空き4→5→6へ補充する。
 
-- Window
-- Shortcut
-- Disabled
+## 実装上の重要点
 
-NumLockは通常Modeとは別の予約Global Function Keyとして扱う。
+- Config Validation後にNumLock状態保存、OnExit登録、ON固定、Runtime / Hook / Hotkey初期化、Auto Bind Allを行う。
+- Runtime Binding正本は`App.Slots`のみ。Working Stateの整合性を確認してからCommitする。
+- Window metadataは都度取得。既存BindingのValidityと新規候補のEligibilityを分離する。
+- Hotkeyは物理Scan Codeと正確なModifier条件を組み合わせる。Shortcutは通常押下だけ、Disabledは未登録。
+- 0/000はInputHookでSC052を消費し、80ms以内のD-U×3をVirtual000へ変換。Action実行はQueue経由で入力記録から分離する。
+- Debugは先頭の`DEBUG_ENABLED`で明示ONにした場合だけ。通常は永続ログなし。ログI/O失敗は内部で処理する。
+- ConfigにAutoBind属性やNumLock設定、HWNDは保存しない。Configの変更は再起動で反映する。
 
-ShortcutキーはWindow Binding対象外。
+## 検証結果と未完了項目
 
-`000` は独立VK/SCを持たないが、高速なNumpad0 D-U×3をPoCで識別できたため、論理キー `Virtual000` として正式採用する。
+AutoHotkey v2.0.26で`tests/Run-PhaseFTests.ps1 -Desktop`を実行し、136 assertions PASS。
 
-## 4. 現在の既定配置
+確認済み: Config正常・異常系、Manualの状態遷移、重複禁止、Auto Bind計算と例外時のState保持、Lazy候補なし、Mode別Hotkey登録、Detector状態遷移、実Window情報取得、Hook開始/停止、テストWindowのRestore、EXE/BAT/CMD/LNK起動、引数、作業ディレクトリ、実行失敗の継続、Debug I/O失敗の隔離。
 
-```text
-NumLock  /       *       -
-Function 任意    任意    任意
+次は実機確認が必要:
 
-7        8       9       +
-Chrome1  Chrome2 Chrome3 任意
+- テスト環境ではForeground化できず、Activate成功とActive WindowからのManual Bind成功は未確認。
+- NumLockは単独のSetNumLockStateでもOFFにならなかった。起動前OFF → 実行中ON → 終了後OFFは未確認。ONからの終了処理は確認済み。
+- 物理テンキーの0/000、修飾操作、Disabled入力、未定義Modifierの通過。
+- 実際のChrome / VS Code / Explorer / ChatGPT / Terminal切替、再起動・Window増減・長時間常駐。
 
-4        5       6       DEL
-VSCode1  VSCode2 VSCode3 任意
+`TASKS.md`の未チェック項目を推測で完了にしない。Phase G/Hの受入確認は未実施。テスト後にControllerを常駐状態にはしていない。
 
-1        2       3       Enter
-Explorer ChatGPT pwsh    任意
+## 次回読む資料
 
-0        000     .       Enter
-任意     仮想キー 任意   任意
-```
+1. 本書
+2. `docs/PHASE_F_RESULT.md`
+3. `TASKS.md`のPhase F残項目とPhase G/H
+4. 変更対象に関係する`docs/PHASE_E_SPEC.md` / `PHASE_D_SPEC.md` / `PHASE_C_SPEC.md`
 
-NumLockには特別機能を持たせる予定。Numpad0は通常の任意キーとして扱う。
-
-物理DELキーはAutoHotkey上では `Backspace` として検出される。
-
-## 5. Auto Bind優先順位
-
-### Chrome
-
-最優先。
-
-優先3Windowのみ `7 / 8 / 9` へ割り当てる。
-
-- 7: 左上、画面幅約30% × 高さ約50%
-- 8: 左下、画面幅約30% × 高さ約50%
-- 9: 右側、画面幅約70% × 高さ100%
-
-Chrome Windowは基本的に重ならない運用を前提とする。
-
-4つ目以降のChromeはAuto Bind対象外。必要な場合だけ任意SlotへManual Bindする。
-
-### VS Code
-
-Chromeの次に優先。
-
-優先3Windowのみ、開いた順番で:
-
-```text
-1番目 -> 4
-2番目 -> 5
-3番目 -> 6
-```
-
-VS Code Windowは重なる運用を前提とする。
-
-4つ目以降のVS CodeはAuto Bind対象外。必要な場合だけ任意SlotへManual Bindする。
-
-## 6. その他の専用Window
-
-- 1: Explorer = `explorer.exe` + `CabinetWClass`
-- 2: ChatGPT Desktop = `ChatGPT.exe`
-- 3: PowerShell 7 = `WindowsTerminal.exe` + `CASCADIA_HOSTING_WINDOW_CLASS` + Title contains `PowerShell 7`
-
-## 7. Shortcut Mode
-
-設定ファイルからキーへShortcutを割り当て可能にする。
-
-用途:
-
-- アプリ起動
-- バッチファイル実行
-
-Shortcutが設定されたキーはWindow Binding対象から除外される。
-
-Windowキーへ戻す場合は設定ファイルを編集後、スクリプトを再起動する。
-
-## 8. 実機キー情報
-
-Key HistoryでVK / SC / AutoHotkey Key Nameを確認済み。
-
-詳細は `docs/DESIGN_DRAFT.md` の「実機で確認したAutoHotkeyキー情報」を参照。
-
-## 9. 手動Binding
-
-基本方針:
-
-```text
-NumpadX
-  -> Window ModeならBinding済みWindowをActivate
-
-Ctrl + NumpadX
-  -> Window Modeなら現在Windowを手動Bind
-```
-
-Shortcut / DisabledキーへのWindow Bindingは拒否する。
-
-Phase Aで以下を確定済み:
-
-- `Ctrl + Shift + Key` -> Slot Clear
-- `Ctrl + Alt + Key` -> 個別Auto Bind
-- `NumLock` -> Auto Bind All
-- `Ctrl + NumLock` -> Clear All
-
-## 10. 次回以降の主要論点
-
-Phase BのPoCコードはすべて作成済み。現在は実機結果待ち。
-
-PoC:
-
-1. B1 Window Enumeration
-2. B2-B4 Chrome / Monitor Layout
-3. B5 VS Code Observation Order
-4. B6-B8 Explorer / ChatGPT / PowerShell系Terminal
-
-詳細実行手順は `docs/PHASE_B_POC.md`。
-
-実機結果をまとめて受領後、`docs/PHASE_B_RESULT.md` を作成して識別仕様を確定する。
-
-## 11. 次回開始時に読む資料
-
-1. `PROJECT_HANDOFF.md`
-2. `docs/PHASE_E_SPEC.md`
-3. `docs/PHASE_D_SPEC.md`
-4. `docs/PHASE_C_SPEC.md`
-4. `docs/PHASE_B_RESULT.md`
-4. `docs/PHASE_A_SPEC.md`
-4. `docs/PHASE_B_POC.md`
-5. `docs/MVP_DESIGN.md`
-6. `TASKS.md`
-7. `docs/DESIGN_DRAFT.md`
-8. `README.md`
-
-## 12. 現在の段階
-
-```text
-プロジェクト立ち上げ
-  ↓
-Window Slot方式
-  ↓
-Chrome / VS Code制約
-  ↓
-Auto Bind案
-  ↓
-実機テンキー調査
-  ↓
-キーModeモデル導入
-  ↓
-実機配置・Chrome/VS Code優先順位・Shortcut仕様反映  ← 現在
-  ↓
-実装タスク一覧を作成
-  ↓
-Phase A 残仕様確定             ← 完了
-  ↓
-Phase B PoC実装                 ← 完了
-  ↓
-Phase B 実機結果評価             ← 完了
-  ↓
-Phase C Auto Bind設計            ← 完了
-  ↓
-Phase D Configuration設計        ← 完了
-  ↓
-Phase E 実装設計                 ← 完了
-  ↓
-Phase F AutoHotkey v2実装         ← 次
-```
-
-
-## 13. MVP設計レビュー
-
-`docs/MVP_DESIGN.md` に、最低限動作する v0.1 を実装するための仕様を具体化した。実装はこの設計書のレビュー後に開始する。
-
-
-## 14. Virtual000採用
-
-物理 `000` が生成する高速な `Numpad0` D-U×3を80ms判定窓で識別し、内部では `Virtual000` として扱う。通常の `Numpad0` と分離し、`Window / Shortcut / Disabled` を設定可能とする。PoCでは通常使用時に誤認識なく動作した。
-
-
-## 15. Phase A確定事項
-
-詳細は `docs/PHASE_A_SPEC.md`。
-
-- NumLock = Auto Bind All
-- Ctrl+NumLock = Clear All
-- Manual > Auto > None
-- 1 HWND : 1 Slot
-- 1/2/3 = Explorer / ChatGPT Desktop / PowerShell系Terminal専用
-- 任意キーは原則初期Window / AutoBind OFF。ただし物理DEL=`Backspace` は安全のため標準Disabled
-- Ctrl+Key = Manual Bind
-- Ctrl+Shift+Key = Slot Clear
-- Ctrl+Alt+Key = 個別Auto Bind
-- Virtual000も通常論理キーと同一の操作体系
-
-
-## 16. Phase B確定事項
-
-詳細は `docs/PHASE_B_RESULT.md`。
-
-- Chrome通常3Windowと再起動後は現Thresholdで7/8/9を識別可能
-- Chrome座標基準はPrimary Monitor Work Area
-- Minimized / Maximized Chromeは新規座標分類対象外
-- VS Codeは常時監視せず、Auto Bind時に未使用Code.exe候補をWinGetListの逆順で4→5→6へ割り当てる
-- 真のOpen順は保証せず、必要な場合だけManual補正
-- Explorer = explorer.exe + CabinetWClass
-- ChatGPT Desktop = ChatGPT.exe
-- PowerShell 7 = WindowsTerminal.exe + CASCADIA_HOSTING_WINDOW_CLASS + Title contains "PowerShell 7"
-- Phase Dへ AllowedTitleContains を追加
-
-
-## 17. Phase C確定事項
-
-詳細は `docs/PHASE_C_SPEC.md`。
-
-- Auto Bindは専用Slot 1～9だけ
-- 任意SlotはManual専用で一般Window Auto Bindなし
-- NumLockは有効Manual / Auto Bindingを維持して欠損だけ補修
-- 完全再構築は Ctrl+NumLock → NumLock
-- Chromeは新規割り当て時だけ座標判定
-- VS Codeは未使用候補を逆列挙順で空き4→5→6へ補充
-- 4つ目以降のChrome / VS CodeはAuto Bindしない
-- Lazy Auto BindはGroup / Slot単位の空Slot補充
-- Lazy失敗時はNone + ToolTip、Background Retryなし
-- Used HWND SetとCommit前検証で1 HWND : 1 Slotを保証
-
-
-## 18. Phase D確定事項
-
-詳細は `docs/PHASE_D_SPEC.md`。
-
-- Configは `KeyBindings.ini` / INI / ConfigVersion=1
-- UTF-16 LE BOM
-- Mode = Window / Shortcut / Disabled
-- AutoBind / GroupはConfigではなくBuilt-in Metadata
-- AllowedProcess / AllowedClass / AllowedTitleContainsをWindow Modeで使用
-- Shortcutは exe / bat / cmd / lnk
-- ps1はpwsh.exe + -File
-- Config変更はScript再起動で反映
-- 起動時に構造 / Mode / Allowed / ShortcutをFatal Validation
-- Backspaceは標準Disabled。明示有効化時は通常Keyboard Backspaceも巻き込むWarning
-- Numpad0 Disabled時はVirtual000もDisabled必須
-
-
-## 19. Phase E確定事項
-
-詳細は `docs/PHASE_E_SPEC.md`。
-
-- MVP本体は単一 `NumpadWindowController.ahk`
-- `lib/` 分割はMVPでは行わない
-- Global Runtime入口は1つのApp State
-- Config / Key Definitionは起動後Immutable
-- Runtime Binding正本はApp.Slots
-- Slot StateはHwnd + BindingSource
-- Window metadata / Used HWND Setは一時データ
-- Auto BindはWorking Stateで計算後Commit
-- Window ModeだけController修飾Hotkeyを登録
-- ShortcutはNormalのみ、DisabledはHotkey未登録
-- Numpad0 / Virtual000だけInputHook Detector
-- 通常利用では永続Logなし、Debug時のみログ
+既存設計の根拠はPhase A～E仕様書、実機識別の根拠は`docs/PHASE_B_RESULT.md`。PoCは`poc/`に保持している。
