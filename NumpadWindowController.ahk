@@ -22,11 +22,11 @@ App_Start() {
         App.Config := Config_Load(A_ScriptDir "\KeyBindings.ini", metadata, A_ScriptDir)
         App.Keys := App.Config.Keys
         if App.Keys["Backspace"].Mode != "Disabled"
-            MsgBox("Backspace is enabled.`nThe physical keypad DEL and the normal keyboard Backspace cannot be distinguished.`nBoth will trigger this controller action.", "NumpadWindowController", "Icon!")
+            MsgBox("Backspace is enabled.`nThe keypad Backspace and the standard keyboard Backspace cannot be distinguished.`nBoth will trigger this controller action.", "NumpadWindowController", "Icon!")
         App.OriginalNumLock := GetKeyState("NumLock", "T")
         App.NumLockSaved := true
         OnExit(App_OnExit)
-        SetNumLockState("AlwaysOn")
+        NumLock_ForceOn()
         App.Slots := Runtime_Init(App.Keys)
         App.Debug := {Enabled: DEBUG_ENABLED,
             Path: A_ScriptDir "\logs\NumpadWindowController_" A_Now ".log"}
@@ -54,6 +54,13 @@ App_OnExit(*) {
         SetNumLockState(App.OriginalNumLock ? "On" : "Off")
     }
     Debug_Log("Shutdown")
+}
+
+NumLock_ForceOn() {
+    SetNumLockState("AlwaysOn")
+    Sleep(10)
+    if !GetKeyState("NumLock", "T")
+        throw Error("Failed to force NumLock ON.")
 }
 
 ; === Built-in Key Metadata ===
@@ -300,35 +307,54 @@ Input_HotkeyPlan(keys) {
         for modifier in (key.Mode = "Window" ? ["Normal", "Ctrl", "CtrlShift", "CtrlAlt"] : ["Normal"])
             plan.Push({Id: id, Key: key.AhkKey, Modifier: modifier})
     }
-    plan.Push({Id: "NumLock", Key: "NumLock", Modifier: "Normal"})
-    plan.Push({Id: "NumLock", Key: "NumLock", Modifier: "Ctrl"})
     return plan
+}
+
+Input_NumLockHotkeyPlan() {
+    ; AutoHotkey/Windows reports Ctrl+NumLock as Ctrl+Pause.
+    return [
+        {Hotkey: "*SC145", Modifier: "Normal", Context: "Normal"},
+        {Hotkey: "^Pause", Modifier: "Ctrl", Context: ""}
+    ]
 }
 
 Input_RegisterHotkeys() {
     global App
     plan := Input_HotkeyPlan(App.Keys)
-    ; Exact physical modifier predicates avoid Shift+NumLock keypad aliases.
-    ; A wildcard variant is active only for the defined combination.
     for modifier in ["Normal", "Ctrl", "CtrlShift", "CtrlAlt"] {
         HotIf(Input_Context.Bind(modifier))
         for entry in plan
             if entry.Modifier = modifier
                 Hotkey("*" entry.Key, Input_Dispatch.Bind(entry.Id, modifier))
     }
+
+    ; NumLock needs a dedicated physical path. Ctrl+NumLock is reported as Ctrl+Pause.
+    for entry in Input_NumLockHotkeyPlan() {
+        if entry.Context != ""
+            HotIf(Input_Context.Bind(entry.Context))
+        else
+            HotIf()
+        Hotkey(entry.Hotkey, Input_Dispatch.Bind("NumLock", entry.Modifier))
+    }
     HotIf()
-    Debug_Log("Hotkey registration: " plan.Length)
+    Debug_Log("Hotkey registration: " (plan.Length + Input_NumLockHotkeyPlan().Length))
 }
 
 Input_Dispatch(id, modifier, *) {
     global App
+    Debug_Log("Input dispatch: " id " / " modifier)
     try {
         if id = "NumLock" {
-            if modifier = "Normal" {
-                AutoBind_Run()
-                Notify_Info("Auto Bind completed")
-            } else if modifier = "Ctrl"
-                Binding_Clear()
+            try {
+                if modifier = "Normal" {
+                    AutoBind_Run()
+                    Notify_Info("Auto Bind completed")
+                } else if modifier = "Ctrl"
+                    Binding_Clear()
+            } finally {
+                if App.NumLockSaved
+                    NumLock_ForceOn()
+            }
             return
         }
         key := App.Keys[id]
@@ -371,6 +397,12 @@ Zero_New() {
         IgnoreUntilUp: false, Modifier: "Normal"}
 }
 
+Zero_WindowMs(modifier) {
+    ; Preserve the original 80 ms latency for normal 0/000 input.
+    ; Modified 000 sequences get a wider window based on the first manual-test result.
+    return modifier = "Normal" ? 80 : 120
+}
+
 Zero_Finish(state, triple := false) {
     events := []
     if !state.Active
@@ -386,7 +418,7 @@ Zero_Finish(state, triple := false) {
 
 Zero_Feed(state, kind, tick, modifier := "Normal") {
     events := []
-    if state.Active && tick - state.Start > 80
+    if state.Active && tick - state.Start > Zero_WindowMs(state.Modifier)
         events := Zero_Finish(state)
     if kind = "Interrupt" || kind = "Timer" {
         if state.Active
@@ -450,9 +482,20 @@ Zero_Process(kind) {
     global App
     Critical("On")
     try {
-        for event in Zero_Feed(App.ZeroDetector, kind, A_TickCount, Input_Modifier())
+        tick := A_TickCount
+        modifier := Input_Modifier()
+        if kind != "Interrupt" || App.ZeroDetector.Active
+            Debug_Log("Zero input: kind=" kind " tick=" tick " modifier=" modifier
+                " active=" App.ZeroDetector.Active " start=" App.ZeroDetector.Start
+                " pattern=" App.ZeroDetector.Pattern)
+        for event in Zero_Feed(App.ZeroDetector, kind, tick, modifier) {
+            Debug_Log("Zero queued: " event.Id " / " event.Modifier
+                " elapsed=" (tick - App.ZeroDetector.Start))
             App.InputQueue.Push(event)
-        SetTimer(Zero_OnTimer, App.ZeroDetector.Active ? -Max(1, 81 - (A_TickCount - App.ZeroDetector.Start)) : 0)
+        }
+        timeout := App.ZeroDetector.Active ? Zero_WindowMs(App.ZeroDetector.Modifier) : 0
+        SetTimer(Zero_OnTimer, App.ZeroDetector.Active
+            ? -Max(1, timeout + 1 - (A_TickCount - App.ZeroDetector.Start)) : 0)
         if App.InputQueue.Length
             SetTimer(Input_Drain, -1)
     } catch as err {

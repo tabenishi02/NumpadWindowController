@@ -254,7 +254,7 @@ Binding済みWindowが最小化されている場合にRestoreしてForeground�
 
 ### 結果
 
-- [o] PASS
+- [x] PASS
 - [ ] FAIL
 
 記録:
@@ -635,8 +635,10 @@ Warningを閉じて起動後、通常KeyboardのBackspaceもController側の対�
 記録:
 
 ```text
-テンキーに物理設置されているキー設定はBackspaceではなくDELである。
-したがって、現在のBackspace基準の設定ではなく、DELキー設定としたい。
+訂正（2026-09-25）:
+初回テスト時に「物理キー表記はDEL」と記録したが、ユーザーの誤認だったため撤回する。
+実機の物理キー表記もBackspaceであり、DELであるという事実はない。
+したがって Key-Backspace / Backspace という現行設定・命名を維持し、KeypadDel等への名称変更は行わない。
 ```
 
 ### 復旧
@@ -800,6 +802,222 @@ Ctrl + NumLock を押しても Clearされない。
 
 ---
 
+# 12.1 Phase F 修正後再テスト
+
+初回Manual Testで確認されたF-5 / F-8 / F-13～F-17の問題に対する修正後テスト。
+初回結果は履歴として上記に残し、この節へ2回目の結果を記録する。
+
+## Test R-1: 修正後自動テスト
+
+### 実行
+
+```powershell
+.\tests\Run-PhaseFTests.ps1
+.\tests\Run-PhaseFTests.ps1 -Desktop
+```
+
+### 期待結果
+
+- 両方ともExit Code 0
+- FAILなし
+- DesktopテストでPENDINGなし
+- Assertion数は追加テストにより初回138件より増えていてよい
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+記録:
+
+```text
+
+```
+
+---
+
+## Test R-2: NumLock物理入力 + ON固定
+
+### 手順
+
+1. Controllerを終了し、NumLockをOFFにする。
+2. Controllerを起動し、NumLockがONになることを確認する。
+3. 物理NumLockを5回、1回ずつ押す。
+4. 各押下で `Auto Bind completed` が表示されることを確認する。
+5. 各押下後にNumLockがONのままであることを確認する。
+
+### 期待結果
+
+- 通常NumLockは物理SC145としてControllerへ届く
+- NumLock本来のON/OFF Toggleは発生しない
+- 5回すべてAuto Bind Allとして動作する
+- NumLockは常にON
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+記録:
+
+```text
+
+```
+
+---
+
+## Test R-3: Ctrl + NumLock Clear All
+
+AutoHotkey / WindowsではCtrlを押したNumLockは `Ctrl + Pause` として報告されるため、
+修正版ではこの経路を専用Hotkeyとして扱う。
+
+### 手順
+
+1. Numpad0へ任意WindowをManual Bindする。
+2. Explorer等を専用SlotへAuto Bindする。
+3. `Ctrl + NumLock` を押す。
+4. Numpad0および専用SlotのBindingを確認する。
+5. NumLock状態を確認する。
+
+### 期待結果
+
+- 全BindingがClearされる
+- 即時Auto Bindは行われない
+- NumLockはONのまま
+- ControllerがPause動作へ誤遷移しない
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+記録:
+
+```text
+
+```
+
+---
+
+## Test R-4: Ctrl + 000 Manual Bindの安定性
+
+### 目的
+
+修飾キー付きVirtual000の判定窓を120msへ拡張した効果を確認する。
+通常0/000は従来どおり80msのため、通常操作の遅延は増やさない。
+
+### 手順
+
+1. Window Aを `Ctrl + 0` でNumpad0へ登録する。
+2. Window BをForegroundにする。
+3. `Ctrl + 000` でVirtual000へ登録する。
+4. 別Windowへ移動し、`0` でA、`000` でBへ移動することを確認する。
+5. 2～4を合計5回繰り返す。
+
+### 期待結果
+
+- 5回すべてCtrl+000がVirtual000として認識される
+- Numpad0のBindingを誤って上書きしない
+- 通常000は引き続きVirtual000として動作する
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+成功回数:
+
+```text
+/5
+```
+
+---
+
+## Test R-5: Numpad0 Clear後の通知Regression
+
+### 手順
+
+1. Numpad0へWindowをManual Bindする。
+2. `Ctrl + Shift + 0` でClearする。
+3. 前のToolTipが確実に消えるよう1.5秒以上待つ。
+4. `0` を1回押す。
+
+### 期待結果
+
+- `No window found: Zero` が表示される
+- `Auto Bind completed` は表示されない
+- Numpad0はNoneのまま
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+記録:
+
+```text
+
+```
+
+---
+
+## Test R-6: NumLock終了時復元
+
+### Case A
+
+```text
+起動前: OFF
+実行中: ON
+終了後: OFF
+```
+
+### Case B
+
+```text
+起動前: ON
+実行中: ON
+終了後: ON
+```
+
+正常終了はTray IconからExitして行う。
+
+### 結果
+
+- [ ] PASS
+- [ ] FAIL
+
+記録:
+
+```text
+
+```
+
+---
+
+## Test R-7: Debug診断（R-4またはR-5失敗時のみ）
+
+R-4またはR-5がFAILした場合だけ実施する。
+
+1. `NumpadWindowController.ahk` の `DEBUG_ENABLED := false` を一時的に `true` にする。
+2. R-4 / R-5を再現する。
+3. `logs/NumpadWindowController_<timestamp>.log` から以下を記録する。
+
+確認対象:
+
+- `Input dispatch: <Logical Id> / <Modifier>`
+- `Zero input: kind=... tick=... modifier=...`
+- `Zero queued: Numpad0|Virtual000 / <Modifier> elapsed=...`
+
+試験後は `DEBUG_ENABLED := false` へ戻す。
+
+記録:
+
+```text
+
+```
+
+---
+
 # 13. 異常の確認
 
 すべての試験を通じて以下を観察する。
@@ -859,9 +1077,17 @@ Ctrl + NumLock を押しても Clearされない。
 
 ## 判定
 
+初回Manual Test判定:
+
 - [ ] PASS - Phase F完了
 - [ ] CONDITIONAL PASS - Known Limitationのみ
-- [ ] FAIL - 修正が必要
+- [x] FAIL - 修正が必要
+
+修正後再テスト判定:
+
+- [ ] PASS - Phase F完了
+- [ ] CONDITIONAL PASS - Known Limitationのみ
+- [ ] FAIL - 追加修正が必要
 
 ## 未解決事項
 

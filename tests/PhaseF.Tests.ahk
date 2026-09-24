@@ -250,6 +250,20 @@ Test_Zero() {
         Zero_Feed(state, kind, (i - 1) * 10)
     events := Zero_Feed(state, "U", 81)
     Test_Assert(events.Length = 3 && events[1].Id = "Numpad0", "Late Up cannot become triple")
+    Test_Assert(Zero_WindowMs("Normal") = 80 && Zero_WindowMs("Ctrl") = 120,
+        "Modifier-specific zero detector window")
+    state := Zero_New()
+    for i, kind in StrSplit("DUDUD")
+        Zero_Feed(state, kind, (i - 1) * 20, "Ctrl")
+    events := Zero_Feed(state, "U", 120, "Ctrl")
+    Test_Assert(events.Length = 1 && events[1].Id = "Virtual000"
+        && events[1].Modifier = "Ctrl", "Ctrl triple accepted at 120ms boundary")
+    state := Zero_New()
+    for i, kind in StrSplit("DUDUD")
+        Zero_Feed(state, kind, (i - 1) * 20, "Ctrl")
+    events := Zero_Feed(state, "U", 121, "Ctrl")
+    Test_Assert(events.Length = 3 && events[1].Id = "Numpad0",
+        "Ctrl triple rejected outside 120ms window")
     state := Zero_New()
     Zero_Feed(state, "D", 0)
     Zero_Feed(state, "U", 10)
@@ -269,7 +283,13 @@ Test_Input() {
     Test_Assert(counts["NumpadDiv"] = 1, "Shortcut registers Normal only")
     Test_Assert(!counts.Has("Backspace"), "Disabled registers no hotkeys")
     Test_Assert(!counts.Has("Numpad0") && !counts.Has("Virtual000"), "Zero input uses detector only")
-    Test_Assert(counts["NumLock"] = 2, "NumLock global actions")
+    Test_Assert(!counts.Has("NumLock"), "NumLock uses dedicated physical registration")
+    numPlan := Input_NumLockHotkeyPlan()
+    Test_Assert(numPlan.Length = 2, "NumLock has two dedicated physical hotkeys")
+    Test_Assert(numPlan[1].Hotkey = "*SC145" && numPlan[1].Modifier = "Normal"
+        && numPlan[1].Context = "Normal", "Normal NumLock uses physical SC145")
+    Test_Assert(numPlan[2].Hotkey = "^Pause" && numPlan[2].Modifier = "Ctrl",
+        "Ctrl NumLock uses Ctrl+Pause")
     Test_Assert(Input_ModifierKind(1, 1, 1) = "Unsupported", "Reject Ctrl Shift Alt")
     Test_Assert(Input_ModifierKind(0, 1, 0) = "Unsupported", "Shift alone passes through")
     Test_Assert(Input_ModifierKind(1, 1, 0) = "CtrlShift", "Ctrl Shift mapping")
@@ -343,8 +363,8 @@ Test_Desktop() {
         App.OriginalNumLock := original
         App.NumLockSaved := true
         OnExit(App_OnExit)
-        SetNumLockState("AlwaysOn")
-        Test_Assert(GetKeyState("NumLock", "T"), "NumLock forced on")
+        NumLock_ForceOn()
+        Test_Assert(GetKeyState("NumLock", "T"), "NumLock forced on and verified")
         Input_RegisterHotkeys()
         Input_StartZeroDetector()
         Test_Assert(App.Hook.InProgress, "InputHook starts")
@@ -375,7 +395,7 @@ Test_Desktop() {
                 FileAppend("PENDING: NumLock " saved " restoration (environment does not allow setting initial toggle).`n", "*")
                 continue
             }
-            SetNumLockState("AlwaysOn")
+            NumLock_ForceOn()
             App_OnExit()
             Sleep(30)
             Test_Assert(GetKeyState("NumLock", "T") = saved, "Restore saved NumLock " saved)

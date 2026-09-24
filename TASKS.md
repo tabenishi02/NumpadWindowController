@@ -258,8 +258,9 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 
 # Phase F - AutoHotkey v2実装
 
-実装済み。AHK v2.0.26で136 assertions PASS。前面化・物理入力・NumLock OFF復元は実機確認待ち。
-詳細と手順: [Phase F検証結果](docs/PHASE_F_RESULT.md)。未チェック項目もコードは実装済みだが、成功動作の確認が未完了。
+初回実機テストまで実施済み。Window制御系は概ねPASSし、特殊入力系の修正版を実装した。
+現在は [Phase F Manual Test Guide](docs/PHASE_F_MANUAL_TEST.md) のR-1～R-7による再テスト待ち。
+詳細: [Phase F検証結果](docs/PHASE_F_RESULT.md)。
 
 ## F-1. Skeleton / App State
 
@@ -277,17 +278,17 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 - [x] Mode / Allowed / Shortcut Validation
 - [x] Key Definition生成
 - [x] Slot State生成
-- [ ] Backspace Warning
+- [x] Backspace Warning
 - [x] Numpad0 / Virtual000整合Validation
 
 ## F-3. Window Probe / 基本操作
 
-- [ ] Active Window取得
+- [x] Active Window取得
 - [x] HWND存在確認
 - [x] Process / Class / Title取得
 - [x] Minimized判定
 - [x] Restore
-- [ ] Activate
+- [x] Activate
 - [x] Window候補列挙
 
 ## F-4. Manual Bind
@@ -338,7 +339,7 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 - [x] Chrome / VS CodeはGroup単位で空Slot補充
 - [x] 1 / 2 / 3はSlot単位再探索
 - [x] AutoBind=OFF / Shortcut / Disabledでは実行しない
-- [ ] 成功時Activate
+- [x] 成功時Activate
 - [x] 失敗時None維持 + ToolTip
 - [x] Background Retryを行わない
 
@@ -364,12 +365,28 @@ Phase E完了。次工程は **Phase F - AutoHotkey v2実装**。
 - [x] Disabled KeyはHotkey未登録
 - [x] Common Dispatcher
 - [x] Numpad0 / Virtual000 InputHook Detector
-- [x] NumLock Auto Bind All
-- [x] Ctrl+NumLock Clear All
-- [ ] OnExit NumLock復元
+- [ ] NumLock Auto Bind All（物理SC145修正版の再テスト待ち）
+- [ ] Ctrl+NumLock Clear All（^Pause修正版の再テスト待ち）
+- [ ] OnExit NumLock復元（再テスト待ち）
 - [x] ToolTip通知
 - [x] Debug Log / Slot Snapshot
 - [x] Debug File I/O失敗がController動作へ波及しないことを確認
+
+## F-13. 初回Manual Test後の修正
+
+- [x] Backspace→KeypadDel名称変更案を撤回
+  - 初回記録はユーザーの誤認
+  - 実機物理キーもBackspace
+  - `Key-Backspace` を維持
+- [x] 通常NumLockを物理 `SC145` Hotkeyへ変更
+- [x] Ctrl+NumLockをAutoHotkey仕様どおり `^Pause` Hotkeyへ変更
+- [x] NumLock Global Action後にAlwaysOnを再適用・ON確認
+- [x] Modifier付きVirtual000判定窓を120msへ拡張
+- [x] 通常0/000の80ms判定窓は維持
+- [x] Debug LogへInput Dispatch / Zero timing診断を追加
+- [x] NumLock / Modifier付き000の自動テストを追加
+- [ ] Manual Test R-1～R-7をPASS
+- [ ] Phase F最終完了判定
 
 ---
 
@@ -519,6 +536,7 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-Phase Fの本体実装と自動検証は完了。
-次は [Phase F検証結果](docs/PHASE_F_RESULT.md) の実機確認手順で、前面化、物理0/000、修飾キー、NumLock OFF復元を確認する。
-その後、Phase G/Hのアプリ別・長時間常駐・受入試験へ進む。
+初回Phase F Manual Testで見つかった入力系問題への修正版を実装済み。
+次は [Phase F Manual Test Guide](docs/PHASE_F_MANUAL_TEST.md) のR-1～R-7を実施する。
+特に物理NumLock / Ctrl+NumLock、Ctrl+000、Numpad0 Clear後通知、NumLock終了時復元を確認する。
+すべてPASS後にPhase Fを閉じ、Phase G/Hへ進む。

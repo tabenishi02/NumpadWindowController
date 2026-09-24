@@ -1,7 +1,49 @@
 # Phase F 実装・検証結果
 
 更新日: 2026-09-24
-状態: 実装済み / 自動検証済み / 実機確認待ち
+状態: 初回実機テスト実施済み / 入力系修正版実装済み / 再テスト待ち
+
+## 2026-09-25 初回Manual Testと修正版
+
+初回Manual Test（commit `cab10c9188cafd8cea3c3158f1175b0f3f8902ad`）では、
+Window制御の主要経路はPASSした一方、特殊入力経路に修正事項が見つかった。
+
+PASS:
+
+- Active Window Manual Bind。
+- Minimized Window Restore / Activate。
+- Lazy Auto Bind + Activate。
+- 通常の物理0 / 000。
+- Ctrl Manual Bind、Ctrl+Alt Auto Bind、未定義Modifier。
+- Backspace DisabledおよびBackspace有効化Warning。
+
+修正対象:
+
+- Ctrl+000のVirtual000判定が80msでは不安定。
+- Numpad0 Clear後の再押下で期待外の `Auto Bind completed` 表示を1回観測。
+- 通常NumLock / Ctrl+NumLockの実機Hotkey経路。
+- NumLock AlwaysOnと終了時復元。
+
+修正版では次を採用した。
+
+- 通常NumLockは物理Scan Code `SC145` で捕捉する。
+- Windows / AutoHotkey仕様に合わせ、Ctrl+NumLockは `^Pause` で捕捉する。
+- NumLock Global Action後にAlwaysOnを再適用し、ON状態を検証する。
+- 通常0/000の判定窓80msは維持する。
+- Ctrl等Modifier付き000のみ判定窓を120msへ拡張する。
+- Debug時にLogical DispatchとZero Detectorのtick / elapsedを記録する。
+- 自動テストへ専用NumLock Hotkey定義とModifier別000境界を追加する。
+
+### Backspace記録の訂正
+
+初回Manual Testには「物理キーはDELでありBackspaceではない」とする記録があったが、
+これはユーザーの誤認だったため撤回した。
+
+実機の物理キー表記もBackspaceであり、DELであるという事実はない。
+したがって `Key-Backspace` / `Backspace` の現行設定・命名を維持し、
+KeypadDel等への名称変更は行わない。
+
+再テストは `docs/PHASE_F_MANUAL_TEST.md` のR-1～R-7を使用する。
 
 ## 実装範囲
 
