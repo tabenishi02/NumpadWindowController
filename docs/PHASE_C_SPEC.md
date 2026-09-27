@@ -1,12 +1,12 @@
 # Numpad Window Controller - Phase C Specification
 
 更新日: 2026-09-24  
-対象: MVP / v0.1  
-状態: Adopted for Review  
+対象: MVP / v0.1.0  
+状態: Implemented / Verified  
 目的: Phase C「Auto Bindアルゴリズム確定」を完了し、Phase A / Bで確定した仕様を実装可能な処理手順へ落とし込む。
 
 > 本書はAuto Bindアルゴリズムに関して `docs/MVP_DESIGN.md` より具体的な仕様として扱う。
-> ユーザーレビューで変更指摘があった場合は、その指摘を優先して改訂する。
+> 本仕様はv0.1.0実装・Phase G機能テスト・Phase H実機受入試験に反映済み。
 
 ---
 
