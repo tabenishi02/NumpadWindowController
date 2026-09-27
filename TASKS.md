@@ -551,10 +551,10 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 - [x] Preview自動テスト（24 assertions）
 - [x] 一時Task登録・内容検査・任意Delay・対象外Task保護・二度解除の統合テスト（合計37 assertions）
 - [x] Phase F Regression（134 assertions）
-- [ ] 実際のサインアウト / ログオンによる自動起動確認
-- [ ] 自動起動後の既存Window操作 / Virtual000 / NumLock lifecycle確認
-- [ ] 自動起動済み状態からの手動起動で1インスタンス維持を確認
-- [ ] Task無効化 / 削除後の次回ログオン非起動を確認
+- [x] 実際のサインアウト / ログオンによる自動起動確認
+- [x] 自動起動後の既存Window操作 / Virtual000 / NumLock lifecycle確認
+- [x] 自動起動済み状態からの手動起動で1インスタンス維持を確認
+- [x] Task無効化 / 削除後の次回ログオン非起動を確認
 
 手順と記録: [ログオン時自動起動テスト](docs/STARTUP_TASK_TEST.md)
 
