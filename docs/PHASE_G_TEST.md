@@ -153,6 +153,48 @@ FAILの場合は、可能ならDebug Log、対象Windowのタイトル、再現�
 
 Config試験では、毎回本体を完全終了してから `KeyBindings.ini` を変更し、再起動する。
 
+## 4.0 Mode別の最小有効Schema
+
+`Label` はWindow専用Fieldではなく、**Window / Shortcut / Disabledすべてで必須**。
+
+最小例:
+
+```ini
+; Window
+[Key-NumpadDiv]
+Mode=Window
+Label=Window Test
+AllowedProcess=
+AllowedClass=
+AllowedTitleContains=
+
+; Shortcut
+[Key-NumpadDiv]
+Mode=Shortcut
+Label=Shortcut Test
+Target=notepad.exe
+
+; Disabled
+[Key-NumpadDiv]
+Mode=Disabled
+Label=Disabled Test
+```
+
+Shortcutでは `Arguments` / `WorkingDirectory` は任意なので省略可能。
+Disabledでは `Mode` / `Label` 以外のFieldを置かない。
+
+したがって、次の設定は無効:
+
+```ini
+[Key-NumpadDiv]
+Mode=Shortcut
+Target=C:\path\to\example.bat
+```
+
+理由: 共通必須Field `Label` がない。
+
+また、Target Pathが存在しない場合は、Labelを追加した後にTarget ValidationでFatalになる。
+
 Fatalが期待される試験では:
 
 - `NumpadWindowController startup error` が表示される
@@ -351,6 +393,71 @@ AllowedTitleContains=
 
 試験後は必ず標準Disabledへ戻す。
 
+## G-1-10 全ModeでLabel必須
+
+Window / Shortcut / Disabledの代表ケースとしてNumpadDivを使う。
+
+### A. ShortcutでLabel欠落
+
+```ini
+[Key-NumpadDiv]
+Mode=Shortcut
+Target=notepad.exe
+```
+
+期待:
+
+- 起動時Fatal。
+- ErrorのFieldが `Label`。
+- Reasonが必須Field不足を示す。
+
+### B. DisabledでLabel空欄
+
+```ini
+[Key-NumpadDiv]
+Mode=Disabled
+Label=
+```
+
+期待:
+
+- 起動時Fatal。
+- `Label` 空欄を拒否。
+
+Window ModeのLabel必須はPhase F自動テストでも確認済みだが、必要なら同様に実機確認する。
+
+## G-1-11 Mode別Field混在の拒否
+
+### A. ShortcutにWindow用Fieldを残す
+
+```ini
+[Key-NumpadDiv]
+Mode=Shortcut
+Label=Shortcut Test
+Target=notepad.exe
+AllowedProcess=chrome.exe
+```
+
+期待:
+
+- `AllowedProcess` はShortcut Modeで許可されないため起動時Fatal。
+
+### B. Disabledに追加Fieldを残す
+
+```ini
+[Key-NumpadDiv]
+Mode=Disabled
+Label=Disabled Test
+Target=notepad.exe
+```
+
+期待:
+
+- `Target` はDisabled Modeで許可されないため起動時Fatal。
+
+この試験により、Mode変更後の旧Mode用Fieldが残ったstale設定も検出できる。
+
+
 ---
 
 # 5. G-2 Manual Bindテスト
@@ -452,11 +559,21 @@ AutoBind=OFFの任意Slotを使う。
 
 ## G-2-7 Shortcut ModeではManual Bindしない
 
-G-6用Shortcut設定をNumpadDivへ適用した状態で:
+NumpadDivを、まず最小有効Shortcut Configへ変更する。
 
-1. 一般Window AをActive。
-2. `Ctrl + NumpadDiv`。
-3. 通常 `NumpadDiv`。
+```ini
+[Key-NumpadDiv]
+Mode=Shortcut
+Label=Shortcut Manual Bind Test
+Target=notepad.exe
+```
+
+`Arguments` / `WorkingDirectory` はこの試験では不要なので省略可能。
+
+1. 本体を再起動し、Config Validationを通過することを確認する。
+2. 一般Window AをActive。
+3. `Ctrl + NumpadDiv`。
+4. 通常 `NumpadDiv`。
 
 期待:
 
