@@ -406,11 +406,12 @@ Phase F固有の未解決事項はない。
 
 ---
 
-# Phase G - テスト
+# Phase G - テスト ✅ 完了
 
-詳細手順: [Phase G Test Guide](docs/PHASE_G_TEST.md)
+詳細手順: [Phase G Test Guide](docs/PHASE_G_TEST.md)  
+結果: [Phase G Result](docs/PHASE_G_RESULT.md)
 
-Phase A～Fで確定した現行仕様を基準に、実Window / 実Configを使って機能を網羅確認する。
+Phase A～Fで確定した現行仕様を基準に、実Window / 実Configを使って機能を網羅確認した。G-1～G-8の65項目をすべて完了し、Phase GはPASS。未解決のPhase G固有不具合はない。
 Phase Fの自動テストで確認済みの内部ロジックも、Phase Gではユーザー操作から見た期待結果で再確認する。
 
 ## G-1. 設定読込テスト
@@ -574,9 +575,9 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-Phase Fは正式完了。
+Phase F / Phase Gは正式完了。
 
-次工程は **Phase G - テスト**。
-まずG-1設定読込テストから開始し、その後Manual Bind、Chrome / VS Code Auto Bind、1/2/3、Shortcut、Clear / Lazy Bind、長時間常駐テストへ進む。
+次工程は **Phase H - 実機受入試験**。
+日常操作シナリオと操作感を確認し、通常利用で追加操作なしに主要Windowへ安定して移動できることを受入条件とする。
 
-Phase HはPhase G完了後の実機受入試験、Phase Iは初期版完成処理として実施する。
+Phase IはPhase H完了後の初期版完成処理として実施する。
