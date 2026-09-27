@@ -424,8 +424,8 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 - [x] `.ps1`直接Targetを起動時Fatalとして拒否
 - [x] `Numpad0=Disabled` かつ `Virtual000!=Disabled` を起動時Fatalとして拒否
 - [x] Backspaceを有効化した設定で起動時Warning
-- [ ] Window / Shortcut / Disabledの全Modeで`Label`必須・空欄拒否を確認
-- [ ] Mode別に許可されないField混在を起動時Fatalとして拒否（ShortcutにAllowed系 / Disabledに追加Field等）
+- [x] Window / Shortcut / Disabledの全Modeで`Label`必須・空欄拒否を確認
+- [x] Mode別に許可されないField混在を起動時Fatalとして拒否（ShortcutにAllowed系 / Disabledに追加Field等）
 
 ## G-2. Manual Bindテスト
 
@@ -435,7 +435,7 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 - [x] Chrome -> 4/5/6 はAllowed違反として拒否し、既存Bindingを変更しない
 - [x] 1/2/3は各専用用途以外のWindowを拒否
 - [x] 同一HWNDを別SlotへManual Bindすると旧SlotがNoneになり、1 HWND : 1 Slotを維持
-- [ ] Shortcut ModeではCtrl+KeyをController Manual Bindとして登録せず、Runtime Bindingを変更しない
+- [x] Shortcut ModeではCtrl+KeyをController Manual Bindとして登録せず、Runtime Bindingを変更しない
 - [x] Disabled ModeではController Hotkeyを登録せず、Runtime Bindingを変更しない
 
 ## G-3. Chrome Auto Bindテスト
@@ -472,14 +472,14 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 
 ## G-6. Shortcutテスト
 
-- [ ] exe起動
-- [ ] bat/cmd起動
-- [ ] lnk起動
-- [ ] Argumentsを正しく渡す
-- [ ] Working Directoryを正しく適用
-- [ ] Shortcut押下ごとにTargetをRunし、既存Window Activateへ置き換えない
-- [ ] 起動後にTargetが消失する等のRuntime実行失敗では通知し、Scriptを継続
-- [ ] Shortcut Mode KeyをWindow Binding / Auto Bind対象から除外
+- [x] exe起動
+- [x] bat/cmd起動
+- [x] lnk起動
+- [x] Argumentsを正しく渡す
+- [x] Working Directoryを正しく適用
+- [x] Shortcut押下ごとにTargetをRunし、既存Window Activateへ置き換えない
+- [x] 起動後にTargetが消失する等のRuntime実行失敗では通知し、Scriptを継続
+- [x] Shortcut Mode KeyをWindow Binding / Auto Bind対象から除外
 
 ## G-7. Clear / Lazy Bindテスト
 
@@ -495,9 +495,9 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 
 ## G-8. 長時間常駐テスト
 
-- [ ] 数時間常駐
-- [ ] Chromeのタブ変更で既存Bindingが不必要に解除されない
-- [ ] Window増減後も重複Bindingを作らず、必要時に欠損だけ補修
+- [x] 数時間常駐
+- [x] Chromeのタブ変更で既存Bindingが不必要に解除されない
+- [x] Window増減後も重複Bindingを作らず、必要時に欠損だけ補修
 - [x] Sleep / Resume後も操作継続可能
 - [x] Explorer再起動後、旧HWND無効化からLazy / Auto Bindで復旧
 - [x] スクリプト再起動時にHWNDを永続復元せず、新しいRuntime BindingをAuto Bindで構築
