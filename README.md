@@ -4,7 +4,8 @@ Windows 11上で一般的なテンキーを、**ウィンドウ直接切り替�
 
 同じアプリを複数Windowで使用する環境でも、個々のWindowをHWNDで区別して1キーで呼び出せます。
 
-**現在の初期版: v0.1.0**
+**現在の初期版: v0.1.0**  
+**License: MIT**
 
 Phase F実装・検証、Phase G機能テスト、Phase H実機受入試験、Phase I初期版完成処理まで完了しており、v0.1.0として初期リリース可能な状態です。
 
@@ -376,6 +377,34 @@ examples/KeyBindings.example.ini
 
 ---
 
+## Privacy
+
+NumpadWindowController v0.1.0本体には、Telemetry、Analytics、HTTP通信などのNetwork送信処理はありません。
+
+通常利用では永続Debug Logも生成しません。
+
+Debugを明示的に有効化した場合、LogにはWindow title、Process name、HWND等のローカルRuntime情報が含まれる可能性があります。LogをIssueやPull Requestへ添付する場合は、個人情報・機密情報が含まれていないか確認してから共有してください。
+
+公開前の個人情報・秘密情報監査結果は [Public Release Audit](docs/PUBLIC_RELEASE_AUDIT.md) に記録しています。
+
+---
+
+## Security
+
+Security vulnerabilityの報告方法は [SECURITY.md](SECURITY.md) を参照してください。
+
+未公開の脆弱性詳細、Token、Password、個人Path、未加工のDebug LogをPublic Issueへ投稿しないでください。
+
+---
+
+## Contributing
+
+開発・Pull Request時のルールは [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
+
+特に、個人用Shortcut PathやCredentialをtracked fileへcommitしないよう注意してください。
+
+---
+
 ## Known Limitations
 
 現在の制限は [Known Limitations](docs/KNOWN_LIMITATIONS.md) に集約しています。
@@ -422,6 +451,9 @@ Desktop操作を含むテスト:
 - [MVP Design](docs/MVP_DESIGN.md)
 - [設計確定記録（旧DESIGN_DRAFT）](docs/DESIGN_DRAFT.md)
 - [Known Limitations](docs/KNOWN_LIMITATIONS.md)
+- [Public Release Audit](docs/PUBLIC_RELEASE_AUDIT.md)
+- [Security Policy](SECURITY.md)
+- [Contributing](CONTRIBUTING.md)
 - [Phase A仕様](docs/PHASE_A_SPEC.md)
 - [Phase B PoC手順](docs/PHASE_B_POC.md)
 - [Phase B結果](docs/PHASE_B_RESULT.md)
@@ -454,18 +486,18 @@ Semantic Versioning形式を使用し、今後の互換性を伴う機能追加�
 
 ## Release Status
 
-**v0.1.0: Release Ready**
+**v0.1.0: Release Ready / Public release preparation complete**
 
-Phase F～Hの完了結果から、現在のKnown Limitationsを受け入れたMVP初期版としてリリース可能と判断する。
+Phase F～Hの完了結果と公開前監査から、現在のKnown Limitationsを受け入れたMVP初期版として公開可能な状態です。
 
-GitHub Release / Tagの作成自体はPhase Iの「リリース可否判断」とは分離し、必要なタイミングで実施する。
+RepositoryのVisibility変更そのものは実施していません。Publicへ切り替えた後は、GitHubのSecret scanning結果を確認し、Private vulnerability reportingを有効化することを推奨します。
+
+GitHub Tag / Releaseの作成は別操作です。初回公開Releaseを作成する場合は `v0.1.0` を使用します。
 
 ---
 
 ## License
 
-現時点ではLICENSEファイルを追加していません。
+このプロジェクトは [MIT License](LICENSE) のもとで公開します。
 
-このリポジトリは現在private運用であり、Phase Iではライセンス選定を初期版完成の必須条件とはしません。
-
-将来public repositoryとして第三者へ利用・改変・再配布を許可する場合は、その公開方針に合わせてLICENSEを追加してください。
+Copyright (c) 2026 tabenishi02
