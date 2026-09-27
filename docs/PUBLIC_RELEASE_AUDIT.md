@@ -42,7 +42,7 @@ Windows絶対Pathとして確認されたものは、次のような一般的な
 - `C:\path\to\...`
 - テスト用の明示的なmissing path
 
-Git commit metadataは確認した165 commitsすべてでGitHubのnoreply addressを使用しており、実Email addressは確認されなかった。
+Git commit metadataは監査時点の全commitでGitHubのnoreply addressを使用しており、実Email addressは確認されなかった。
 
 履歴上で誤ってcommitされた `KeyBindings.ini.phaseg.bak` は標準Configurationのcopyで、個人Pathや秘密情報を含んでいなかった。
 
