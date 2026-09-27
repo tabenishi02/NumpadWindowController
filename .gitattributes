@@ -1,0 +1,3 @@
+# Preserve UTF-16 LE BOM configuration files without line-ending normalization.
+KeyBindings.ini -text
+examples/KeyBindings.example.ini -text
