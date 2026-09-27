@@ -415,58 +415,58 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 
 ## G-1. 設定読込テスト
 
-- [ ] 正常なUTF-16 LE BOM / `ConfigVersion=1`設定で起動成功
-- [ ] 不正Modeを起動時Fatalとして拒否
-- [ ] 未知Section / 必須Key Section不足 / 未知Fieldを起動時Fatalとして拒否
-- [ ] 重複Section / Fieldを起動時Fatalとして拒否
-- [ ] 専用Slot 1～9のMode / Allowed条件不整合を起動時Fatalとして拒否
-- [ ] Shortcut Target不存在 / 解決失敗を起動時Fatalとして拒否
-- [ ] `.ps1`直接Targetを起動時Fatalとして拒否
-- [ ] `Numpad0=Disabled` かつ `Virtual000!=Disabled` を起動時Fatalとして拒否
-- [ ] Backspaceを有効化した設定で起動時Warning
+- [x] 正常なUTF-16 LE BOM / `ConfigVersion=1`設定で起動成功
+- [x] 不正Modeを起動時Fatalとして拒否
+- [x] 未知Section / 必須Key Section不足 / 未知Fieldを起動時Fatalとして拒否
+- [x] 重複Section / Fieldを起動時Fatalとして拒否
+- [x] 専用Slot 1～9のMode / Allowed条件不整合を起動時Fatalとして拒否
+- [x] Shortcut Target不存在 / 解決失敗を起動時Fatalとして拒否
+- [x] `.ps1`直接Targetを起動時Fatalとして拒否
+- [x] `Numpad0=Disabled` かつ `Virtual000!=Disabled` を起動時Fatalとして拒否
+- [x] Backspaceを有効化した設定で起動時Warning
 
 ## G-2. Manual Bindテスト
 
-- [ ] Chrome -> 7/8/9 成功
-- [ ] VS Code -> 7/8/9 はAllowed違反として拒否し、既存Bindingを変更しない
-- [ ] VS Code -> 4/5/6 成功
-- [ ] Chrome -> 4/5/6 はAllowed違反として拒否し、既存Bindingを変更しない
-- [ ] 1/2/3は各専用用途以外のWindowを拒否
-- [ ] 同一HWNDを別SlotへManual Bindすると旧SlotがNoneになり、1 HWND : 1 Slotを維持
+- [x] Chrome -> 7/8/9 成功
+- [x] VS Code -> 7/8/9 はAllowed違反として拒否し、既存Bindingを変更しない
+- [x] VS Code -> 4/5/6 成功
+- [x] Chrome -> 4/5/6 はAllowed違反として拒否し、既存Bindingを変更しない
+- [x] 1/2/3は各専用用途以外のWindowを拒否
+- [x] 同一HWNDを別SlotへManual Bindすると旧SlotがNoneになり、1 HWND : 1 Slotを維持
 - [ ] Shortcut ModeではCtrl+KeyをController Manual Bindとして登録せず、Runtime Bindingを変更しない
-- [ ] Disabled ModeではController Hotkeyを登録せず、Runtime Bindingを変更しない
+- [x] Disabled ModeではController Hotkeyを登録せず、Runtime Bindingを変更しない
 
 ## G-3. Chrome Auto Bindテスト
 
-- [ ] 1Window時、Window位置に対応する7/8/9の該当SlotだけBinding
-- [ ] 2Window時、各Window位置に対応するSlotだけBindingし、不足SlotはNone
-- [ ] 3Window時、左上=7 / 左下=8 / 右大=9へ正しくBinding
-- [ ] 4Window以上では専用Slotは最大3個までとし、余剰Chromeを任意Slotへ自動転送しない
-- [ ] 数px程度の座標ずれがPhase BのThreshold内なら同じ分類になる
-- [ ] Primary Monitor外のChromeを新規Auto Bind候補にしない
-- [ ] Minimized / Maximized Chromeを新規座標分類対象にしない
-- [ ] 既存Binding済みChromeはMinimize / Maximize / 位置変更後もHWNDとAllowed条件が有効ならBindingを維持
-- [ ] Chrome再起動で旧HWNDを無効化し、新HWNDを現在座標から再割り当て
+- [x] 1Window時、Window位置に対応する7/8/9の該当SlotだけBinding
+- [x] 2Window時、各Window位置に対応するSlotだけBindingし、不足SlotはNone
+- [x] 3Window時、左上=7 / 左下=8 / 右大=9へ正しくBinding
+- [x] 4Window以上では専用Slotは最大3個までとし、余剰Chromeを任意Slotへ自動転送しない
+- [x] 数px程度の座標ずれがPhase BのThreshold内なら同じ分類になる
+- [x] Primary Monitor外のChromeを新規Auto Bind候補にしない
+- [x] Minimized / Maximized Chromeを新規座標分類対象にしない
+- [x] 既存Binding済みChromeはMinimize / Maximize / 位置変更後もHWNDとAllowed条件が有効ならBindingを維持
+- [x] Chrome再起動で旧HWNDを無効化し、新HWNDを現在座標から再割り当て
 
 ## G-4. VS Code Auto Bindテスト
 
-- [ ] 1Window時、未使用候補を空きSlot 4→5→6の先頭へBinding
-- [ ] 2Window時、未使用候補を`WinGetList`逆順で空きSlot 4→5→6へBinding
-- [ ] 3Window時、未使用候補を`WinGetList`逆順で4→5→6へBinding
-- [ ] 4Window以上では最大3個までBindingし、余剰VS Codeを任意Slotへ自動転送しない
-- [ ] 真のOpen順は期待値にせず、Auto Bind時点の`WinGetList`逆順を期待値とする
-- [ ] 有効な既存4/5/6 BindingはAuto Bind Allで再ソートしない
-- [ ] VS Code再起動で旧HWNDを無効化し、未使用新候補で空Slotを補充
-- [ ] Window Close後、無効BindingをNoneへ落とし、Lazy / 明示Auto Bindで空Slotを補充
+- [x] 1Window時、未使用候補を空きSlot 4→5→6の先頭へBinding
+- [x] 2Window時、未使用候補を`WinGetList`逆順で空きSlot 4→5→6へBinding
+- [x] 3Window時、未使用候補を`WinGetList`逆順で4→5→6へBinding
+- [x] 4Window以上では最大3個までBindingし、余剰VS Codeを任意Slotへ自動転送しない
+- [x] 真のOpen順は期待値にせず、Auto Bind時点の`WinGetList`逆順を期待値とする
+- [x] 有効な既存4/5/6 BindingはAuto Bind Allで再ソートしない
+- [x] VS Code再起動で旧HWNDを無効化し、未使用新候補で空Slotを補充
+- [x] Window Close後、無効BindingをNoneへ落とし、Lazy / 明示Auto Bindで空Slotを補充
 
 ## G-5. 1/2/3テスト
 
-- [ ] Explorer: `explorer.exe` + `CabinetWClass` をNumpad1へBinding
-- [ ] ChatGPT Desktop: `ChatGPT.exe` をNumpad2へBinding
-- [ ] PowerShell 7用Windows Terminal: `WindowsTerminal.exe` + `CASCADIA_HOSTING_WINDOW_CLASS` + Title contains `PowerShell 7` をNumpad3へBinding
-- [ ] Windows PowerShell / cmd等、Numpad3条件外のTerminalを候補にしない
-- [ ] 対象アプリ不存在時は該当SlotをNoneのまま維持
-- [ ] 複数候補存在時は非Minimizedを優先し、同条件ならZ-orderが前のWindowを選択
+- [x] Explorer: `explorer.exe` + `CabinetWClass` をNumpad1へBinding
+- [x] ChatGPT Desktop: `ChatGPT.exe` をNumpad2へBinding
+- [x] PowerShell 7用Windows Terminal: `WindowsTerminal.exe` + `CASCADIA_HOSTING_WINDOW_CLASS` + Title contains `PowerShell 7` をNumpad3へBinding
+- [x] Windows PowerShell / cmd等、Numpad3条件外のTerminalを候補にしない
+- [x] 対象アプリ不存在時は該当SlotをNoneのまま維持
+- [x] 複数候補存在時は非Minimizedを優先し、同条件ならZ-orderが前のWindowを選択
 
 ## G-6. Shortcutテスト
 
@@ -481,24 +481,24 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 
 ## G-7. Clear / Lazy Bindテスト
 
-- [ ] Slot Clear直後は対象SlotをNoneにし、即時Auto Bindしない
-- [ ] Clear All直後は全Runtime BindingをNoneにし、即時Auto Bindしない
-- [ ] Clear All後に`Ctrl + NumpadEnter`を実行すると専用Slot 1～9を再構築
-- [ ] Clear後に専用Slotを通常押下すると必要な場合だけLazy Auto BindしてActivate
-- [ ] HWND消滅 / Allowed条件違反を検知したBindingはNoneへ落とし、Lazy Auto Bindを試行
-- [ ] Chrome / VS CodeのLazy Auto BindはGroup単位で空Slotを補充
-- [ ] 1/2/3のLazy Auto Bindは対象Slot単位で補充
-- [ ] AutoBind=OFFの任意Window Slot / Shortcut / DisabledではLazy Auto Bindしない
-- [ ] 有効なManual BindingはAuto Bind Allで上書きしない
+- [x] Slot Clear直後は対象SlotをNoneにし、即時Auto Bindしない
+- [x] Clear All直後は全Runtime BindingをNoneにし、即時Auto Bindしない
+- [x] Clear All後に`Ctrl + NumpadEnter`を実行すると専用Slot 1～9を再構築
+- [x] Clear後に専用Slotを通常押下すると必要な場合だけLazy Auto BindしてActivate
+- [x] HWND消滅 / Allowed条件違反を検知したBindingはNoneへ落とし、Lazy Auto Bindを試行
+- [x] Chrome / VS CodeのLazy Auto BindはGroup単位で空Slotを補充
+- [x] 1/2/3のLazy Auto Bindは対象Slot単位で補充
+- [x] AutoBind=OFFの任意Window Slot / Shortcut / DisabledではLazy Auto Bindしない
+- [x] 有効なManual BindingはAuto Bind Allで上書きしない
 
 ## G-8. 長時間常駐テスト
 
 - [ ] 数時間常駐
 - [ ] Chromeのタブ変更で既存Bindingが不必要に解除されない
 - [ ] Window増減後も重複Bindingを作らず、必要時に欠損だけ補修
-- [ ] Sleep / Resume後も操作継続可能
-- [ ] Explorer再起動後、旧HWND無効化からLazy / Auto Bindで復旧
-- [ ] スクリプト再起動時にHWNDを永続復元せず、新しいRuntime BindingをAuto Bindで構築
+- [x] Sleep / Resume後も操作継続可能
+- [x] Explorer再起動後、旧HWND無効化からLazy / Auto Bindで復旧
+- [x] スクリプト再起動時にHWNDを永続復元せず、新しいRuntime BindingをAuto Bindで構築
 
 ---
 
