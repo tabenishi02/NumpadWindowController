@@ -6,10 +6,11 @@ AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Short
 
 ## 現在の段階
 
-現在は **Phase F完了 / Phase Gテスト開始前** です。本体実装、自動検証、物理テンキーを使ったPhase F実機Smoke Testまで完了しています。次はChrome / VS Code等を含む網羅的なPhase G機能テストを行います。
+現在は **Phase G完了 / 次工程 Phase H実機受入試験** です。本体実装、Phase F検証、Chrome / VS Code / Shortcut / Clear / Lazy Bind / 長時間常駐を含むPhase G機能テストまで完了しています。次は日常操作シナリオと操作感を確認するPhase Hを行います。
 
 - [Phase F実装・検証結果](docs/PHASE_F_RESULT.md)
 - [Phase Gテスト手順](docs/PHASE_G_TEST.md)
+- [Phase Gテスト結果](docs/PHASE_G_RESULT.md)
 
 - [MVP設計書](docs/MVP_DESIGN.md)
 - [Phase A仕様](docs/PHASE_A_SPEC.md)
