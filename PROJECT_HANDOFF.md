@@ -2,7 +2,7 @@
 
 更新日: 2026-09-28  
 対象: NumpadWindowController  
-状態: **Phase I完了 / MVP v0.1.0 Release Ready**
+状態: **Phase I完了 / Public release preparation完了 / MVP v0.1.0 Release Ready**
 
 ## 現在地点
 
@@ -18,7 +18,7 @@ Phase A～Iまで完了。
 
 GitHub Tag / Releaseはまだ作成していない。
 
-LICENSEは現在private運用のため未追加。public化する場合に公開方針と合わせて選定する。
+LICENSEは **MIT License** を採用し、`LICENSE` を追加済み。著作権者表記は公開済みGitHub username `tabenishi02` を使用する。
 
 ---
 
@@ -220,8 +220,32 @@ MVP初期版完成後の任意作業:
 
 - GitHub Tag `v0.1.0` 作成
 - GitHub Release作成
-- public化する場合のLICENSE選定
+- Repository VisibilityをPublicへ変更
+- Public化後にPrivate vulnerability reportingを有効化
+- Public化後にSecret scanning結果を確認
+- GitHub Tag / Release `v0.1.0` 作成
 - v0.1.x bugfix
 - v0.2.0機能拡張
 
 これらはPhase I完了条件には含まれない。
+
+
+---
+
+## Public release preparation
+
+2026-09-28に公開前監査と公開用ファイル整備を実施した。
+
+追加・更新:
+
+- `LICENSE`: MIT License
+- `SECURITY.md`: Security reporting policy
+- `CONTRIBUTING.md`: Contribution / secret handling rules
+- `docs/PUBLIC_RELEASE_AUDIT.md`: 公開前監査記録
+- `.gitignore`: Log / secret / local file除外を強化
+- `.gitattributes`: UTF-16 LE BOM Configを保護
+- `README.md`: Privacy / Security / Contributing / MIT Licenseを反映
+
+現行Treeの代表的な秘密情報パターン監査では、Public化を妨げる個人情報・Credentialを検出していない。
+
+Repository Visibility自体はまだPrivateのまま。Publicへ変更後、GitHub SettingsでPrivate vulnerability reportingとSecret scanning alertを確認する。
