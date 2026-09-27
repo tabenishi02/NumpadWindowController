@@ -104,15 +104,11 @@ v0.1.0
 
 ### 2.6 LICENSE
 
-Phase IではLICENSEを追加しない。
+Phase I完了時点ではprivate運用だったためLICENSEを未追加とした。
 
-理由:
+その後、2026-09-28のPublic release preparationで方針を更新し、**MIT License** を採用して `LICENSE` を追加した。
 
-- 現在のリポジトリはprivate
-- 初期版完成の技術要件ではない
-- public化時の第三者利用・改変・再配布方針と同時に決めるべき事項
-
-public化する場合は、その時点で適切なLICENSEを選定する。
+現在のLicense状態についてはREADMEおよび `LICENSE` を正とする。
 
 ---
 
@@ -164,8 +160,9 @@ public化する場合は、その時点で適切なLICENSEを選定する。
 - GitHub Tag `v0.1.0` の作成
 - GitHub Releaseの作成
 - Repositoryのpublic化
-- LICENSE追加
 - 新機能実装
+
+※ LICENSE追加はPhase I後のPublic release preparationで完了済み。
 
 これらは必要になった時点で個別タスクとして実施する。
 
@@ -178,3 +175,19 @@ public化する場合は、その時点で適切なLICENSEを選定する。
 **MVP v0.1.0: Release Ready**
 
 Phase A～Iをもって、NumpadWindowControllerのMVP初期版完成工程を終了する。
+
+
+---
+
+## 6. Phase I後の公開準備追記
+
+2026-09-28にPublic release preparationを実施した。
+
+- MIT `LICENSE` 追加
+- `SECURITY.md` / `CONTRIBUTING.md` 追加
+- `docs/PUBLIC_RELEASE_AUDIT.md` 追加
+- 個人情報・秘密情報パターン監査
+- `.gitignore` / `.gitattributes` 公開向け整備
+- READMEのPrivacy / Security / License更新
+
+この追記はPhase I当時の判断履歴を保持しつつ、現在のPublic release状態を明確化するためのもの。
