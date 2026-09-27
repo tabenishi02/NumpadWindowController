@@ -47,6 +47,11 @@ v0.1.0の主要構成:
 
 ```text
 NumpadWindowController/
+├─ .gitattributes
+├─ .gitignore
+├─ LICENSE
+├─ SECURITY.md
+├─ CONTRIBUTING.md
 ├─ NumpadWindowController.ahk
 ├─ KeyBindings.ini
 ├─ README.md
@@ -58,6 +63,7 @@ NumpadWindowController/
 │  ├─ MVP_DESIGN.md
 │  ├─ DESIGN_DRAFT.md
 │  ├─ KNOWN_LIMITATIONS.md
+│  ├─ PUBLIC_RELEASE_AUDIT.md
 │  ├─ PHASE_A_SPEC.md
 │  ├─ PHASE_B_POC.md
 │  ├─ PHASE_B_RESULT.md
@@ -67,7 +73,8 @@ NumpadWindowController/
 │  ├─ PHASE_F_RESULT.md
 │  ├─ PHASE_G_TEST.md
 │  ├─ PHASE_G_RESULT.md
-│  └─ PHASE_H_RESULT.md
+│  ├─ PHASE_H_RESULT.md
+│  └─ PHASE_I_RESULT.md
 ├─ poc/
 └─ tests/
 ```
