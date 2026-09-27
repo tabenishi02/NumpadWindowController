@@ -1,8 +1,8 @@
 # PROJECT_HANDOFF
 
-更新日: 2026-09-25
+更新日: 2026-09-28
 対象: NumpadWindowController
-状態: Phase F完了 / 次工程 Phase G - テスト
+状態: Phase G完了 / 次工程 Phase H - 実機受入試験
 
 ## 現在の成果物
 
@@ -11,6 +11,8 @@
 - `tests/PhaseF.Tests.ahk`: 本体を直接includeする設定・状態・入力判定・Windows API検証。
 - `tests/Run-PhaseFTests.ps1`: AHKの終了コードを確認する実行入口。
 - [Phase F検証結果](docs/PHASE_F_RESULT.md): 実装範囲、再試験結果、Phase F最終判定。
+- [Phase Gテスト手順](docs/PHASE_G_TEST.md): Phase Gの具体的な実施方法。
+- [Phase Gテスト結果](docs/PHASE_G_RESULT.md): G-1～G-8、65項目の完了結果とPhase G最終判定。
 
 Phase A～Eは2026-09-25のGlobal Action変更を反映済み。PoCの入力判定方式、候補Filter、Chrome Threshold / Scoreを本実装へ移した。`lib/` 分割はしていない。
 
@@ -72,13 +74,16 @@ R-13ではClear All直後に即時Auto Bindがないことと、専用Slot押下
 R-14ではWindows側NumLockについて、OFF→起動ON→終了OFF、ON→起動ON→終了ON、実行中ON固定をすべてPASSした。
 
 Phase Fは正式完了。Phase F固有の未解決事項はない。
-次工程はPhase G - テスト。Phase Hの実機受入試験はPhase G完了後に実施する。
+
+Phase Gも正式完了。G-1～G-8の65項目をすべて完了し、FAIL / BLOCKEDとして残っている項目はない。Phase G固有の未解決機能不具合もない。
+次工程はPhase H - 実機受入試験。日常操作シナリオと操作感を確認する。
 
 ## 次回読む資料
 
 1. 本書
-2. `docs/PHASE_F_RESULT.md`
-3. `TASKS.md`のPhase G/H
-4. 変更対象に関係する`docs/PHASE_E_SPEC.md` / `PHASE_D_SPEC.md` / `PHASE_C_SPEC.md`
+2. `docs/PHASE_G_RESULT.md`
+3. `TASKS.md`のPhase H/I
+4. 必要に応じて`docs/PHASE_F_RESULT.md`
+5. 変更対象に関係する`docs/PHASE_E_SPEC.md` / `PHASE_D_SPEC.md` / `PHASE_C_SPEC.md`
 
 既存設計の根拠はPhase A～E仕様書、実機識別の根拠は`docs/PHASE_B_RESULT.md`。PoCは`poc/`に保持している。
