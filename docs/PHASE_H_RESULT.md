@@ -1,7 +1,7 @@
 # Phase H 実機受入試験結果
 
 更新日: 2026-09-28  
-対象: NumpadWindowController / MVP v0.1  
+対象: NumpadWindowController / MVP v0.1.0  
 状態: **PASS - Phase H完了**  
 受入結果反映Commit: `cbc89851eb87b392eeea488e50c3dd5711ec4120`
 
