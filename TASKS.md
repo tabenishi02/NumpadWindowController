@@ -424,6 +424,8 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 - [x] `.ps1`直接Targetを起動時Fatalとして拒否
 - [x] `Numpad0=Disabled` かつ `Virtual000!=Disabled` を起動時Fatalとして拒否
 - [x] Backspaceを有効化した設定で起動時Warning
+- [ ] Window / Shortcut / Disabledの全Modeで`Label`必須・空欄拒否を確認
+- [ ] Mode別に許可されないField混在を起動時Fatalとして拒否（ShortcutにAllowed系 / Disabledに追加Field等）
 
 ## G-2. Manual Bindテスト
 
