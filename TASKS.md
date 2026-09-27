@@ -1,6 +1,6 @@
 # Numpad Window Controller - Implementation Tasks
 
-更新日: 2026-09-25
+更新日: 2026-09-28
 対象: NumpadWindowController  
 目的: 現在の暫定設計から、AutoHotkey v2による初期実装と実機検証までを完了するためのタスク一覧
 
@@ -505,7 +505,11 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 
 ---
 
-# Phase H - 実機受入試験
+# Phase H - 実機受入試験 ✅ 完了
+
+結果: [Phase H Result](docs/PHASE_H_RESULT.md)
+
+H-1 / H-2の16項目をすべて完了し、受入条件を満たした。Phase H固有のFAIL / BLOCKED、実装修正要求、追加Known Limitationはない。
 
 ## H-1. 日常操作シナリオ
 
@@ -530,7 +534,7 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 - [x] 日常的に手動再Bindingが必要にならないか確認
 
 完了条件:
-- 通常利用で追加操作なしに主要Windowへ安定して移動できる
+- [x] 通常利用で追加操作なしに主要Windowへ安定して移動できる
 
 ---
 
@@ -575,9 +579,7 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-Phase F / Phase Gは正式完了。
+Phase F / Phase G / Phase Hは正式完了。
 
-次工程は **Phase H - 実機受入試験**。
-日常操作シナリオと操作感を確認し、通常利用で追加操作なしに主要Windowへ安定して移動できることを受入条件とする。
-
-Phase IはPhase H完了後の初期版完成処理として実施する。
+次工程は **Phase I - 初期版完成処理**。
+設計・README・サンプル設定・Known Limitations・バージョン・初期リリース可否を整理し、MVP初期版を完成させる。
