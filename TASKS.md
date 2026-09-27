@@ -2,9 +2,11 @@
 
 更新日: 2026-09-28
 対象: NumpadWindowController  
-目的: 現在の暫定設計から、AutoHotkey v2による初期実装と実機検証までを完了するためのタスク一覧
+目的: AutoHotkey v2によるMVP v0.1.0の設計・実装・検証・初期版完成までを管理するタスク一覧
 
 ## 0. 現在地点
+
+**MVP v0.1.0 / Phase Iまで完了。初期リリース可能。**
 
 完了済み:
 
@@ -538,18 +540,57 @@ H-1 / H-2の16項目をすべて完了し、受入条件を満たした。Phase 
 
 ---
 
-# Phase I - 初期版完成処理
+# Phase I - 初期版完成処理 ✅ 完了
 
-- [ ] 実装結果を `docs/DESIGN_DRAFT.md` へ反映
-- [ ] Draft表記を見直す
-- [ ] READMEへインストール方法を追加
-- [ ] READMEへ設定例を追加
-- [ ] READMEへ操作一覧を追加
-- [ ] Known Limitationsを整理
-- [ ] サンプル `KeyBindings.ini` を追加
-- [ ] 必要ならLICENSEを追加
-- [ ] バージョン番号を決定
-- [ ] 初期リリース可否を判断
+Phase A～Hで確定・検証した内容を初期版v0.1.0として整理し、設計・利用者向け文書・サンプル設定・Known Limitations・バージョン・リリース判定を同期した。
+
+- [x] 実装結果を `docs/DESIGN_DRAFT.md` へ反映
+  - 旧Draftの未確定案を現行仕様へ更新
+  - ファイル名は既存リンク互換のため維持
+  - 状態を `Finalized - Phase I反映済み` へ変更
+- [x] Draft表記を見直す
+  - `docs/MVP_DESIGN.md` を `Final / 実装・機能テスト・実機受入試験完了` へ更新
+  - Phase A / C / D / E仕様書を `Implemented / Verified` へ更新
+- [x] READMEへインストール方法を追加
+  - AutoHotkey v2導入、リポジトリ取得、必要ファイル、起動、終了を整理
+- [x] READMEへ設定例を追加
+  - Window / Shortcut / Disabled
+  - Arguments / WorkingDirectory
+  - PowerShell Scriptの `pwsh.exe -File` 例
+- [x] READMEへ操作一覧を追加
+  - Window Mode操作
+  - Global Action
+  - Auto Bind / Clear / 0 / 000 / NumLockを整理
+- [x] Known Limitationsを整理
+  - `docs/KNOWN_LIMITATIONS.md` を新設
+  - Phase A～Hに分散していた現行制限を集約
+- [x] サンプル `KeyBindings.ini` を追加
+  - `examples/KeyBindings.example.ini`
+  - 正規EncodingのUTF-16 LE BOM
+  - Window / Shortcut / Disabledの例を含む
+- [x] 標準 `KeyBindings.ini` の文言整合
+  - Backspaceの旧誤認由来Labelを `Backspace` へ修正
+- [x] LICENSE要否を判断
+  - 現在private運用のためv0.1.0完成条件としては追加しない
+  - 将来public化し第三者へ利用・改変・再配布を許可する際に公開方針に合わせて選定する
+- [x] バージョン番号を決定
+  - 初期版 = **v0.1.0**
+  - Semantic Versioning形式を採用
+- [x] 初期リリース可否を判断
+  - **Release Ready**
+  - Phase F～H完了、Phase G 65/65 PASS、Phase H 16/16 PASS
+  - 現行Known Limitationsを受け入れたMVP初期版としてリリース可能
+  - GitHub Tag / Release作成は別操作とし、Phase Iでは実施しない
+
+Phase I完了条件:
+
+- [x] 設計書が現行実装と矛盾しない
+- [x] 利用者がREADMEだけで導入・基本操作・主要設定を確認できる
+- [x] Known Limitationsが一か所に集約されている
+- [x] 配布用サンプルConfigが正規Encodingで存在する
+- [x] v0.1.0のリリース可否が明示されている
+
+**Phase I最終判定: PASS - MVP v0.1.0初期版完成**
 
 ---
 
@@ -579,7 +620,14 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-Phase F / Phase G / Phase Hは正式完了。
+Phase A～Iは正式完了。
 
-次工程は **Phase I - 初期版完成処理**。
-設計・README・サンプル設定・Known Limitations・バージョン・初期リリース可否を整理し、MVP初期版を完成させる。
+**MVP v0.1.0はRelease Ready。**
+
+次の作業は初期版完成工程の必須タスクではない。必要に応じて次を別タスクとして実施する。
+
+- GitHub Tag `v0.1.0` の作成
+- GitHub Releaseの作成
+- public化する場合のLICENSE選定
+- v0.1.x不具合修正
+- v0.2.0以降の機能拡張
