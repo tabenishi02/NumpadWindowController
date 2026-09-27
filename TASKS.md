@@ -573,8 +573,8 @@ Phase A～Hで確定・検証した内容を初期版v0.1.0として整理し、
 - [x] 標準 `KeyBindings.ini` の文言整合
   - Backspaceの旧誤認由来Labelを `Backspace` へ修正
 - [x] LICENSE要否を判断
-  - 現在private運用のためv0.1.0完成条件としては追加しない
-  - 将来public化し第三者へ利用・改変・再配布を許可する際に公開方針に合わせて選定する
+  - Phase I時点ではprivate運用のため未追加とした
+  - 2026-09-28のPublic release preparationで **MIT License** を採用し、`LICENSE` を追加済み
 - [x] バージョン番号を決定
   - 初期版 = **v0.1.0**
   - Semantic Versioning形式を採用
@@ -630,6 +630,41 @@ Phase A～Iは正式完了。
 
 - GitHub Tag `v0.1.0` の作成
 - GitHub Releaseの作成
-- public化する場合のLICENSE選定
+- Repository VisibilityをPublicへ変更
+- Public化後にPrivate vulnerability reportingを有効化
+- Public化後にGitHub Secret scanning結果を確認
+- GitHub Tag / Release `v0.1.0` の作成
 - v0.1.x不具合修正
 - v0.2.0以降の機能拡張
+
+
+---
+
+# Public Release Preparation ✅ 完了
+
+更新日: 2026-09-28
+
+- [x] 現行Repository Treeの個人情報・秘密情報パターン監査
+- [x] Commit author / committer email確認
+- [x] 履歴上の誤commit Config backup確認
+- [x] 削除済み重複PoCの秘密情報パターン確認
+- [x] RuntimeにNetwork / Telemetry送信処理がないことを確認
+- [x] MIT `LICENSE` を追加
+- [x] `SECURITY.md` を追加
+- [x] `CONTRIBUTING.md` を追加
+- [x] `docs/PUBLIC_RELEASE_AUDIT.md` を追加
+- [x] `.gitignore` を公開運用向けに強化
+- [x] `.gitattributes` でUTF-16 Configの正規化を抑止
+- [x] READMEをMIT / Privacy / Security / Contributing対応へ更新
+- [x] 現行ドキュメントのLICENSE / private運用表記を同期
+
+公開準備判定: **PASS**
+
+未実施のGitHub Repository操作:
+
+- [ ] VisibilityをPrivateからPublicへ変更
+- [ ] Public化後にPrivate vulnerability reportingを有効化
+- [ ] Public化後にSecret scanning alertを確認
+- [ ] 必要に応じてTag / Release `v0.1.0` を作成
+
+監査詳細: [Public Release Audit](docs/PUBLIC_RELEASE_AUDIT.md)
