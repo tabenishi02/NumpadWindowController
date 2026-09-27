@@ -505,7 +505,7 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 
 ---
 
-# Phase H - 実機受入試験
+# Phase H - 実機受入試験 ✅ 完了
 
 ## H-1. 日常操作シナリオ
 
@@ -531,6 +531,32 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 
 完了条件:
 - 通常利用で追加操作なしに主要Windowへ安定して移動できる
+
+---
+
+# 運用 - ログオン時自動起動
+
+- [x] Windowsタスクスケジューラを正式方式として採用
+- [x] 現在ユーザーのログオン時Triggerを使用
+- [x] 対話型Session / 通常権限 / 遅延0秒を既定値に設定
+- [x] AutoHotkey v2 / メインAHK / Working Directoryを明示
+- [x] AutoHotkey v2自動検出と明示Path指定に対応
+- [x] 空白を含むPathを引用して登録
+- [x] 同名タスクを安全に更新
+- [x] Task Scheduler側を`IgnoreNew`、本体を`#SingleInstance Force`で多重起動防止
+- [x] install / uninstallスクリプトを追加
+- [x] uninstallは完全一致するNumpadWindowController用Taskだけを削除
+- [x] 未登録状態のuninstallを正常終了
+- [x] 任意のログオン後Delay指定に対応
+- [x] Preview自動テスト（24 assertions）
+- [x] 一時Task登録・内容検査・任意Delay・対象外Task保護・二度解除の統合テスト（合計37 assertions）
+- [x] Phase F Regression（134 assertions）
+- [ ] 実際のサインアウト / ログオンによる自動起動確認
+- [ ] 自動起動後の既存Window操作 / Virtual000 / NumLock lifecycle確認
+- [ ] 自動起動済み状態からの手動起動で1インスタンス維持を確認
+- [ ] Task無効化 / 削除後の次回ログオン非起動を確認
+
+手順と記録: [ログオン時自動起動テスト](docs/STARTUP_TASK_TEST.md)
 
 ---
 
@@ -575,9 +601,8 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-Phase F / Phase Gは正式完了。
+Phase F / Phase G / Phase Hは正式完了。
 
-次工程は **Phase H - 実機受入試験**。
-日常操作シナリオと操作感を確認し、通常利用で追加操作なしに主要Windowへ安定して移動できることを受入条件とする。
+ログオン時自動起動の実装とTask Scheduler統合テストも完了した。次は `docs/STARTUP_TASK_TEST.md` のS-1～S-4を実際のログオンSessionで確認する。
 
-Phase IはPhase H完了後の初期版完成処理として実施する。
+その後、Phase Iの初期版完成処理へ進む。

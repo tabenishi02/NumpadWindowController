@@ -2,7 +2,7 @@
 
 更新日: 2026-09-28
 対象: NumpadWindowController
-状態: Phase G完了 / 次工程 Phase H - 実機受入試験
+状態: Phase H完了 / ログオン時自動起動対応済み / 実ログオン試験待ち
 
 ## 現在の成果物
 
@@ -13,6 +13,10 @@
 - [Phase F検証結果](docs/PHASE_F_RESULT.md): 実装範囲、再試験結果、Phase F最終判定。
 - [Phase Gテスト手順](docs/PHASE_G_TEST.md): Phase Gの具体的な実施方法。
 - [Phase Gテスト結果](docs/PHASE_G_RESULT.md): G-1～G-8、65項目の完了結果とPhase G最終判定。
+- `scripts/install-startup-task.ps1`: 現在ユーザーのログオン時自動起動Taskを登録・更新。
+- `scripts/uninstall-startup-task.ps1`: 対象Taskだけを安全に解除。
+- `tests/StartupTask.Tests.ps1`: Preview、空白Path、Task Scheduler一時登録・解除のテスト。
+- [自動起動テスト](docs/STARTUP_TASK_TEST.md): 自動結果と実ログオン試験手順。
 
 Phase A～Eは2026-09-25のGlobal Action変更を反映済み。PoCの入力判定方式、候補Filter、Chrome Threshold / Scoreを本実装へ移した。`lib/` 分割はしていない。
 
@@ -76,14 +80,31 @@ R-14ではWindows側NumLockについて、OFF→起動ON→終了OFF、ON→起�
 Phase Fは正式完了。Phase F固有の未解決事項はない。
 
 Phase Gも正式完了。G-1～G-8の65項目をすべて完了し、FAIL / BLOCKEDとして残っている項目はない。Phase G固有の未解決機能不具合もない。
-次工程はPhase H - 実機受入試験。日常操作シナリオと操作感を確認する。
+
+Phase Hも正式完了。日常操作シナリオと操作感は受入済み。
+
+ログオン時自動起動対応では、Task Schedulerへ次を登録する。
+
+- Task名: `NumpadWindowController-Logon`
+- Trigger: 現在ユーザーのログオン
+- Principal: InteractiveToken / LeastPrivilege
+- Action: AutoHotkey v2でリポジトリRootの`NumpadWindowController.ahk`を実行
+- Working Directory: リポジトリRoot
+- Delay: 既定0秒、installの`-DelaySeconds`で変更可能
+- Multiple Instances: IgnoreNew
+
+本体の起動処理は変更していない。`#SingleInstance Force`、Config検証後のNumLock状態保存・ON固定・OnExit復元、`A_ScriptDir`基準のConfig / Debug Logをそのまま利用する。Task Scheduler統合テストは37 assertions、Phase F Regressionは134 assertions PASS。
+
+本番Taskは現在ユーザーへ登録済み。同名更新も成功し、登録定義を照合済み。Task Schedulerからの起動後は`State=Running`、`LastTaskResult=267009 (0x41301 / task is currently running)`を確認した。
+
+実際のサインアウト / ログオン、無効化後の次回ログオン、自動起動済み状態からの手動再起動は `docs/STARTUP_TASK_TEST.md` のS-1～S-4で確認する。
 
 ## 次回読む資料
 
 1. 本書
-2. `docs/PHASE_G_RESULT.md`
-3. `TASKS.md`のPhase H/I
-4. 必要に応じて`docs/PHASE_F_RESULT.md`
+2. `docs/STARTUP_TASK_TEST.md`
+3. `TASKS.md`の自動起動 / Phase I
+4. 必要に応じて`docs/PHASE_G_RESULT.md` / `docs/PHASE_F_RESULT.md`
 5. 変更対象に関係する`docs/PHASE_E_SPEC.md` / `PHASE_D_SPEC.md` / `PHASE_C_SPEC.md`
 
 既存設計の根拠はPhase A～E仕様書、実機識別の根拠は`docs/PHASE_B_RESULT.md`。PoCは`poc/`に保持している。
