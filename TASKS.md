@@ -509,25 +509,25 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 
 ## H-1. 日常操作シナリオ
 
-- [ ] 7で左上Chromeへ移動
-- [ ] 8で左下Chromeへ移動
-- [ ] 9で右大Chromeへ移動
-- [ ] 4/5/6で現在のAuto Bind規則により割り当てられたVS Codeへ切り替え
-- [ ] 1でExplorer
-- [ ] 2でChatGPTデスクトップ
-- [ ] 3でPowerShell 7用Windows Terminal
-- [ ] 0を任意WindowまたはShortcutとして設定して利用
-- [ ] 任意キーのShortcut実行
-- [ ] Manual Bindで一時的に割り当て変更
-- [ ] Clear / Auto Bindで復旧
+- [x] 7で左上Chromeへ移動
+- [x] 8で左下Chromeへ移動
+- [x] 9で右大Chromeへ移動
+- [x] 4/5/6で現在のAuto Bind規則により割り当てられたVS Codeへ切り替え
+- [x] 1でExplorer
+- [x] 2でChatGPTデスクトップ
+- [x] 3でPowerShell 7用Windows Terminal
+- [x] 0を任意WindowまたはShortcutとして設定して利用
+- [x] 任意キーのShortcut実行
+- [x] Manual Bindで一時的に割り当て変更
+- [x] Clear / Auto Bindで復旧
 
 ## H-2. 操作感確認
 
-- [ ] 誤操作しやすいキーがないか確認
-- [ ] Hotkeyが複雑すぎないか確認
-- [ ] ToolTip通知量が適切か確認
-- [ ] Auto Bindの再現性を確認
-- [ ] 日常的に手動再Bindingが必要にならないか確認
+- [x] 誤操作しやすいキーがないか確認
+- [x] Hotkeyが複雑すぎないか確認
+- [x] ToolTip通知量が適切か確認
+- [x] Auto Bindの再現性を確認
+- [x] 日常的に手動再Bindingが必要にならないか確認
 
 完了条件:
 - 通常利用で追加操作なしに主要Windowへ安定して移動できる
