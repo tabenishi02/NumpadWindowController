@@ -70,7 +70,7 @@ Debug Logを有効化した場合はWindow title等のローカル情報を含�
 - Repository Visibility: **Public**
 - Default branch: `main`
 - 公開済みTag / Release: `v0.1.0`, `v0.2.0`
-- Latest Release: **`v0.2.0`**
+- v0.2.0公開時点のLatest Release: **`v0.2.0`**
 - `v0.2.0`公開日時: 2026-09-28 18:17:55 JST
 - `v0.2.0` Release対象Commit: `7c244a87358295b223e9892ca5f6c51b13df9bea`
 
@@ -134,9 +134,22 @@ Startup ScriptにHTTP通信、Telemetry、Analytics送信処理はない。
 - Release Name: `v0.2.0`
 - Draft: false
 - Pre-release: false
-- Latest Release: `v0.2.0`
+- v0.2.0公開時点のLatest Release: `v0.2.0`
 - Tag対象Commit: `7c244a87358295b223e9892ca5f6c51b13df9bea`
 - Release作成時点のmainとTag対象Commitは一致
 - GitHub自動生成Source archiveを利用可能
 
 Release Notesにはログオン時自動起動機能、検証結果、通常権限・Path変更時再登録の注意事項を記載した。
+
+
+---
+
+## 9. Release参照方針
+
+2026-09-28以降、README・TASKS・PROJECT_HANDOFFでは「最新Release = 特定Version」を固定しない。
+
+最新Releaseの正本はGitHub Releasesとする。
+
+固定Version番号は、各Releaseの履歴・監査・Changelogなど、過去の事実を記録する目的でのみ使用する。
+
+この方針により、Release公開後に「最新Release番号だけを更新するためのPatch Release」が連鎖することを避ける。
