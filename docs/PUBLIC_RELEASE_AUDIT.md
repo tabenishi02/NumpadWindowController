@@ -69,9 +69,10 @@ Debug Logを有効化した場合はWindow title等のローカル情報を含�
 
 - Repository Visibility: **Public**
 - Default branch: `main`
-- 公開済みTag / Release: `v0.1.0`
-- 現在のmain対象Version: `v0.2.0`
-- `v0.2.0` Tag / Release: 未作成
+- 公開済みTag / Release: `v0.1.0`, `v0.2.0`
+- Latest Release: **`v0.2.0`**
+- `v0.2.0`公開日時: 2026-09-28 18:17:55 JST
+- `v0.2.0` Release対象Commit: `7c244a87358295b223e9892ca5f6c51b13df9bea`
 
 GitHub Settingsでは引き続き次を確認対象とする。
 
@@ -119,3 +120,23 @@ AutoHotkey v2の例示Path `C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe` は
 追加Commitのauthor / committer emailもGitHub noreply形式である。
 
 Startup ScriptにHTTP通信、Telemetry、Analytics送信処理はない。
+
+
+---
+
+## 8. v0.2.0 Release確認
+
+2026-09-28にGitHub Release `v0.2.0` を公開した。
+
+確認結果:
+
+- Tag: `v0.2.0`
+- Release Name: `v0.2.0`
+- Draft: false
+- Pre-release: false
+- Latest Release: `v0.2.0`
+- Tag対象Commit: `7c244a87358295b223e9892ca5f6c51b13df9bea`
+- Release作成時点のmainとTag対象Commitは一致
+- GitHub自動生成Source archiveを利用可能
+
+Release Notesにはログオン時自動起動機能、検証結果、通常権限・Path変更時再登録の注意事項を記載した。
