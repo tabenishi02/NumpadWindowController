@@ -1,8 +1,8 @@
 # Numpad Window Controller - Phase B PoC Guide
 
 更新日: 2026-09-23  
-対象: MVP / v0.1  
-状態: PoC implementation complete / execution pending
+対象: MVP / v0.1.0  
+状態: **Completed - execution results recorded in PHASE_B_RESULT.md**
 
 ## 1. 目的
 
