@@ -6,7 +6,7 @@
 
 ## 0. 現在地点
 
-**v0.2.0 Released / Phase I完了 / ログオン時自動起動統合済み。**
+**Phase I完了 / ログオン時自動起動統合済み / Release済み。最新ReleaseはGitHub Releasesを参照。**
 
 完了済み:
 
@@ -627,9 +627,10 @@ Phase A～Iは正式完了。
 公開状態:
 
 - Repository: **Public**
-- 最新の公開Release: **v0.2.0**
-- `v0.2.0` Tag / GitHub Release: **公開済み**
+- 最新Release: **GitHub Releasesを参照**
 - `v0.1.0`: 初回MVP Release
+- `v0.2.0`: ログオン時自動起動追加
+- `v0.2.1`: Release後ドキュメント同期
 
 `v0.1.0` は自動起動実装前の初回MVP Release。自動起動を含む実装は `v0.2.0` としてRelease済み。
 
@@ -716,5 +717,6 @@ v0.1.0のWindow Controller機能を維持したまま、Windowsログオン時�
 ## バージョン整理
 
 - `v0.1.0`: 公開済み初回MVP。自動起動機能なし
-- `v0.2.0`: 公開済み現行Release。自動起動機能を含む
+- `v0.2.0`: ログオン時自動起動機能を追加したRelease
+- `v0.2.1`: v0.2.0公開後のドキュメント同期Release
 - 自動起動は後方互換のある機能追加のためMinor Versionを更新
