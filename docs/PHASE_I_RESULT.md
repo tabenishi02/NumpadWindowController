@@ -191,3 +191,23 @@ Phase A～Iをもって、NumpadWindowControllerのMVP初期版完成工程を�
 - READMEのPrivacy / Security / License更新
 
 この追記はPhase I当時の判断履歴を保持しつつ、現在のPublic release状態を明確化するためのもの。
+
+
+---
+
+## 7. 現在のVersion状態
+
+Phase Iはv0.1.0初期MVPを完成させた時点の履歴記録である。
+
+その後の実際のRepository状態:
+
+- RepositoryはPublic化済み
+- `v0.1.0` Tag / GitHub Releaseは公開済み
+- `v0.1.0` Tagは自動起動機能追加前のCommitを指す
+- Windows Task Schedulerによるログオン時自動起動を後続実装として追加
+- 現在の `main` は **v0.2.0** を対象とする
+- `v0.2.0` Tag / GitHub Releaseは未作成
+
+v0.2.0の自動起動実装・検証については [STARTUP_TASK_TEST.md](STARTUP_TASK_TEST.md) を参照する。
+
+このため、本書内の「Phase Iで行っていないこと」はPhase I完了時点の履歴であり、現在の未実施事項を意味しない。
