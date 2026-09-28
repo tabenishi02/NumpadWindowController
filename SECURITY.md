@@ -2,15 +2,15 @@
 
 ## Supported Versions
 
-Security fixes are currently provided for the current `main` / v0.2.x development line.
+Security fixes are currently provided for the latest v0.2.x release line.
 
 | Version | Supported |
 |---|---|
-| `main` / v0.2.x | Yes |
+| latest v0.2.x | Yes |
 | v0.1.0 | No |
 | older versions | No |
 
-The published v0.1.0 release is superseded by the current v0.2.0 development line.
+The published v0.1.0 release is superseded by v0.2.0.
 
 ## Reporting a Vulnerability
 
