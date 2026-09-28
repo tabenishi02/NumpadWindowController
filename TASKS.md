@@ -2,9 +2,11 @@
 
 更新日: 2026-09-28
 対象: NumpadWindowController  
-目的: 現在の暫定設計から、AutoHotkey v2による初期実装と実機検証までを完了するためのタスク一覧
+目的: AutoHotkey v2によるMVP v0.1.0の設計・実装・検証・初期版完成までを管理するタスク一覧
 
 ## 0. 現在地点
+
+**MVP v0.1.0 / Phase Iまで完了。初期リリース可能。**
 
 完了済み:
 
@@ -538,44 +540,59 @@ H-1 / H-2の16項目をすべて完了し、受入条件を満たした。Phase 
 
 ---
 
-# 運用 - ログオン時自動起動
+# Phase I - 初期版完成処理 ✅ 完了
 
-- [x] Windowsタスクスケジューラを正式方式として採用
-- [x] 現在ユーザーのログオン時Triggerを使用
-- [x] 対話型Session / 通常権限 / 遅延0秒を既定値に設定
-- [x] AutoHotkey v2 / メインAHK / Working Directoryを明示
-- [x] AutoHotkey v2自動検出と明示Path指定に対応
-- [x] 空白を含むPathを引用して登録
-- [x] 同名タスクを安全に更新
-- [x] Task Scheduler側を`IgnoreNew`、本体を`#SingleInstance Force`で多重起動防止
-- [x] install / uninstallスクリプトを追加
-- [x] uninstallは完全一致するNumpadWindowController用Taskだけを削除
-- [x] 未登録状態のuninstallを正常終了
-- [x] 任意のログオン後Delay指定に対応
-- [x] Preview自動テスト（24 assertions）
-- [x] 一時Task登録・内容検査・任意Delay・対象外Task保護・二度解除の統合テスト（合計37 assertions）
-- [x] Phase F Regression（134 assertions）
-- [x] 実際のサインアウト / ログオンによる自動起動確認
-- [x] 自動起動後の既存Window操作 / Virtual000 / NumLock lifecycle確認
-- [x] 自動起動済み状態からの手動起動で1インスタンス維持を確認
-- [x] Task無効化 / 削除後の次回ログオン非起動を確認
+結果: [Phase I Result](docs/PHASE_I_RESULT.md)
 
-手順と記録: [ログオン時自動起動テスト](docs/STARTUP_TASK_TEST.md)
+Phase A～Hで確定・検証した内容を初期版v0.1.0として整理し、設計・利用者向け文書・サンプル設定・Known Limitations・バージョン・リリース判定を同期した。
 
----
+- [x] 実装結果を `docs/DESIGN_DRAFT.md` へ反映
+  - 旧Draftの未確定案を現行仕様へ更新
+  - ファイル名は既存リンク互換のため維持
+  - 状態を `Finalized - Phase I反映済み` へ変更
+- [x] Draft表記を見直す
+  - `docs/MVP_DESIGN.md` を `Final / 実装・機能テスト・実機受入試験完了` へ更新
+  - Phase A / C / D / E仕様書を `Implemented / Verified` へ更新
+- [x] READMEへインストール方法を追加
+  - AutoHotkey v2導入、リポジトリ取得、必要ファイル、起動、終了を整理
+- [x] READMEへ設定例を追加
+  - Window / Shortcut / Disabled
+  - Arguments / WorkingDirectory
+  - PowerShell Scriptの `pwsh.exe -File` 例
+- [x] READMEへ操作一覧を追加
+  - Window Mode操作
+  - Global Action
+  - Auto Bind / Clear / 0 / 000 / NumLockを整理
+- [x] Known Limitationsを整理
+  - `docs/KNOWN_LIMITATIONS.md` を新設
+  - Phase A～Hに分散していた現行制限を集約
+- [x] サンプル `KeyBindings.ini` を追加
+  - `examples/KeyBindings.example.ini`
+  - 正規EncodingのUTF-16 LE BOM
+  - Window / Shortcut / Disabledの例を含む
+- [x] 標準 `KeyBindings.ini` の文言整合
+  - Backspaceの旧誤認由来Labelを `Backspace` へ修正
+- [x] LICENSE要否を判断
+  - Phase I時点ではprivate運用のため未追加とした
+  - 2026-09-28のPublic release preparationで **MIT License** を採用し、`LICENSE` を追加済み
+- [x] バージョン番号を決定
+  - 初期版 = **v0.1.0**
+  - Semantic Versioning形式を採用
+- [x] 初期リリース可否を判断
+  - **Release Ready**
+  - Phase F～H完了、Phase G 65/65 PASS、Phase H 16/16 PASS
+  - 現行Known Limitationsを受け入れたMVP初期版としてリリース可能
+  - GitHub Tag / Release作成は別操作とし、Phase Iでは実施しない
 
-# Phase I - 初期版完成処理
+Phase I完了条件:
 
-- [ ] 実装結果を `docs/DESIGN_DRAFT.md` へ反映
-- [ ] Draft表記を見直す
-- [ ] READMEへインストール方法を追加
-- [ ] READMEへ設定例を追加
-- [ ] READMEへ操作一覧を追加
-- [ ] Known Limitationsを整理
-- [ ] サンプル `KeyBindings.ini` を追加
-- [ ] 必要ならLICENSEを追加
-- [ ] バージョン番号を決定
-- [ ] 初期リリース可否を判断
+- [x] 設計書が現行実装と矛盾しない
+- [x] 利用者がREADMEだけで導入・基本操作・主要設定を確認できる
+- [x] Known Limitationsが一か所に集約されている
+- [x] 配布用サンプルConfigが正規Encodingで存在する
+- [x] v0.1.0のリリース可否が明示されている
+
+**Phase I最終判定: PASS - MVP v0.1.0初期版完成**
 
 ---
 
@@ -605,7 +622,49 @@ Phase I  初期版完成処理
 
 ## 最優先タスク
 
-Phase F / Phase G / Phase Hは正式完了。
+Phase A～Iは正式完了。
 
-次工程は **Phase I - 初期版完成処理**。
-設計・README・サンプル設定・Known Limitations・バージョン・初期リリース可否を整理し、MVP初期版を完成させる。
+**MVP v0.1.0はRelease Ready。**
+
+次の作業は初期版完成工程の必須タスクではない。必要に応じて次を別タスクとして実施する。
+
+- GitHub Tag `v0.1.0` の作成
+- GitHub Releaseの作成
+- Repository VisibilityをPublicへ変更
+- Public化後にPrivate vulnerability reportingを有効化
+- Public化後にGitHub Secret scanning結果を確認
+- GitHub Tag / Release `v0.1.0` の作成
+- v0.1.x不具合修正
+- v0.2.0以降の機能拡張
+
+
+---
+
+# Public Release Preparation ✅ 完了
+
+更新日: 2026-09-28
+
+- [x] 現行Repository Treeの個人情報・秘密情報パターン監査
+- [x] Commit author / committer email確認
+- [x] 履歴上の誤commit Config backup確認
+- [x] 削除済み重複PoCの秘密情報パターン確認
+- [x] RuntimeにNetwork / Telemetry送信処理がないことを確認
+- [x] MIT `LICENSE` を追加
+- [x] `SECURITY.md` を追加
+- [x] `CONTRIBUTING.md` を追加
+- [x] `docs/PUBLIC_RELEASE_AUDIT.md` を追加
+- [x] `.gitignore` を公開運用向けに強化
+- [x] `.gitattributes` でUTF-16 Configの正規化を抑止
+- [x] READMEをMIT / Privacy / Security / Contributing対応へ更新
+- [x] 現行ドキュメントのLICENSE / private運用表記を同期
+
+公開準備判定: **PASS**
+
+未実施のGitHub Repository操作:
+
+- [ ] VisibilityをPrivateからPublicへ変更
+- [ ] Public化後にPrivate vulnerability reportingを有効化
+- [ ] Public化後にSecret scanning alertを確認
+- [ ] 必要に応じてTag / Release `v0.1.0` を作成
+
+監査詳細: [Public Release Audit](docs/PUBLIC_RELEASE_AUDIT.md)

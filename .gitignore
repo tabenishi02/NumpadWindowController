@@ -1,5 +1,34 @@
+# Runtime / test output
+logs/
 poc/logs/
 poc/phase_b/results/
-logs/
+*.log
 *.phaseg.bak
+*.bak
+*.tmp
+*.temp
+*.dump
+
+# Local configuration / secrets
+.env
+.env.*
+!.env.example
+secrets/
+*.secret
+*.credentials
+*.pem
+*.key
+*.pfx
+*.p12
+KeyBindings.local.ini
+KeyBindings.private.ini
+
+# Editor / OS metadata
+.vscode/
+.idea/
+.vs/
+.history/
+Thumbs.db
+Desktop.ini
+.DS_Store
 Note/

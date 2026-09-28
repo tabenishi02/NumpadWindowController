@@ -1,7 +1,7 @@
 # Phase G 機能テスト結果
 
 更新日: 2026-09-28  
-対象: NumpadWindowController / MVP v0.1  
+対象: NumpadWindowController / MVP v0.1.0  
 状態: **PASS - Phase G完了**  
 試験結果反映Commit: `f8efac46a6b9bc40309888ff9000c113eb2a079e`
 

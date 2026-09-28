@@ -1,12 +1,12 @@
 # Numpad Window Controller - Phase E Implementation Design
 
 更新日: 2026-09-24  
-対象: MVP / v0.1  
-状態: Adopted for Review  
+対象: MVP / v0.1.0  
+状態: Implemented / Verified  
 目的: Phase E「実装設計」を完了し、Phase FでAutoHotkey v2コードへ直接落とし込める構造・Runtime State・診断方針を固定する。
 
 > 本書は実装構造に関して `docs/MVP_DESIGN.md` より具体的な仕様として扱う。
-> ユーザーレビューで変更指摘があった場合は、その指摘を優先して改訂する。
+> 本仕様はv0.1.0実装・Phase G機能テスト・Phase H実機受入試験に反映済み。
 
 ---
 

@@ -1,1147 +1,649 @@
 # Numpad Window Controller - MVP Design
 
-更新日: 2026-09-23  
-対象バージョン: MVP / v0.1 設計案  
-状態: Review Required  
-実装状態: 未実装
+更新日: 2026-09-28  
+対象バージョン: **v0.1.0**  
+状態: **Final**  
+実装状態: **実装・機能テスト・実機受入試験完了**
 
-> この文書は、まず最低限動作する初期版を実装するための全体設計書である。
-> Phase Aの詳細仕様は `docs/PHASE_A_SPEC.md` を正とし、実装は設計レビュー完了後に開始する。
+> 本書はNumpadWindowController v0.1.0のMVP全体設計をまとめる。
+> Configuration、Auto Bind、実装構造などの詳細はPhase A～E仕様書を参照し、検証結果はPhase F～H結果文書を参照する。
 
 ---
 
 ## 1. 目的
 
-一般的なUSBテンキーを、Windows上で頻繁に使用するウィンドウへ直接移動するための専用コントローラーとして利用する。
+一般的なUSBテンキーを、Windows上で頻繁に利用するウィンドウへ直接移動するための専用コントローラーとして使用する。
 
-MVPでは次の2機能を提供する。
+MVPでは次の機能を提供する。
 
 1. テンキーの物理キーとWindowを1対1でBindingし、1キーで対象Windowへ移動する。
-2. 一部キーをWindow BindingではなくShortcutとして設定し、アプリケーションやバッチファイルを起動する。
+2. Chrome / VS Code / Explorer / ChatGPT Desktop / PowerShell 7を専用Slotへ自動割り当てする。
+3. 一部キーをShortcutとして設定し、exe / bat / cmd / lnkを実行する。
+4. Manual Bind、Slot Clear、Clear All、Lazy Auto Bindにより日常利用中のWindow増減へ対応する。
+5. 000キーを独立した論理キー `Virtual000` として利用する。
 
-同一アプリケーションの複数Windowを個別に扱えることを重視する。
+同一アプリケーションを複数Windowで使用する場合でも、個々のWindowへ直接移動できることを重視する。
 
 ---
 
-## 2. MVPの設計方針
+## 2. 対象環境
 
-MVPでは機能を増やしすぎず、日常利用できる最小構成を優先する。
-
-採用するもの:
-
+- Windows 11
 - AutoHotkey v2
-- HWNDによるRuntime Window Binding
-- 手動Binding
-- Chrome 3WindowのAuto Bind
-- VS Code 3WindowのAuto Bind
-- Explorer / ChatGPTデスクトップ / pwsh系TerminalのAuto Bind
-- Window単位のClear
-- 全Window BindingのClear
-- Shortcut実行
-- INI設定ファイル
-- ToolTipによる簡易通知
+- 一般的なUSBテンキー
+- Runtime Window識別: HWND
+- Configuration: INI
+- Configファイル: `KeyBindings.ini`
+- Config Version: 1
+- Config Encoding: UTF-16 LE with BOM
 
-MVPでは採用しないもの:
-
-- GUI設定画面
-- Hot Reload
-- 常時Window監視
-- Window Bindingの永続保存
-- 外付けテンキーとメインキーボードの厳密なデバイス識別
-- 高度なマルチモニター自動判定
-- 4つ目以降のChrome / VS Codeの自動一般Slot割り当て
-- 複雑なWindowスコアリング
-- プラグイン機構
-- 自動アップデート
+専用USBドライバ、AutoHotInterception、常設GUIはMVP要件に含めない。
 
 ---
 
-## 3. 対象環境
+## 3. ファイル構成
 
-- OS: Windows 11
-- AutoHotkey: v2系
-- 入力デバイス: 現在使用しているUSBテンキー
-- NumLock: スクリプト実行中はON固定
-- Chrome: Google Chrome
-- VS Code: Visual Studio Code
-- Terminal: PowerShell 7を主用途とするWindows Terminalまたは直接起動されたpwsh Window
-
-### 3.1 外付けテンキー識別の制約
-
-MVPでは、AutoHotkeyから外付けテンキーと通常キーボード側の同一テンキーキーを区別しない。
-
-したがって、例えば外付けテンキーの `Numpad7` とメインキーボード側の `Numpad7` は同じHotkeyとして扱われる。
-
-これはMVPのKnown Limitationとする。
-
----
-
-## 4. 実機キー情報
-
-実機Key Historyで確認済みの値を基準とする。
-
-| 物理キー | VK | SC | AutoHotkey Key |
-|---|---:|---:|---|
-| NumLock | 90 | 145 | NumLock |
-| `/` | 6F | 135 | NumpadDiv |
-| `*` | 6A | 037 | NumpadMult |
-| `-` | 6D | 04A | NumpadSub |
-| `7` | 67 | 047 | Numpad7 |
-| `8` | 68 | 048 | Numpad8 |
-| `9` | 69 | 049 | Numpad9 |
-| `+` | 6B | 04E | NumpadAdd |
-| `4` | 64 | 04B | Numpad4 |
-| `5` | 65 | 04C | Numpad5 |
-| `6` | 66 | 04D | Numpad6 |
-| Backspace | 08 | 00E | Backspace |
-| `1` | 61 | 04F | Numpad1 |
-| `2` | 62 | 050 | Numpad2 |
-| `3` | 63 | 051 | Numpad3 |
-| `0` | 60 | 052 | Numpad0 |
-| `.` | 6E | 053 | NumpadDot |
-| Enter | 0D | 11C | NumpadEnter |
-
-通常Keyboard Enterは `VK=0D / SC=01C`、テンキーEnterは `VK=0D / SC=11C` と実機確認済みであり、両者は区別してHotkey登録できる。
-
-### 4.1 000キーとVirtual000
-
-物理 `000` キーは独立したVK/SCを持たず、`Numpad0` のDown/Upを3回高速に発生させる。
-
-PoCでは通常の `0` と `000` を誤認識なく区別できたため、MVPではこの入力列をソフトウェアで検出し、独立した論理キー **`Virtual000`** として扱う。
-
-初期判定条件:
-
-- 最初の `Numpad0 Down` から80ms以内。
-- `Down-Up-Down-Up-Down-Up` が連続して成立。
-- 判定中に別キーのDownが割り込まない。
-
-判定結果:
-
-```text
-通常の0
-  → Numpad0
-
-高速 D-U × 3
-  → Virtual000
-```
-
-物理 `000` から生成された3回の `Numpad0` は個別の `Numpad0` 操作として実行せず、1回の `Virtual000` 操作へ集約する。
-
-通常の `Numpad0` は `000` 判定のため最大約80msの確定待ち時間を持つ。Window切り替え用途では許容する。
-
-PoCの高頻度ログ書き込みではファイル競合エラーが発生したが、入力識別自体は通常使用の各入力パターンで誤認識なく動作したため、ログ競合はPoC固有事項としてMVP本体の判定仕様には持ち込まない。
-
----
-
-## 5. キーMode
-
-設定可能なModeは3種類とする。
-
-| Mode | 説明 |
-|---|---|
-| Window | Window Binding用 |
-| Shortcut | アプリ・ファイル実行用 |
-| Disabled | 何もしない |
-
-従来案にあった汎用 `Function` ModeはMVPでは採用しない。
-
-`Ctrl + NumpadEnter` / `Ctrl + Shift + NumpadEnter` を設定ファイル外の予約Global Combinationとして扱う。NumLockはController Actionには使用しない。
-
-### 5.1 Virtual000の扱い
-
-`Virtual000` は物理キー名ではなく、本ツール内部で生成する論理キー名である。
-
-設定・Runtime State・Hotkeyディスパッチでは他のキーと同等に扱い、`Window / Shortcut / Disabled` のいずれも設定可能とする。
-
-INIのSection名は `[Key-Virtual000]` を使用する。
-
-修飾キーも判定時に保持し、例えば `Ctrl + 000` は `Ctrl + Virtual000` として扱う。
-
-### 5.2 排他
-
-1キーは1つのModeだけを持つ。
-
-ShortcutまたはDisabledのキーは:
-
-- Manual Bind不可
-- Auto Bind対象外
-- Window Activate対象外
-
-とする。
-
----
-
-## 6. 既定キー配置
-
-| キー | MVP既定用途 | Mode | Auto Bind |
-|---|---|---|---|
-| NumLock | Controller Actionなし | - | - |
-| `/` | 任意 | Window | OFF |
-| `*` | 任意 | Window | OFF |
-| `-` | 任意 | Window | OFF |
-| `7` | Chrome1 | Window | ON |
-| `8` | Chrome2 | Window | ON |
-| `9` | Chrome3 | Window | ON |
-| `+` | 任意 | Window | OFF |
-| `4` | VSCode1 | Window | ON |
-| `5` | VSCode2 | Window | ON |
-| `6` | VSCode3 | Window | ON |
-| Backspace | 任意 | Disabled | OFF |
-| `1` | Explorer | Window | ON |
-| `2` | ChatGPT Desktop | Window | ON |
-| `3` | pwsh / Windows Terminal | Window | ON |
-| `0` | 任意 | Window | OFF |
-| `000` / `Virtual000` | 任意 | Window | OFF |
-| `.` | 任意 | Window | OFF |
-| Enter | 任意 | Window | OFF |
-
-任意キー（`Virtual000` を含む）はMVPでは自動的にWindowを埋めない。
-
-必要なWindowをユーザーが `Ctrl + Key` で手動Bindingする。
-
-これにより、予期しないWindowが空きキーへ勝手に割り当てられることを防ぐ。
-
----
-
-## 7. 操作仕様
-
-### 7.1 入力正規化
-
-物理入力を直接Window処理へ渡さず、まず論理キーへ正規化する。
-
-```text
-物理Numpad0
-  ↓ 80ms判定
-通常単打      → Numpad0
-高速D-U×3     → Virtual000
-```
-
-以降のWindow / Shortcut / Clear等の処理は、正規化済みの論理キーを対象にする。
-
-### 7.2 通常押下
-
-Window Mode:
-
-```text
-Key
-→ Binding済みWindowをActivate
-```
-
-Shortcut Mode:
-
-```text
-Key
-→ 設定されたShortcutを実行
-```
-
-Disabled:
-
-```text
-Key
-→ Controller Hotkeyを登録せず、ネイティブ入力をそのまま通す
-```
-
-### 7.3 Manual Bind
-
-```text
-Ctrl + Key
-```
-
-Window Mode Keyに対して現在アクティブなWindowをManual Bindする。
-
-Window ModeだけこのController Hotkeyを登録する。
-
-Shortcut Mode / DisabledではCtrl+KeyをController側で登録せず、Active Appへ通常入力として渡す。
-
-固定用途SlotではAllowed条件を満たすこと。
-
-### 7.4 Slot Clear
-
-```text
-Ctrl + Shift + Key
-```
-
-対象Window SlotのRuntime Bindingを解除する。
-
-設定ファイルは変更しない。
-
-### 7.5 Auto Bind All
-
-```text
-NumLock
-```
-
-全Auto Bind対象SlotのBindingを検証し、有効なManual / Auto Bindingを維持したまま、無効または空のSlotだけを補充する。
-
-完全に再構築する場合は:
-
-```text
-Ctrl + Shift + NumpadEnter
-Ctrl + NumpadEnter
-```
-
-の順でClear All後にAuto Bind Allを実行する。
-
-NumLock本来のON/OFF切り替えは実行しない。
-
-### 7.6 Clear All
-
-```text
-Ctrl + NumLock
-```
-
-全Window SlotのRuntime Bindingだけを解除する。
-
-Shortcut設定やINI設定は変更しない。
-
-### 7.7 NumLock状態
-
-スクリプト起動時にNumLockをONにし、実行中はON状態を維持する。
-
-理由:
-
-- `Numpad7` 等のAutoHotkey Key Nameを安定させる。
-
-Known Limitation:
-
-- メインキーボード側のNumLock利用にも影響する。
-
----
-
-## 8. Binding State
-
-各Window SlotはRuntimeに次の状態を持つ。
-
-- Key
-- Label
-- HWND
-- BindingSource
-- AllowedProcess
-- AllowedClass
-- AllowedTitleContains
-- AutoBind
-- AutoBindGroup
-
-BindingSource:
-
-| 値 | 意味 |
-|---|---|
-| None | 未Binding |
-| Auto | Auto Bindで設定 |
-| Manual | Ctrl+Keyで設定 |
-
-HWNDとBindingSourceは永続化しない。
-
----
-
-## 9. Manual Bind優先ルール
-
-MVPではManual BindをAuto Bindより優先する。
-
-### 9.1 Auto Bind All
-
-有効なManual Bindは上書きしない。
-
-```text
-Manual Bindが存在
-  ↓
-対象HWNDがまだ存在
-  ↓
-そのSlotを固定
-```
-
-### 9.2 Manual Binding先Windowが閉じた場合
-
-Manual Bind先HWNDが無効になった時点で、そのManual Bindは失効する。
-
-AutoBind=ONのSlotなら、次回のLazy Auto BindまたはAuto Bind Allで自動割り当てへ戻す。
-
-AutoBind=OFFの任意Slotなら空Slotへ戻す。
-
-### 9.3 重複Binding
-
-同一HWNDを複数SlotへBindingすることは禁止する。
-
-Manual Bind時に、そのHWNDが別Slotに存在する場合:
-
-1. 旧SlotからBinding解除。
-2. 新SlotへManual Bind。
-3. 旧Slotは空になる。
-
-Auto Bind時も、確定済みHWNDは後続候補から除外する。
-
----
-
-## 10. Window Activate
-
-Window Modeの通常押下時:
-
-1. HWNDが存在するか確認。
-2. Windowが最小化されていればRestore。
-3. WindowをActivate。
-4. 前面へ移動できなければ失敗通知。
-
-Bindingが無効な場合:
-
-- AutoBind=ON → Lazy Auto Bindを実行。
-- AutoBind=OFF → `Slot is empty` を通知。
-
----
-
-## 11. Auto Bind共通ルール
-
-詳細仕様は `docs/PHASE_C_SPEC.md` を正とする。
-
-Auto Bind対象は `AutoBind=ON` の専用Window Slot `1～9` のみ。
-
-Auto Bind Allは差分補修方式とする。
-
-1. Current Runtime StateをWorking Stateへコピー。
-2. 全既存BindingのValidityを確認。
-3. 無効BindingだけNoneへ変更。
-4. 有効Manual / Auto BindingのHWNDをUsed HWND Setへ登録。
-5. Chrome Groupの空Slotを補充。
-6. VS Code Groupの空Slotを補充。
-7. Explorer / ChatGPT / PowerShellの空Slotを補充。
-8. `1 HWND : 1 Slot` を最終検証。
-9. Working StateをRuntime StateへCommit。
-
-既存BindingのValidityと新規Candidate Eligibilityは分離する。
-
-- 既存BindingはHWNDが存在しAllowed条件を満たす限り維持する。
-- 新規CandidateにはPhase Bの共通FilterとGroup固有条件を要求する。
-- Binding済みChromeは移動 / Minimize / MaximizeしてもProcess条件を満たす限り維持する。
-- 新規Chrome候補だけNormal状態 + 座標Thresholdを要求する。
-
-MVPでは任意Slotへの一般Window自動割り当ては行わない。
-
-4つ目以降のChrome / VS Codeも自動割り当てしない。
-
-必要な場合は任意SlotへManual Bindする。
-
----
-
-## 12. Chrome Auto Bind
-
-対象Process:
-
-```text
-chrome.exe
-```
-
-専用Slot:
-
-- Numpad7 = Chrome1
-- Numpad8 = Chrome2
-- Numpad9 = Chrome3
-
-MVPではPrimary MonitorのWork Areaを基準とする。実機PoCでPrimary Monitor上の通常3Window配置とChrome再起動後に正しく再分類できることを確認済み。
-
-### 12.1 Chrome1
-
-想定位置:
-
-- 左上
-- 幅: 約30%
-- 高さ: 約50%
-
-### 12.2 Chrome2
-
-想定位置:
-
-- 左下
-- 幅: 約30%
-- 高さ: 約50%
-
-### 12.3 Chrome3
-
-想定位置:
-
-- 右側
-- 幅: 約70%
-- 高さ: 約100%
-
-### 12.4 判定方式
-
-MVPでは複雑な最適化計算を使わず、Window中心座標とサイズ比率で分類する。
-
-Primary Monitor Work Areaを:
-
-- X: 0.0 ～ 1.0
-- Y: 0.0 ～ 1.0
-
-へ正規化する。
-
-分類:
-
-Chrome1候補:
-
-- Window中心X < 0.40
-- Window中心Y < 0.50
-- Window幅がWork Areaの15%～45%
-- Window高さがWork Areaの30%～70%
-
-Chrome2候補:
-
-- Window中心X < 0.40
-- Window中心Y >= 0.50
-- Window幅がWork Areaの15%～45%
-- Window高さがWork Areaの30%～70%
-
-Chrome3候補:
-
-- Window中心X >= 0.40
-- Window幅がWork Areaの50%～90%
-- Window高さがWork Areaの70%～105%
-
-複数候補が同じ分類に入った場合は、想定矩形との位置・サイズ差が最も小さいWindowを採用する。
-
-候補が見つからなければ対象Slotは空のままにする。
-
-Minimized / Maximized Chromeは新規の座標分類対象外とする。すでにBinding済みのHWNDは状態変更後も維持する。Auto Bindをゼロから行う時に対象ChromeがMinimized / Maximizedなら、通常状態へ戻して再Auto BindするかManual Bindで補正する。
-
-### 12.5 Chrome 4Window以上
-
-4つ目以降はMVPではAuto Bindしない。
-
-Manual Bindで任意Slotへ設定可能。
-
----
-
-## 13. VS Code Auto Bind
-
-対象Process:
-
-```text
-Code.exe
-```
-
-専用Slot:
-
-- Numpad4 = VSCode1
-- Numpad5 = VSCode2
-- Numpad6 = VSCode3
-
-要求としては「開いた順」を優先する。
-
-しかし、スクリプト起動前にすでに存在する複数VS Code Windowについて、Windowsから真のWindow生成順を常に復元できることはMVPでは前提にしない。
-
-### 13.1 MVPの順序定義
-
-VS Codeの厳密なOpen順はMVP要件としない。
-
-Auto Bind時に現在の `Code.exe` Windowを列挙し、未使用候補を `WinGetList` の列挙順から逆順にして、空いているSlotへ割り当てる。
-
-```text
-有効な既存Bindingを維持
-  ↓
-未使用の Code.exe Window を列挙
-  ↓
-列挙順を逆順
-  ↓
-空き Numpad4 → 5 → 6 の順に割り当て
-```
-
-実機PoCでは、起動前に存在した3Windowの列挙順が実Open順の逆順だったため、この簡易規則で期待順と一致した。
-
-ただし真のOpen順は保証しない。
-
-### 13.2 順序が意図と違う場合
-
-順序差は許容する。
-
-必要な場合だけ:
-
-```text
-Ctrl + Numpad4
-Ctrl + Numpad5
-Ctrl + Numpad6
-```
-
-でManual Bindして補正する。
-
-Manual BindはAuto Bind Allでも保持されるため、補正後に自動処理で並び替えない。
-
-### 13.3 新規Window
-
-常時Pollingは行わない。
-
-新規VS Code Windowは次のタイミングで候補として認識する。
-
-- Auto Bind All
-- VS Code SlotのLazy Auto Bind
-- Ctrl + Alt + Numpad4 / 5 / 6 の個別Auto Bind
-
-既存の有効Bindingを維持したまま、未Bindingの新規候補だけを空きSlotへ追加する。
-
-### 13.4 4Window以上
-
-4つ目以降のVS Code WindowはMVPではAuto Bindしない。
-
-任意SlotへManual Bind可能。
-
----
-
-## 14. Explorer Auto Bind
-
-Numpad1はExplorer専用Slotとする。
-
-基本対象:
-
-- Process: `explorer.exe`
-- Class: `CabinetWClass`
-- 可視トップレベルWindow
-- デスクトップShellやタスクバー等は除外
-
-複数Explorer Windowがある場合、Auto Bind時に最も前面側にある通常Explorer Windowを採用する。
-
-Manual Bindで別Explorer Windowへ変更可能。
-
-Allowed条件:
-
-- Explorer Window以外はNumpad1へManual Bind不可。
-
----
-
-## 15. ChatGPT Desktop Auto Bind
-
-Numpad2はChatGPTデスクトップ専用Slotとする。
-
-実機PoCで `Process=ChatGPT.exe`, `Class=Chrome_WidgetWin_1`, `Title=ChatGPT` を確認した。MVPでは `ChatGPT.exe` を必須識別条件とし、Class / Titleは補助情報として扱う。
-
-複数候補がある場合は最も前面側のWindowを採用。
-
-Manual BindはChatGPT Desktopと判定されたWindowだけ許可する。
-
-Process Nameが将来変更された場合はINI編集で対応する。
-
----
-
-## 16. pwsh / Windows Terminal Auto Bind
-
-Numpad3は「PowerShell 7作業用Terminal Window」を対象とする。
-
-実機PoCではPowerShell 7のトップレベルWindowは `WindowsTerminal.exe` / `CASCADIA_HOSTING_WINDOW_CLASS` だった。 `pwsh.exe` 自体は `PseudoConsoleWindow` でOwnerあり・ToolWindow・Zero SizeのためCandidate外だった。
-
-MVP識別条件:
-
-1. Process = `WindowsTerminal.exe`
-2. Class = `CASCADIA_HOSTING_WINDOW_CLASS`
-3. Titleに `PowerShell 7` を含む
-4. 条件一致なしなら未Binding
-
-Windows PowerShellやcmd.exeも同じProcess / Classを持つため、Title条件を必須とする。
-
-複数候補がある場合は最も前面側を採用。
-
-Known Limitation:
-
-- Windows Terminalのタブ内部プロセスを完全には追跡せず、MVPではTitle条件でPowerShell 7を識別する。
-- Titleがカスタマイズされている場合、自動検出できない可能性がある。
-
-その場合はManual Bindで補正可能とする。
-
----
-
-## 17. Lazy Auto Bind
-
-AutoBind=ONのSlotで通常押下時に:
-
-- BindingSource=None
-- HWNDが消滅
-- HWNDがAllowed条件に一致しなくなった
-
-場合のみ実行する。
-
-Chrome / VS Codeは対象Group全体の「空Slot補充」を行い、有効な既存Bindingは維持する。
-
-1 / 2 / 3は対象Slotだけ再探索する。
-
-例:
-
-```text
-Numpad7押下
-  ↓
-7のHWND無効
-  ↓
-7をNoneへ変更
-  ↓
-Chrome Groupの空Slotだけ補充
-  ↓
-7が埋まればActivate
-```
-
-候補が見つからなければSlotはNoneのままにし、短時間ToolTipを表示する。
-
-自動RetryやBackground pollingは行わない。
-
-Shortcut / Disabled / AutoBind=OFFではLazy Auto Bindしない。
-
----
-
-## 18. Clear仕様
-
-### 18.1 Slot Clear
-
-`Ctrl + Shift + Key`
-
-対象Slot:
-
-- HWND = empty
-- BindingSource = None
-
-へ変更する。
-
-AutoBind=ONでも、その場では再Auto Bindしない。
-
-次回通常押下するとLazy Auto Bindされる。
-
-### 18.2 Clear All
-
-`Ctrl + Shift + NumpadEnter`
-
-全Window Slot:
-
-- HWND = empty
-- BindingSource = None
-
-へ変更する。
-
-Auto Bindは自動実行しない。
-
-再構築したい場合はCtrl + NumpadEnterを押す。
-
-これにより:
-
-```text
-Ctrl + Shift + NumpadEnter
-→ 全解除
-
-Ctrl + NumpadEnter
-→ Auto対象だけ再構築
-```
-
-という明確な操作にする。
-
----
-
-## 19. Shortcut Mode
-
-ShortcutはINIで設定する。
-
-MVPで対応するTarget:
-
-- `.exe`
-- `.bat`
-- `.cmd`
-- Windowsが通常実行可能なファイルまたはショートカット
-
-PowerShell Scriptを実行したい場合は、Targetを `pwsh.exe` とし、Argumentsに `-File ...` を設定する。
-
-### 19.1 Shortcut項目
-
-- Target
-- Arguments
-- WorkingDirectory
-
-Arguments / WorkingDirectoryは空欄可。
-
-### 19.2 実行済みアプリ
-
-Shortcutは「既存Windowを探す」のではなく、設定されたTargetを毎回実行する。
-
-既に起動済みアプリをActivateする用途はWindow Modeを使用する。
-
-この2機能を明確に分離する。
-
----
-
-## 20. 設定ファイル
-
-詳細仕様は `docs/PHASE_D_SPEC.md` を正とする。
-
-MVPはINIを採用する。
-
-理由:
-
-- AutoHotkey v2から読みやすい。
-- ユーザーが手動編集しやすい。
-- MVPで必要な設定は階層が浅い。
-- JSON parser等の追加依存を避けられる。
-
-ファイル名:
-
-```text
-KeyBindings.ini
-```
-
-Scriptと同じDirectoryに配置し、`[General] ConfigVersion=1` を必須とする。
-
-EncodingはUTF-16 LE with BOMを正規形式とする。
-
-### 20.1 Window Keyの設定項目
-
-- Mode
-- Label
-- AllowedProcess
-- AllowedClass
-- AllowedTitleContains
-
-Allowed条件は必要なければ空欄可。
-
-`AutoBind / AutoBindGroup / AutoBindOrder` はKeyごとのBuilt-in Metadataとしてコード側で固定し、INIへ持たせない。
-
-### 20.2 Shortcut Keyの設定項目
-
-- Mode
-- Label
-- Target
-- Arguments
-- WorkingDirectory
-
-### 20.3 Virtual000設定例
-
-```ini
-[Key-Virtual000]
-Mode=Window
-Label=Virtual 000
-AllowedProcess=
-AllowedClass=
-AllowedTitleContains=
-```
-
-Shortcutとして利用する場合も、通常キーと同様に `Mode=Shortcut` と `Target` 等を設定する。
-
-### 20.4 Backspace
-
-外付けテンキーのBackspaceは通常キーボードの `Backspace` と入力上区別できないため、標準Configでは `Mode=Disabled` とする。
-
-DisabledではController Hotkeyを登録せず、ネイティブBackspace入力を維持する。
-
-明示的にWindow / Shortcutへ変更した場合は、通常キーボードBackspaceも同じActionを発火するため起動時Warningを表示する。
-
-### 20.5 Reserved Global Combination
-
-`Ctrl + NumpadEnter` はAuto Bind All、`Ctrl + Shift + NumpadEnter` はClear Allとして予約する。
-
-NumpadEnter単押しはConfig対象のままとし、通常Keyboard Enter (`SC01C`) は対象外。
-NumLockはController Actionとして使用しない。
-
-### 20.6 設定変更
-
-INIを編集した後はスクリプトを再起動する。
-
-Hot Reloadは行わない。
-
----
-
-## 21. 設定検証
-
-起動時にINIを検証する。
-
-Fatal Errorとしてスクリプトを終了する条件:
-
-- Configファイル不存在
-- ConfigVersion不正
-- 未知 / 不足 / 重複Key Section
-- 未知 / 重複Field
-- 不正なMode
-- 必須設定不足
-- ModeとFieldの組み合わせ違反
-- Chrome / VS Code専用SlotのAllowed条件不整合
-- 1 / 2 / 3の必須Allowed条件不足
-- Numpad0 / Virtual000のMode制約違反
-- Shortcut Target解決失敗 / 不存在
-- Shortcut WorkingDirectory不存在
-
-理由:
-
-部分的に壊れた設定で常駐するより、起動時に明確に修正させる方が初期版では安全である。
-
-エラーはMsgBox等で:
-
-- Section
-- Field
-- Error reason
-
-を表示する。
-
----
-
-## 22. 起動処理
-
-詳細は `docs/PHASE_E_SPEC.md` を正とする。
-
-スクリプト起動時:
-
-1. Single Instanceを保証。
-2. Built-in Metadataを生成。
-3. INIをRaw Read。
-4. 設定検証。
-5. Config / Key Definitionを生成。
-6. 起動時NumLock状態を保存しOnExitを登録。
-7. NumLockをONへ設定。
-8. Runtime Stateを初期化。
-9. Numpad0 / Virtual000入力判定器を初期化。
-10. Hotkeyを登録。
-11. Auto Bind Allを1回実行。
-12. 常駐開始。
-
-Config Fatal Error時はNumLockやHotkeyを変更する前に終了する。
-
-Chrome / VS Code等がまだ起動していなくてもエラーにはしない。
-
-後からWindowが起動した場合はLazy Auto BindまたはCtrl + NumpadEnterで取得する。
-
----
-
-## 23. Window列挙対象
-
-MVPでAuto Bind対象にするWindowは:
-
-- 可視トップレベルWindow
-- 対象Process / Class条件に一致
-- Tool Window等の補助Windowではない
-- HWNDが有効
-
-とする。
-
-次は候補から除外する。
-
-- 本スクリプト自身のWindow
-- 非表示Window
-- デスクトップShell
-- タスクバー
-- 明らかな補助・ポップアップWindow
-
-具体的なClass除外値は実装時に実機確認して確定する。
-
----
-
-## 24. 通知
-
-常設GUIは作らない。
-
-短時間ToolTipを使用する。
-
-通知対象:
-
-- Manual Bind成功
-- Manual Bind拒否
-- Slot Clear
-- Clear All
-- Auto Bind All完了
-- Slot未登録
-- Auto Bind失敗
-- Shortcut実行失敗
-
-通常のWindow Activate成功時は通知しない。
-
-日常操作で毎回通知が出ないようにする。
-
----
-
-## 25. ファイル構成
-
-詳細実装設計は `docs/PHASE_E_SPEC.md` を正とする。
-
-MVPは過剰に分割しない。
+v0.1.0の主要構成:
 
 ```text
 NumpadWindowController/
+├─ .gitattributes
+├─ .gitignore
+├─ LICENSE
+├─ SECURITY.md
+├─ CONTRIBUTING.md
 ├─ NumpadWindowController.ahk
 ├─ KeyBindings.ini
 ├─ README.md
 ├─ TASKS.md
 ├─ PROJECT_HANDOFF.md
-└─ docs/
-   ├─ DESIGN_DRAFT.md
-   └─ MVP_DESIGN.md
+├─ examples/
+│  └─ KeyBindings.example.ini
+├─ docs/
+│  ├─ MVP_DESIGN.md
+│  ├─ DESIGN_DRAFT.md
+│  ├─ KNOWN_LIMITATIONS.md
+│  ├─ PUBLIC_RELEASE_AUDIT.md
+│  ├─ PHASE_A_SPEC.md
+│  ├─ PHASE_B_POC.md
+│  ├─ PHASE_B_RESULT.md
+│  ├─ PHASE_C_SPEC.md
+│  ├─ PHASE_D_SPEC.md
+│  ├─ PHASE_E_SPEC.md
+│  ├─ PHASE_F_RESULT.md
+│  ├─ PHASE_G_TEST.md
+│  ├─ PHASE_G_RESULT.md
+│  ├─ PHASE_H_RESULT.md
+│  └─ PHASE_I_RESULT.md
+├─ poc/
+└─ tests/
 ```
 
-初期実装は `NumpadWindowController.ahk` 1ファイルにまとめ、Config / Runtime / Input / Window Probe / Auto Bind / Actions / Notification / DebugをコメントSectionと関数Prefixで分離する。
-
-理由:
-
-- MVP規模では追跡しやすい。
-- AHK include構成を早期に複雑化しない。
-- 実装が安定してから責務分割できる。
-
-目安として、コード量または責務が増えた段階で `lib/` 分割を検討する。
+本体は単一AHKファイルとし、v0.1.0では `lib/` 分割しない。
 
 ---
 
-## 26. Runtime State
+## 4. キーMode
 
-スクリプト内部では少なくとも次を保持する。
+Configurationで設定できるModeは3種類。
 
-### 26.1 Key Definition
+| Mode | 意味 |
+|---|---|
+| Window | Window Binding / Activate |
+| Shortcut | Targetを実行 |
+| Disabled | Controllerで管理せずネイティブ入力を通す |
 
-- Key Name
+`Function` Modeは採用しない。
+
+NumLockはConfiguration対象外。
+
+---
+
+## 5. 既定キー配置
+
+| キー | 既定用途 | Auto Bind |
+|---|---|---|
+| 7 | Chrome 1 | ON |
+| 8 | Chrome 2 | ON |
+| 9 | Chrome 3 | ON |
+| 4 | VS Code 1 | ON |
+| 5 | VS Code 2 | ON |
+| 6 | VS Code 3 | ON |
+| 1 | Explorer | ON |
+| 2 | ChatGPT Desktop | ON |
+| 3 | PowerShell 7 | ON |
+| / | 任意 | OFF |
+| * | 任意 | OFF |
+| - | 任意 | OFF |
+| + | 任意 | OFF |
+| Backspace | Disabled | OFF |
+| 0 | 任意 | OFF |
+| 000 | Virtual000 / 任意 | OFF |
+| . | 任意 | OFF |
+| Enter | 任意 | OFF |
+| NumLock | Controller未使用 | - |
+
+Enterは物理的に縦2行へまたがるが、論理上は1つの `NumpadEnter` とする。
+
+---
+
+## 6. 操作体系
+
+Window Mode:
+
+| 操作 | 動作 |
+|---|---|
+| Key | Binding済みWindowをActivate。必要ならLazy Auto Bind |
+| Ctrl + Key | Active WindowをManual Bind |
+| Ctrl + Shift + Key | Slot Clear |
+| Ctrl + Alt + Key | 個別Slot / Group Auto Bind |
+
+Global Action:
+
+| 操作 | 動作 |
+|---|---|
+| Ctrl + NumpadEnter | Auto Bind All |
+| Ctrl + Shift + NumpadEnter | Clear All |
+
+NumpadEnterのGlobal ActionはWindow ModeのGeneric Manual Bind / Slot Clearより優先する。
+
+Standard Enter=`SC01C`、NumpadEnter=`SC11C` として分離する。
+
+Shortcut Modeでは通常押下だけをController Hotkeyとして登録する。
+
+Disabled ModeではController Hotkeyを登録しない。
+
+---
+
+## 7. Runtime State
+
+Runtime Stateの入口は1つのApp Stateへ集約する。
+
+概念:
+
+```text
+App
+├─ Config
+├─ Keys
+├─ Slots
+├─ OriginalNumLock
+├─ ZeroDetector
+└─ Debug
+```
+
+Runtime Bindingの正本は `App.Slots`。
+
+Slot State:
+
+```text
+Hwnd
+BindingSource = Manual / Auto / None
+```
+
+HWNDは永続Configurationへ保存しない。
+
+Script再起動時は新しいRuntime Bindingを作る。
+
+Window metadataは必要時に都度取得し、長期キャッシュしない。
+
+---
+
+## 8. Window識別
+
+共通の新規候補Filterでは、概ね次の条件を使う。
+
+- Visible
+- Cloakedではない
+- Ownerなし
+- ToolWindowではない
+- Width / Height > 0
+- Titleあり
+
+既存BindingのValidity判定と、新規Candidate Eligibilityは分けて扱う。
+
+既存BindingはHWNDが存在し、SlotのAllowed条件を満たす限り維持する。
+
+---
+
+## 9. 専用Slot
+
+### 9.1 Chrome 7 / 8 / 9
+
+標準Allowed条件:
+
+```ini
+AllowedProcess=chrome.exe
+```
+
+新規Auto Bind:
+
+- Primary Monitor上だけ対象
+- Normal Windowだけ対象
+- 座標とサイズで左上 / 左下 / 右大へ分類
+- 7=左上
+- 8=左下
+- 9=右大
+- 同一分類に複数候補がある場合はIdeal Rectangle Scoreで選択
+
+既存Binding済みChromeは移動・Minimize・Maximize後も、HWNDとAllowed条件が有効なら維持する。
+
+### 9.2 VS Code 4 / 5 / 6
+
+標準Allowed条件:
+
+```ini
+AllowedProcess=Code.exe
+```
+
+新規Auto Bind:
+
+- 未使用 `Code.exe` Windowを取得
+- `WinGetList` の逆順を使用
+- 空きSlot 4→5→6へ補充
+
+真のOpen順は保証しない。
+
+### 9.3 Explorer 1
+
+```ini
+AllowedProcess=explorer.exe
+AllowedClass=CabinetWClass
+```
+
+### 9.4 ChatGPT Desktop 2
+
+```ini
+AllowedProcess=ChatGPT.exe
+```
+
+### 9.5 PowerShell 7 3
+
+```ini
+AllowedProcess=WindowsTerminal.exe
+AllowedClass=CASCADIA_HOSTING_WINDOW_CLASS
+AllowedTitleContains=PowerShell 7
+```
+
+複数候補がある場合は非Minimizedを優先し、同条件ならZ-orderが前のWindowを使用する。
+
+---
+
+## 10. Manual Bind
+
+`Ctrl + Key` でActive WindowをWindow Mode Slotへ登録する。
+
+必須条件:
+
+- Window Mode
+- Allowed条件を満たす
+- `1 HWND : 1 Slot`
+
+同一HWNDが別Slotに存在する場合、Manual Bind先を正とし旧SlotをNoneへする。
+
+Allowed違反時は既存Bindingを変更しない。
+
+Manual BindingはAuto Bindingより優先する。
+
+---
+
+## 11. Auto Bind
+
+Auto Bindは全Windowを空きキーへ自動配分する機能ではない。
+
+対象は専用Slot 1～9だけ。
+
+Auto Bind Allの処理:
+
+1. Runtime StateをWorking Stateへコピー
+2. 既存BindingのValidityを検証
+3. 無効BindingをNoneへ変更
+4. 有効BindingのHWNDをUsed HWND Setへ登録
+5. Chrome Groupを補充
+6. VS Code Groupを補充
+7. Explorerを補充
+8. ChatGPTを補充
+9. PowerShellを補充
+10. `1 HWND : 1 Slot` を最終検証
+11. Runtime StateへCommit
+
+有効なManual / Auto Bindingは再ソートしない。
+
+候補不足はNoneを維持する。
+
+候補過多は余剰候補を無視する。
+
+4つ目以降のChrome / VS Codeを任意Slotへ自動転送しない。
+
+一般Window Auto Bindは実装しない。
+
+---
+
+## 12. Lazy Auto Bind
+
+専用Slotの通常押下時に次の状態ならLazy Auto Bindを試行する。
+
+- Binding=None
+- HWND消滅
+- Allowed条件違反
+
+Chrome / VS CodeはGroup単位で空Slotを補充する。
+
+1 / 2 / 3は対象Slotだけ補充する。
+
+任意Slot、Shortcut、DisabledではLazy Auto Bindしない。
+
+失敗時はNoneのまま通知し、Background Retryはしない。
+
+---
+
+## 13. Clear
+
+Slot Clear:
+
+```text
+Ctrl + Shift + Key
+```
+
+対象SlotのRuntime Bindingのみ解除する。
+
+Clear All:
+
+```text
+Ctrl + Shift + NumpadEnter
+```
+
+全Runtime BindingをNoneへする。
+
+Configurationは変更しない。
+
+Clear直後は即時Auto Bindしない。
+
+完全な再構築は:
+
+```text
+Ctrl + Shift + NumpadEnter
+Ctrl + NumpadEnter
+```
+
+の順で行う。
+
+---
+
+## 14. Shortcut
+
+Shortcut Modeで許可するTarget:
+
+- `.exe`
+- `.bat`
+- `.cmd`
+- `.lnk`
+
+Field:
+
+- `Mode`
+- `Label`
+- `Target`
+- `Arguments`
+- `WorkingDirectory`
+
+Targetは起動時に解決・存在確認する。
+
+Shortcutは押下ごとにTargetをRunし、既存Window Activateへ置き換えない。
+
+Runtime実行失敗時は通知してController本体を継続する。
+
+`.ps1` をTargetへ直接指定しない。
+
+PowerShell Scriptは:
+
+```ini
+Target=pwsh.exe
+Arguments=-File "C:\Scripts\Example.ps1"
+```
+
+を使用する。
+
+---
+
+## 15. Configuration
+
+`KeyBindings.ini` は本体と同じDirectoryに配置する。
+
+正規Encoding:
+
+```text
+UTF-16 LE with BOM
+```
+
+必須:
+
+```ini
+[General]
+ConfigVersion=1
+```
+
+Canonicalな18 Key Sectionをすべて1回ずつ記述する。
+
+Config変更はScript再起動で反映する。
+
+Hot Reloadは実装しない。
+
+AutoBind / AutoBindGroup / AutoBindOrderはConfigurationへ保存せず、コード側Built-in Metadataとする。
+
+起動時に次をValidationする。
+
+- Encoding
+- ConfigVersion
+- Section不足 / 未知 / 重複
+- Field不足 / 未知 / 重複
 - Mode
-- Label
-- Allowed Process
-- Allowed Class
-- AutoBind
-- AutoBindGroup
-- Shortcut settings
+- Mode別Field
+- 専用Slot Allowed条件
+- Shortcut Target / WorkingDirectory
+- Numpad0 / Virtual000整合
 
-### 26.2 Window Binding
-
-- HWND
-- BindingSource
-
-### 26.3 Used HWND Set
-
-Auto Bind時の重複を防ぐため、現在Binding済みHWND集合を保持する。
-
-### 26.4 Numpad0 / Virtual000 Detector
-
-- 判定開始Tick
-- D/Uイベント列
-- 判定中Modifier State
-- 80ms判定Timer
-- 判定中断状態
-
-を保持し、物理 `Numpad0` 入力を `Numpad0` または `Virtual000` へ正規化する。
+Fatal Configuration Error時は常駐開始しない。
 
 ---
 
-## 27. エラー処理
+## 16. Backspace
 
-Windowが閉じること自体は正常系として扱う。
+外付けテンキーBackspaceは:
 
-Window消滅:
+```text
+VK 08
+SC 00E
+AHK Backspace
+```
 
-- エラー表示しない。
-- Runtime Bindingを無効扱い。
-- 必要時にLazy Auto Bind。
+であり、通常Keyboard Backspaceと区別できない。
 
-設定不正:
+そのため標準Configは:
 
-- 起動失敗。
+```ini
+[Key-Backspace]
+Mode=Disabled
+Label=Backspace
+```
 
-Shortcut起動失敗:
+とする。
 
-- ToolTipまたはMsgBoxで通知。
-- スクリプト自体は継続。
-
-Window Activate失敗:
-
-- ToolTip。
-- Slotを即削除せず、HWND有効性を再確認。
-- HWND無効ならBinding解除。
-
----
-
-## 28. MVP受入条件
-
-以下がすべて満たされた時点で「最低限動作する」と判定する。
-
-### Chrome
-
-- Numpad7 → 左上Chrome
-- Numpad8 → 左下Chrome
-- Numpad9 → 右大Chrome
-- Chrome再起動後、Ctrl + NumpadEnterまたはLazy Auto Bindで復旧可能
-
-### VS Code
-
-- Numpad4 / 5 / 6で3Windowを個別切替可能
-- 初期自動順が意図と違う場合、Ctrl+4/5/6で補正可能
-- Manual BindがAuto Bind Allで維持される
-
-### その他固定Slot
-
-- Numpad1 → Explorer
-- Numpad2 → ChatGPT Desktop
-- Numpad3 → PowerShell系Terminal
-
-### 任意Slot
-
-- `/ * - + Backspace 0 000 . Enter` に任意WindowをManual Bind可能
-- INIでShortcutへ変更可能
-
-### Global操作
-
-- Ctrl+NumpadEnter → Auto Bind All
-- Ctrl+Shift+NumpadEnter → Clear All
-- Ctrl+Key → Manual Bind
-- Ctrl+Shift+Key → Slot Clear
-
-### Virtual000
-
-- 通常の `0` と物理 `000` を誤認識なく区別できる
-- `000` 1回が `Virtual000` 1回として処理される
-- `000` によって `Numpad0` のWindow処理が3回実行されない
-- `Virtual000` をWindowまたはShortcutとして設定できる
-
-### Shortcut
-
-- EXEまたはBAT/CMDを実行可能
-- Shortcut ModeのKeyへWindow Bindingされない
+BackspaceをWindow / Shortcutへ変更した場合、通常Keyboard側Backspaceも同じController Actionを発火するため、起動時Warningを表示する。
 
 ---
 
-## 29. MVP Known Limitations
+## 17. Numpad0 / Virtual000
 
-1. 外付けテンキーと通常キーボードの同一テンキーキーを区別しない。
-2. NumLockはスクリプト実行中ON固定。
-3. 通常の `Numpad0` は `Virtual000` 判定のため最大約80msの入力確定待ち時間を持つ。
-4. Chrome座標判定はPrimary Monitor Work Areaを基準とする。
-5. 複雑なマルチモニター配置は対象外。
-6. VS Codeの真のOpen順は保証せず、Auto Bind時の逆列挙順を簡易な割り当て規則として使用する。
-8. 4つ目以降のChrome / VS Codeは自動割り当てしない。
-9. Auto Bindをゼロから行う時、Minimized / Maximized Chromeは座標分類しない。
-10. Windows Terminal内部のpwshタブを完全には識別しない。
-11. 設定変更にはスクリプト再起動が必要。
-12. GUI設定画面はない。
-13. Runtime Bindingはスクリプト終了時に失われる。
+物理000キーは独立VK/SCではなく、Numpad0 `SC052` のDown/Upを3回高速送信する。
 
----
+Detectorは最初のDownから80ms以内の:
 
-## 30. MVP後に検討する機能
+```text
+D-U-D-U-D-U
+```
 
-MVPの実機運用後、必要性が確認できたものだけ追加する。
+を `Virtual000` とする。
 
-候補:
+同一Modifier状態の再DownはInterrupt対象外。
 
-- Virtual000判定閾値のユーザー設定化
-- 外付けテンキーのデバイス単位識別
-- Multi Monitor対応
-- VS Code順序復元の高度化
-- 4つ目以降のChrome / VS Code一般Auto Bind
-- Runtime Binding永続化
-- GUI設定画面
-- Hot Reload
-- Tray Menu
-- Debug Log
-- Window一覧表示
-- Key Label表示
-- AutoHotInterception採用
+その他の新規Interruptは通常Numpad0へフォールバックする。
+
+通常Numpad0もDetectorを通るため最大約80msの確定待ちがある。
+
+`Numpad0=Disabled` の場合は `Virtual000=Disabled` も必須。
+
+両方Disabledの場合はZero Detectorを登録しない。
 
 ---
 
-## 31. 実装開始前のレビュー項目
+## 18. NumLock
 
-Phase Aに属する以下は採用済み仕様とする。
+外付けテンキーの物理NumLockは実機PoCでAutoHotkey InputHook / Windows Raw Inputの双方にEventを送らなかった。
 
-1. **採用済み:** Ctrl+NumpadEnter = Auto Bind All。
-2. **採用済み:** 実行中はNumLockをON固定し、正常終了時に起動前状態へ戻す。
-3. **採用済み:** Ctrl+Shift+NumpadEnter = Clear All。
-4. **採用済み:** 任意キーは標準でWindow / AutoBind=OFF。
-5. **採用済み:** Manual BindをAuto Bindより常に優先。
-6. **採用済み:** 1/2/3をExplorer / ChatGPT Desktop / PowerShell系Terminal専用Slotとする。
-7. **採用済み:** 1 HWND : 1 Slot。
-8. **採用済み:** Ctrl+Alt+Key = 個別Auto Bind。
-9. **採用済み:** 000は `Virtual000` として正式採用し、Numpad0には最大約80msの判定遅延を許容する。
+そのためController Actionには使用しない。
 
-引き続きレビュー対象:
+Windows側NumLock状態は:
 
-10. Chrome判定をPrimary Monitor座標方式にする。
-11. VS CodeはAuto Bind時の逆列挙順を簡易割り当て規則とし、必要時のみManual補正とする。
-12. 4つ目以降のChrome / VS CodeをMVPでは手動割り当てにする。
-13. INI設定＋スクリプト再起動方式とする。
-14. 初期実装を単一AHKファイルにする。
+1. Config Validation後に起動前状態を保存
+2. 実行中はON固定
+3. 正常終了時に起動前状態へ復元
 
-Phase B以降の技術検証結果に問題があれば該当項目を改訂する。
+する。
+
+強制Process Kill等でOnExitが実行されない場合の復元は保証しない。
+
+---
+
+## 19. Startup
+
+起動順:
+
+1. Directives / Constants
+2. Built-in Metadata
+3. Config Raw Read
+4. Config Validation
+5. Config Object生成
+6. 起動前NumLock保存
+7. OnExit登録
+8. NumLock ON
+9. Runtime State初期化
+10. Zero Detector初期化
+11. Hotkey登録
+12. Auto Bind All
+13. 常駐
+
+Config Validation完了前にNumLockやHotkeyなどの外部状態を変更しない。
+
+---
+
+## 20. Shutdown
+
+正常終了:
+
+1. Timer停止
+2. InputHook停止
+3. ToolTip消去
+4. NumLock復元
+5. 終了
+
+---
+
+## 21. Logging / Diagnostics
+
+通常利用では永続Logを生成しない。
+
+Debugをコード内定数で明示有効化した場合のみ:
+
+```text
+logs/NumpadWindowController_<timestamp>.log
+```
+
+へ記録する。
+
+全Key Down/Upを通常時に常時保存しない。
+
+Auto Bind後のSlot Snapshotを診断出力できる。
+
+Debug File I/O失敗はController本体へ波及させない。
+
+---
+
+## 22. 検証
+
+### Phase F
+
+本体実装、自動試験、実機Smoke Test、入力系Regressionを完了。
+
+Phase F固有の未解決事項なし。
+
+### Phase G
+
+G-1～G-8:
+
+```text
+65 / 65 PASS
+```
+
+FAIL / BLOCKEDなし。
+
+### Phase H
+
+H-1 / H-2:
+
+```text
+16 / 16 PASS
+```
+
+通常利用で追加操作なしに主要Windowへ安定して移動できる受入条件を満たした。
+
+---
+
+## 23. Known Limitations
+
+現行制限は [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) を正とする。
+
+主な制限:
+
+- Chrome新規Auto BindはPrimary Monitor固定
+- Minimized / Maximized Chromeは新規座標分類しない
+- VS Code真のOpen順は保証しない
+- 4つ目以降のChrome / VS Codeは自動割り当てしない
+- 任意SlotはManual専用
+- HWNDは永続化しない
+- Config Hot Reloadなし
+- Backspaceは通常Keyboardと区別不可
+- デバイス単位入力識別なし
+
+---
+
+## 24. MVPで実装しないもの
+
+- 常設GUI
+- Config編集GUI
+- Config Hot Reload
+- 一般Window Auto Bind
+- Background Retry
+- HWND永続化
+- VS Code真のOpen順監視
+- Secondary Monitor Chrome Auto Bind
+- デバイス単位入力識別
+- 汎用Plugin / Rule Engine
+- `lib/` 分割
+
+---
+
+## 25. 詳細仕様
+
+- [Phase A仕様](PHASE_A_SPEC.md)
+- [Phase B PoC手順](PHASE_B_POC.md)
+- [Phase B結果](PHASE_B_RESULT.md)
+- [Phase C仕様](PHASE_C_SPEC.md)
+- [Phase D Configuration仕様](PHASE_D_SPEC.md)
+- [Phase E実装設計](PHASE_E_SPEC.md)
+- [Phase F実装・検証結果](PHASE_F_RESULT.md)
+- [Phase Gテスト手順](PHASE_G_TEST.md)
+- [Phase Gテスト結果](PHASE_G_RESULT.md)
+- [Phase H実機受入試験結果](PHASE_H_RESULT.md)
+- [Known Limitations](KNOWN_LIMITATIONS.md)
+
+旧暫定設計は [DESIGN_DRAFT.md](DESIGN_DRAFT.md) に最終結果を反映したうえで、設計確定までの経緯記録として保持する。
