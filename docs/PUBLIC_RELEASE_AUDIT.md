@@ -1,8 +1,8 @@
 # Public Release Audit
 
 更新日: 2026-09-28  
-対象: NumpadWindowController v0.1.0  
-状態: **Public release preparation complete**
+対象: NumpadWindowController v0.1.0 initial audit + v0.2.0 delta audit  
+状態: **Public repository / v0.2.0 delta audit complete**
 
 ## 1. 監査範囲
 
@@ -65,23 +65,57 @@ Debug Logを有効化した場合はWindow title等のローカル情報を含�
 - UTF-16 Configurationを保護する `.gitattributes`
 - READMEのPrivacy / Security / License説明
 
-## 5. GitHubで公開時に確認する設定
+## 5. 現在の公開状態
 
-RepositoryをPublicへ切り替えた後、GitHub Settingsで次を確認する。
+- Repository Visibility: **Public**
+- Default branch: `main`
+- 公開済みTag / Release: `v0.1.0`
+- 現在のmain対象Version: `v0.2.0`
+- `v0.2.0` Tag / Release: 未作成
 
-- Secret scanning
-  - Public repositoryではGitHubのSecret scanningが自動的に利用される
+GitHub Settingsでは引き続き次を確認対象とする。
+
+- Secret scanning alert
 - Private vulnerability reporting
-  - Security reporting用に有効化を推奨
-- Dependabot alerts
-  - 将来Dependencyを導入する場合に有効化を推奨
-- Default branch
-  - `main`
-- Tag / Release
-  - 初回公開Releaseを作る場合は `v0.1.0`
+- 将来Dependencyを導入した場合のDependabot alerts
 
 ## 6. 注意
 
 静的パターン確認は、あらゆる種類の秘密情報を数学的に保証して検出するものではない。
 
-公開直前にはGitHub側のSecret scanning結果も確認し、今後も個人情報や秘密情報をcommitしない運用を継続する。
+公開後もGitHub側のSecret scanning alertを確認し、今後も個人情報や秘密情報をcommitしない運用を継続する。
+
+
+---
+
+## 7. v0.2.0差分監査
+
+v0.1.0公開後に追加されたログオン時自動起動関連を再監査した。
+
+対象:
+
+- `scripts/install-startup-task.ps1`
+- `scripts/uninstall-startup-task.ps1`
+- `tests/StartupTask.Tests.ps1`
+- `docs/STARTUP_TASK_TEST.md`
+- v0.2.0向けに更新したREADME / TASKS / PROJECT_HANDOFF / CHANGELOG
+
+確認した代表的パターン:
+
+- 実ユーザー固有の `C:\Users\...\` Path
+- 実Email Address
+- GitHub / OpenAI / AWS形式のCredential
+- Private Key header
+- Webhook URL
+
+結果:
+
+**検出なし**
+
+Startup Scriptは実行時にWindows IdentityとEnvironmentから現在ユーザー・Program Files等を取得するが、Repositoryへ個人情報をhard-codeしていない。
+
+AutoHotkey v2の例示Path `C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe` は一般的なSystem/Application Pathであり、ユーザー固有情報ではない。
+
+追加Commitのauthor / committer emailもGitHub noreply形式である。
+
+Startup ScriptにHTTP通信、Telemetry、Analytics送信処理はない。
