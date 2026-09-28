@@ -2,57 +2,41 @@
 
 更新日: 2026-09-28  
 対象: NumpadWindowController  
-状態: **Phase I完了 / Public release preparation完了 / MVP v0.1.0 Release Ready**
+状態: **v0.2.0 main / ログオン時自動起動統合済み**
 
 ## 現在地点
 
-Phase A～Iまで完了。
+Phase A～IのMVP工程は完了している。
 
-- Phase F: 実装・自動試験・実機Regression完了
-- Phase G: 65 / 65 PASS
-- Phase H: 16 / 16 PASS
-- Phase I: 初期版完成処理完了
-- 現行バージョン: **v0.1.0**
-- リリース判定: **Release Ready**
-- FAIL / BLOCKED: なし
+現在のVersion / Release関係:
 
-GitHub Tag / Releaseはまだ作成していない。
+- Repository: **Public**
+- 最新の公開Release: **v0.1.0**
+- 現在の `main`: **v0.2.0**
+- `v0.2.0` Tag / Release: 未作成
+- License: MIT
 
-LICENSEは **MIT License** を採用し、`LICENSE` を追加済み。著作権者表記は公開済みGitHub username `tabenishi02` を使用する。
+公開済み `v0.1.0` Tagは自動起動機能追加前のCommitを指す。現在の `main` はその後にWindows Task Schedulerによるログオン時自動起動を追加しているため、内容は同一ではない。
 
----
-
-## 現在の主要成果物
+## 主要成果物
 
 - `NumpadWindowController.ahk`: AutoHotkey v2本体
-- `KeyBindings.ini`: 標準Config / UTF-16 LE BOM / ConfigVersion=1
-- `examples/KeyBindings.example.ini`: 配布用サンプルConfig / UTF-16 LE BOM
-- `README.md`: インストール・操作・設定例・Release Status
-- `docs/MVP_DESIGN.md`: v0.1.0正式MVP設計
-- `docs/DESIGN_DRAFT.md`: 旧Draftファイル名を維持した設計確定記録
-- `docs/KNOWN_LIMITATIONS.md`: 現行Known Limitations集約
-- `docs/PHASE_F_RESULT.md`: Phase F検証結果
-- `docs/PHASE_G_RESULT.md`: Phase G機能テスト結果
-- `docs/PHASE_H_RESULT.md`: Phase H実機受入試験結果
-- `docs/PHASE_I_RESULT.md`: 初期版完成処理結果
-- `TASKS.md`: Phase A～I完了状態
-- `tests/PhaseF.Tests.ahk`: 自動テスト
-- `tests/Run-PhaseFTests.ps1`: テスト実行入口
+- `KeyBindings.ini`: 標準Config / UTF-16 LE BOM
+- `examples/KeyBindings.example.ini`: 配布用Config例
+- `scripts/install-startup-task.ps1`: ログオン時自動起動Taskの登録・更新
+- `scripts/uninstall-startup-task.ps1`: 自動起動Taskの解除
+- `tests/PhaseF.Tests.ahk`: Controller自動テスト
+- `tests/Run-PhaseFTests.ps1`: Controllerテスト実行入口
+- `tests/StartupTask.Tests.ps1`: Task Scheduler自動起動テスト
+- `docs/STARTUP_TASK_TEST.md`: 自動起動試験結果
+- `docs/MVP_DESIGN.md`: 現行v0.2.0設計
+- `docs/KNOWN_LIMITATIONS.md`: 現行制限
+- `CHANGELOG.md`: Version差分
+- `README.md`: 利用者向け導入・操作・自動起動手順
 
----
+## Controller Core
 
-## v0.1.0の操作
-
-| 操作 | 動作 |
-|---|---|
-| Key | Window Activate / Shortcut起動 |
-| Ctrl + Key | Manual Bind |
-| Ctrl + Shift + Key | Slot Clear |
-| Ctrl + Alt + Key | Group / Slot Auto Bind |
-| Ctrl + NumpadEnter | Auto Bind All |
-| Ctrl + Shift + NumpadEnter | Clear All |
-
-専用Slot:
+既定Slot:
 
 - 7 / 8 / 9 = Chrome
 - 4 / 5 / 6 = VS Code
@@ -60,101 +44,106 @@ LICENSEは **MIT License** を採用し、`LICENSE` を追加済み。著作権�
 - 2 = ChatGPT Desktop
 - 3 = PowerShell 7用Windows Terminal
 
-任意Slotは一般Window Auto Bindを行わずManual専用。
+操作:
 
-Backspaceは標準Disabled。
+| 操作 | 動作 |
+|---|---|
+| Key | Window Activate / Shortcut |
+| Ctrl + Key | Manual Bind |
+| Ctrl + Shift + Key | Slot Clear |
+| Ctrl + Alt + Key | Group / Slot Auto Bind |
+| Ctrl + NumpadEnter | Auto Bind All |
+| Ctrl + Shift + NumpadEnter | Clear All |
 
----
+任意Slotは一般Window Auto Bindを行わずManual専用。Backspaceは標準Disabled。
 
-## Auto Bind要点
+Auto Bindは有効なManual / Auto Bindingを維持し、無効BindingだけNoneへ落として専用Slotの欠損を補修する。
 
-Auto Bindは専用Slot 1～9の欠損補修。
+## 0 / 000 / NumLock
 
-有効なManual / Auto Bindingは維持し、無効BindingだけNoneへ落として空Slotを補充する。
-
-完全再構築:
-
-```text
-Ctrl + Shift + NumpadEnter
-Ctrl + NumpadEnter
-```
-
-Chrome:
-
-- Primary Monitor
-- 新規分類はNormal Window
-- 左上=7 / 左下=8 / 右大=9
-
-VS Code:
-
-- 未使用 `Code.exe` 候補
-- `WinGetList` 逆順
-- 空き4→5→6
-
-4つ目以降のChrome / VS Codeは自動割り当てしない。
-
----
-
-## Configuration要点
-
-`KeyBindings.ini`:
-
-- Scriptと同じDirectory
-- UTF-16 LE BOM
-- ConfigVersion=1
-- Canonical 18 Key Section必須
-- Mode = Window / Shortcut / Disabled
-- Config Hot Reloadなし
-
-専用SlotのAuto Bind属性はコード側Built-in Metadataへ固定。
-
-Shortcut:
-
-- exe / bat / cmd / lnk
-- Arguments対応
-- WorkingDirectory対応
-- ps1直接Targetは禁止
-- PowerShell Scriptは `pwsh.exe -File ...`
-
----
-
-## 入力系要点
-
-### NumpadEnter
-
-Standard Enter=`SC01C`、NumpadEnter=`SC11C`。
-
-Global ActionはNumpadEnterだけを対象にする。
-
-### 0 / 000
-
-物理000はSC052のD-U×3。
+物理000はNumpad0 `SC052` のD-U×3として届く。
 
 最初のDownから80ms以内の `D-U-D-U-D-U` を `Virtual000` とする。
 
-同一Modifier状態の再DownはInterrupt対象外。
-
-### NumLock
-
-対象実機の物理NumLockはAHK InputHook / Raw Input双方でEventなし。
-
-Controller Actionには使用しない。
+対象実機の物理NumLockはAHK InputHook / Raw Input双方でEventなし。Controller Actionには使用しない。
 
 Windows側NumLockは:
 
-- Config Validation後に元状態保存
-- 実行中ON固定
-- 正常終了時復元
+1. Config Validation後に起動前状態保存
+2. 実行中ON固定
+3. 正常終了時に復元
 
----
+強制終了時の復元は保証しない。
+
+## ログオン時自動起動
+
+正式方式はWindows Task Scheduler。
+
+登録:
+
+```powershell
+.\scripts\install-startup-task.ps1
+```
+
+明示的なAutoHotkey v2 Path:
+
+```powershell
+.\scripts\install-startup-task.ps1 -AutoHotkeyPath 'C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe'
+```
+
+任意Delay:
+
+```powershell
+.\scripts\install-startup-task.ps1 -DelaySeconds 30
+```
+
+解除:
+
+```powershell
+.\scripts\uninstall-startup-task.ps1
+```
+
+Task仕様:
+
+- Task Name: `NumpadWindowController-Logon`
+- Current user Logon Trigger
+- InteractiveToken
+- Least privilege / 通常権限
+- Working Directory = Repository Root
+- MultipleInstances = `IgnoreNew`
+- ExecutionTimeLimit = unlimited
+- 本体側は `#SingleInstance Force`
+
+RepositoryまたはAutoHotkeyのPathを変更した場合は再登録する。
+
+通常権限のControllerは、管理者権限ApplicationをWindowsの権限分離により操作できない場合がある。
+
+## 検証状況
+
+Controller:
+
+- Phase F: 完了
+- Phase G: 65 / 65 PASS
+- Phase H: 16 / 16 PASS
+- 未解決FAIL / BLOCKEDなし
+
+自動起動:
+
+- Preview / Path / Arguments: 24 assertions PASS
+- Task Scheduler Integration: 37 assertions PASS
+- Phase F Regression after startup addition: 134 assertions PASS
+- Production Task登録 / 更新 / 定義照合: PASS
+- Task Schedulerからの起動: PASS
+- 実ログオン起動: PASS
+- 自動起動後の既存機能 / Virtual000 / NumLock: PASS
+- 手動再起動・1インスタンス維持: PASS
+- Task無効化 / 削除後の非起動: PASS
 
 ## Known Limitations
 
-正本:
+正本: `docs/KNOWN_LIMITATIONS.md`
 
-`docs/KNOWN_LIMITATIONS.md`
-
-主要項目:
+主な制限:
 
 - Chrome新規Auto BindはPrimary Monitor基準
 - Minimized / Maximized Chromeは新規座標分類しない
@@ -165,87 +154,37 @@ Windows側NumLockは:
 - Config Hot Reloadなし
 - Backspaceを通常Keyboardと区別できない
 - Keyboard Device単位識別なし
-- Background Retryなし
-- 常設GUIなし
-
----
-
-## テスト
-
-基本:
-
-```powershell
-.\tests\Run-PhaseFTests.ps1
-```
-
-Desktop操作込み:
-
-```powershell
-.\tests\Run-PhaseFTests.ps1 -Desktop
-```
-
-Phase G / Hの実機結果は各Result文書を参照する。
-
----
+- Task Schedulerは現在ユーザー・通常権限で起動
+- Repository / AutoHotkey Path変更時はTask再登録が必要
 
 ## 次に読む資料
 
-初期版を理解する場合:
+利用者向け:
 
 1. `README.md`
-2. `docs/MVP_DESIGN.md`
+2. `docs/STARTUP_TASK_TEST.md`
 3. `docs/KNOWN_LIMITATIONS.md`
-4. `docs/PHASE_I_RESULT.md`
 
-実装詳細を追う場合:
+設計:
 
-1. `NumpadWindowController.ahk`
-2. `docs/PHASE_E_SPEC.md`
-3. `docs/PHASE_D_SPEC.md`
-4. `docs/PHASE_C_SPEC.md`
-5. `docs/PHASE_B_RESULT.md`
+1. `docs/MVP_DESIGN.md`
+2. `docs/DESIGN_DRAFT.md`
+3. Phase A～E仕様書
 
-試験履歴:
+検証履歴:
 
 1. `docs/PHASE_F_RESULT.md`
 2. `docs/PHASE_G_RESULT.md`
 3. `docs/PHASE_H_RESULT.md`
 4. `docs/PHASE_I_RESULT.md`
+5. `docs/STARTUP_TASK_TEST.md`
 
----
+## 次の作業
 
-## 次の任意タスク
+現在の実装内容をReleaseする場合:
 
-MVP初期版完成後の任意作業:
+1. v0.2.0として最終確認
+2. v0.2.0 Tag作成
+3. GitHub Release v0.2.0作成
 
-- GitHub Tag `v0.1.0` 作成
-- GitHub Release作成
-- Repository VisibilityをPublicへ変更
-- Public化後にPrivate vulnerability reportingを有効化
-- Public化後にSecret scanning結果を確認
-- GitHub Tag / Release `v0.1.0` 作成
-- v0.1.x bugfix
-- v0.2.0機能拡張
-
-これらはPhase I完了条件には含まれない。
-
-
----
-
-## Public release preparation
-
-2026-09-28に公開前監査と公開用ファイル整備を実施した。
-
-追加・更新:
-
-- `LICENSE`: MIT License
-- `SECURITY.md`: Security reporting policy
-- `CONTRIBUTING.md`: Contribution / secret handling rules
-- `docs/PUBLIC_RELEASE_AUDIT.md`: 公開前監査記録
-- `.gitignore`: Log / secret / local file除外を強化
-- `.gitattributes`: UTF-16 LE BOM Configを保護
-- `README.md`: Privacy / Security / Contributing / MIT Licenseを反映
-
-現行Treeの代表的な秘密情報パターン監査では、Public化を妨げる個人情報・Credentialを検出していない。
-
-Repository Visibility自体はまだPrivateのまま。Publicへ変更後、GitHub SettingsでPrivate vulnerability reportingとSecret scanning alertを確認する。
+公開済みv0.1.0 Tagを移動して現在mainへ付け替える運用は採用しない。
