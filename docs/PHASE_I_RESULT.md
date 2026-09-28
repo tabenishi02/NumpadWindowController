@@ -205,8 +205,8 @@ Phase Iはv0.1.0初期MVPを完成させた時点の履歴記録である。
 - `v0.1.0` Tag / GitHub Releaseは公開済み
 - `v0.1.0` Tagは自動起動機能追加前のCommitを指す
 - Windows Task Schedulerによるログオン時自動起動を後続実装として追加
-- 現在の `main` は **v0.2.0** を対象とする
-- `v0.2.0` Tag / GitHub Releaseは未作成
+- **v0.2.0 Tag / GitHub Releaseを公開済み**
+- v0.2.0は自動起動機能を含む現行Release
 
 v0.2.0の自動起動実装・検証については [STARTUP_TASK_TEST.md](STARTUP_TASK_TEST.md) を参照する。
 
