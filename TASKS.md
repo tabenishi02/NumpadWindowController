@@ -6,7 +6,7 @@
 
 ## 0. 現在地点
 
-**MVP v0.1.0 / Phase Iまで完了。初期リリース可能。**
+**現在のmain: v0.2.0 / Phase I完了 / ログオン時自動起動統合済み。v0.2.0 Release作成待ち。**
 
 完了済み:
 
@@ -507,7 +507,7 @@ Phase Fの自動テストで確認済みの内部ロジックも、Phase Gでは
 
 ---
 
-# Phase H - 実機受入試験 ✅ 完了 ✅ 完了
+# Phase H - 実機受入試験 ✅ 完了
 
 結果: [Phase H Result](docs/PHASE_H_RESULT.md)
 
@@ -624,19 +624,22 @@ Phase I  初期版完成処理
 
 Phase A～Iは正式完了。
 
-**MVP v0.1.0はRelease Ready。**
+公開状態:
 
-次の作業は初期版完成工程の必須タスクではない。必要に応じて次を別タスクとして実施する。
+- Repository: **Public**
+- 公開済みRelease: **v0.1.0**
+- 現在の `main`: **v0.2.0**
+- `v0.2.0` Tag / Release: 未作成
 
-- GitHub Tag `v0.1.0` の作成
-- GitHub Releaseの作成
-- Repository VisibilityをPublicへ変更
-- Public化後にPrivate vulnerability reportingを有効化
-- Public化後にGitHub Secret scanning結果を確認
-- GitHub Tag / Release `v0.1.0` の作成
-- v0.1.x不具合修正
-- v0.2.0以降の機能拡張
+`v0.1.0` は自動起動実装前のCommitを指す。現在の実装をReleaseする次の作業は `v0.2.0` のTag / GitHub Release作成とする。
 
+必要に応じた後続作業:
+
+- [ ] v0.2.0 Tag / GitHub Releaseを作成
+- [ ] Public RepositoryのPrivate vulnerability reporting設定を確認
+- [ ] GitHub Secret scanning alertを確認
+- [ ] v0.2.x bugfix
+- [ ] v0.3.0以降の機能拡張
 
 ---
 
@@ -660,11 +663,58 @@ Phase A～Iは正式完了。
 
 公開準備判定: **PASS**
 
-未実施のGitHub Repository操作:
+GitHub Repository操作:
 
-- [ ] VisibilityをPrivateからPublicへ変更
-- [ ] Public化後にPrivate vulnerability reportingを有効化
-- [ ] Public化後にSecret scanning alertを確認
-- [ ] 必要に応じてTag / Release `v0.1.0` を作成
+- [x] VisibilityをPrivateからPublicへ変更
+- [x] Tag / Release `v0.1.0` を作成
+- [ ] Private vulnerability reporting設定を確認
+- [ ] Secret scanning alertを確認
 
 監査詳細: [Public Release Audit](docs/PUBLIC_RELEASE_AUDIT.md)
+
+
+---
+
+# v0.2.0 - ログオン時自動起動統合 ✅ 実装・検証完了
+
+v0.1.0のWindow Controller機能を維持したまま、Windowsログオン時の非表示・自動起動を追加した。
+
+## 実装
+
+- [x] Windows Task Schedulerを正式な自動起動方式として採用
+- [x] 現在ユーザーのLogon Trigger
+- [x] InteractiveToken / 通常権限
+- [x] 既定Delay 0秒
+- [x] 任意Delay秒
+- [x] AutoHotkey v2自動検出
+- [x] `-AutoHotkeyPath` による明示指定
+- [x] AHK Script Path / Working Directoryの明示
+- [x] 空白を含むPathの引用
+- [x] 同名Taskの安全な登録・更新
+- [x] Task Scheduler `IgnoreNew`
+- [x] 本体 `#SingleInstance Force`
+- [x] `scripts/install-startup-task.ps1`
+- [x] `scripts/uninstall-startup-task.ps1`
+- [x] Preview / PassThru
+- [x] 未登録状態のuninstallを正常終了
+- [x] 対象外Scheduled Taskを変更しない
+
+## 検証
+
+- [x] Preview / Path / Arguments: 24 assertions PASS
+- [x] Task Scheduler Integration: 37 assertions PASS
+- [x] Phase F Regression: 134 assertions PASS
+- [x] 本番Task登録・更新・定義照合
+- [x] Task Schedulerからの起動・常駐
+- [x] 実際のサインアウト / ログオンによる自動起動
+- [x] 自動起動後のWindow操作 / Virtual000 / NumLock lifecycle
+- [x] 自動起動状態からの手動再起動で1インスタンス維持
+- [x] Task無効化 / 削除後の次回ログオン非起動
+
+詳細: [ログオン時自動起動テスト](docs/STARTUP_TASK_TEST.md)
+
+## バージョン整理
+
+- `v0.1.0`: 公開済み初回MVP。自動起動機能なし
+- `v0.2.0`: 現在の `main`。自動起動機能を含む
+- 自動起動は後方互換のある機能追加のためMinor Versionを更新
