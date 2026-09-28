@@ -2,9 +2,13 @@
 
 このプロジェクトはSemantic Versioning形式でバージョンを管理する。
 
-## [Unreleased] v0.2.0
+## [Unreleased]
 
-現在の `main` が対象とするバージョン。
+現在、次Release向けの記録なし。
+
+## v0.2.0 - 2026-09-28
+
+Windowsログオン時自動起動を追加した正式Release。
 
 ### Added
 
