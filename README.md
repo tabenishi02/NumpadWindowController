@@ -4,10 +4,13 @@ Windows 11上で一般的なテンキーを、**ウィンドウ直接切り替�
 
 同じアプリを複数Windowで使用する環境でも、個々のWindowをHWNDで区別して1キーで呼び出せます。
 
-**現在の初期版: v0.1.0**  
+**現在の開発版: v0.2.0（main）**  
+**最新の公開Release: v0.1.0**  
 **License: MIT**
 
-Phase F実装・検証、Phase G機能テスト、Phase H実機受入試験、Phase I初期版完成処理まで完了しており、v0.1.0として初期リリース可能な状態です。
+Phase A～IのMVP完成後、Windows Task Schedulerを利用したログオン時自動起動機能を追加しました。現在の `main` はこの自動起動機能を含む **v0.2.0** を対象とします。
+
+公開済み `v0.1.0` Tag / Releaseは自動起動機能追加前のCommitを指しており、現在の `main` とは内容が異なります。
 
 ---
 
@@ -24,6 +27,9 @@ Phase F実装・検証、Phase G機能テスト、Phase H実機受入試験、Ph
 - 物理000キーを論理キー `Virtual000` として利用
 - 実行中NumLock ON固定、正常終了時に元状態へ復元
 - Debug時のみ任意ログ出力
+- Windows Task Schedulerによるログオン時自動起動
+- 自動起動Taskのinstall / update / disable / uninstall
+- 自動起動の任意Delay指定
 
 ---
 
@@ -92,6 +98,66 @@ KeyBindings.ini
 タスクトレイのAutoHotkeyアイコンからExitします。
 
 正常終了時は起動前のNumLock状態へ戻します。
+
+### 6. ログオン時自動起動（推奨）
+
+通常運用ではWindows Task Schedulerを利用できます。現在ユーザーのログオン時に、対話型Desktop Session・通常権限でAutoHotkey v2を直接起動するため、PowerShellやcmdの常駐Windowは表示しません。
+
+Repository Rootで実行します。
+
+```powershell
+.\scripts\install-startup-task.ps1
+```
+
+既定Task名は `NumpadWindowController-Logon` です。同名Taskが存在する場合は現在のRepository / AutoHotkey Pathで更新します。
+
+AutoHotkey v2を自動検出できない場合:
+
+```powershell
+.\scripts\install-startup-task.ps1 -AutoHotkeyPath 'C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe'
+```
+
+ログオン後の起動を遅延させる場合:
+
+```powershell
+.\scripts\install-startup-task.ps1 -DelaySeconds 30
+```
+
+登録状態を確認:
+
+```powershell
+Get-ScheduledTask -TaskName 'NumpadWindowController-Logon' |
+    Select-Object TaskName, State, Principal, Actions, Triggers
+
+Get-ScheduledTaskInfo -TaskName 'NumpadWindowController-Logon'
+```
+
+常駐中はTaskの `State` が `Running` になります。`LastTaskResult=267009`（`0x41301`）は「Taskが現在実行中」を示す正常値です。
+
+次回ログオン時の自動起動だけ一時停止する場合:
+
+```powershell
+Disable-ScheduledTask -TaskName 'NumpadWindowController-Logon'
+Enable-ScheduledTask -TaskName 'NumpadWindowController-Logon'
+```
+
+登録を完全に解除:
+
+```powershell
+.\scripts\uninstall-startup-task.ps1
+```
+
+未登録状態でuninstallを実行しても正常終了します。他のScheduled Taskは変更しません。
+
+本体は `#SingleInstance Force`、Task Scheduler側は `IgnoreNew` を使用して多重常駐を防ぎます。自動起動Task登録後も手動起動可能です。
+
+詳細と検証結果は [ログオン時自動起動テスト](docs/STARTUP_TASK_TEST.md) を参照してください。
+
+### 自動起動の注意
+
+- Taskは通常権限で起動します。管理者権限で起動したApplicationをWindowsの権限分離により操作できない場合があります。
+- RepositoryまたはAutoHotkey v2の配置場所を変更した場合はinstall scriptを再実行してください。
+- 強制Process Kill等では既存仕様どおりNumLock復元を保証しません。
 
 ---
 
@@ -379,7 +445,7 @@ examples/KeyBindings.example.ini
 
 ## Privacy
 
-NumpadWindowController v0.1.0本体には、Telemetry、Analytics、HTTP通信などのNetwork送信処理はありません。
+NumpadWindowController v0.2.0の本体および自動起動用PowerShell Scriptには、Telemetry、Analytics、HTTP通信などのNetwork送信処理はありません。
 
 通常利用では永続Debug Logも生成しません。
 
@@ -437,12 +503,25 @@ Desktop操作を含むテスト:
 .\tests\Run-PhaseFTests.ps1 -Desktop
 ```
 
+自動起動Script:
+
+```powershell
+.\tests\StartupTask.Tests.ps1
+.\tests\StartupTask.Tests.ps1 -Integration
+```
+
+自動起動についてはPreview / Path / Arguments、Task Scheduler一時登録・検査・解除、実ログオン、自動起動後の既存機能、手動再起動、Task無効化・解除まで確認済みです。
+
 検証結果:
 
 - Phase F: 完了
 - Phase G: **65 / 65 PASS**
 - Phase H: **16 / 16 PASS**
-- Phase H由来のFAIL / BLOCKED / 修正要求なし
+- 自動起動Preview Test: **24 assertions PASS**
+- 自動起動Task Scheduler Integration: **37 assertions PASS**
+- 自動起動追加後 Phase F Regression: **134 assertions PASS**
+- 実ログオン / 自動起動後操作 / 手動再起動 / 無効化・解除: **PASS**
+- 未解決のFAIL / BLOCKEDなし
 
 ---
 
@@ -465,6 +544,8 @@ Desktop操作を含むテスト:
 - [Phase Gテスト結果](docs/PHASE_G_RESULT.md)
 - [Phase H実機受入試験結果](docs/PHASE_H_RESULT.md)
 - [Phase I初期版完成処理結果](docs/PHASE_I_RESULT.md)
+- [ログオン時自動起動テスト](docs/STARTUP_TASK_TEST.md)
+- [Changelog](CHANGELOG.md)
 - [実装タスク一覧](TASKS.md)
 - [Project Handoff](PROJECT_HANDOFF.md)
 
@@ -472,27 +553,33 @@ Desktop操作を含むテスト:
 
 ## バージョン
 
-初期版の正式バージョンは:
+現在の `main` が対象とする開発版:
+
+```text
+v0.2.0
+```
+
+最新の公開Release:
 
 ```text
 v0.1.0
 ```
 
-とする。
+`v0.1.0` は初回MVP Releaseであり、ログオン時自動起動機能は含みません。自動起動を含む現在実装は後方互換のある機能追加として `v0.2.0` に更新しました。
 
-Semantic Versioning形式を使用し、今後の互換性を伴う機能追加・修正に応じて更新する。
+Semantic Versioning形式を使用します。
 
 ---
 
 ## Release Status
 
-**v0.1.0: Release Ready / Public release preparation complete**
+Repositoryは **Public** です。
 
-Phase F～Hの完了結果と公開前監査から、現在のKnown Limitationsを受け入れたMVP初期版として公開可能な状態です。
+- `v0.1.0`: 公開済みの初回MVP Release
+- `main`: **v0.2.0** 開発版。ログオン時自動起動機能を含む
+- `v0.2.0` Tag / GitHub Release: 未作成
 
-RepositoryのVisibility変更そのものは実施していません。Publicへ切り替えた後は、GitHubのSecret scanning結果を確認し、Private vulnerability reportingを有効化することを推奨します。
-
-GitHub Tag / Releaseの作成は別操作です。初回公開Releaseを作成する場合は `v0.1.0` を使用します。
+現在の実装内容を配布する場合は、`v0.1.0` ではなく次の `v0.2.0` Releaseを使用する予定です。
 
 ---
 
