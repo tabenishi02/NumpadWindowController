@@ -4,11 +4,11 @@ Contributions are welcome.
 
 ## Development Environment
 
-The current MVP targets:
+The current main branch targets v0.2.0:
 
 - Windows 11
 - AutoHotkey v2
-- PowerShell for the test runner
+- Windows PowerShell 5.1+ for startup-task scripts and test runners
 
 ## Before Making Changes
 
@@ -33,6 +33,15 @@ When desktop interaction is required:
 ```powershell
 .\tests\Run-PhaseFTests.ps1 -Desktop
 ```
+
+For logon startup changes:
+
+```powershell
+.\tests\StartupTask.Tests.ps1
+.\tests\StartupTask.Tests.ps1 -Integration
+```
+
+Changes to `scripts/install-startup-task.ps1` or `scripts/uninstall-startup-task.ps1` should preserve current-user InteractiveToken execution, least privilege, exact-task removal, quoted paths, and duplicate-instance protection.
 
 Changes that affect input handling, Auto Bind, NumLock lifecycle, Shortcut execution, or Configuration validation should include appropriate regression coverage.
 
