@@ -1,10 +1,10 @@
 # Numpad Window Controller - Known Limitations
 
 更新日: 2026-09-28  
-対象バージョン: **v0.1.0**  
+対象バージョン: **v0.2.0**  
 状態: **Current**
 
-この文書は、Phase A～Hで確認・採用したv0.1.0の既知の制限を一か所へ集約する。
+この文書は、Phase A～Hで確認・採用したWindow Controller Coreと、v0.2.0で追加したログオン時自動起動の既知の制限を一か所へ集約する。
 
 「不具合」ではなく、MVPで意図的に受け入れている仕様上の制限も含む。
 
@@ -245,7 +245,7 @@ Lazy Auto Bindまたは明示Auto Bindで候補が見つからなかった場合
 
 ## 20. 常設GUIなし
 
-v0.1.0には次を用意しない。
+v0.2.0には次を用意しない。
 
 - 設定GUI
 - Binding一覧GUI
@@ -266,13 +266,49 @@ v0.1.0には次を用意しない。
 
 ---
 
-## 22. 初期版の受入状態
+## 22. 自動起動Taskは通常権限
+
+v0.2.0のTask Scheduler登録はLeastPrivilege / InteractiveTokenを使用する。
+
+そのためWindowsの権限分離により、管理者権限で起動したApplicationへHotkey送信やWindow操作が届かない場合がある。
+
+通常運用では対象Applicationも通常権限で起動する。
+
+---
+
+## 23. 自動起動Taskは絶対Pathを保持
+
+Task Scheduler Actionには登録時点のAutoHotkey v2 executable、`NumpadWindowController.ahk`、Repository RootのPathを保存する。
+
+Repository DirectoryまたはAutoHotkey v2の配置場所を変更した場合、既存Taskは自動追従しない。
+
+次を再実行してTaskを更新する。
+
+```powershell
+.\scripts\install-startup-task.ps1
+```
+
+---
+
+## 24. 自動起動は現在ユーザー単位
+
+既定のStartup Taskは、install Scriptを実行した現在ユーザーのLogon Triggerだけを登録する。
+
+全ユーザー共通Startup、Service化、Session 0実行はv0.2.0の対象外。
+
+---
+
+## 25. 現行版の受入状態
 
 これらの制限を含む現在仕様で:
 
 - Phase G: 65 / 65 PASS
 - Phase H: 16 / 16 PASS
+- Startup Preview: 24 assertions PASS
+- Task Scheduler Integration: 37 assertions PASS
+- Startup追加後 Phase F Regression: 134 assertions PASS
+- 実ログオン / 自動起動後操作 / 手動再起動 / Task無効化・解除: PASS
 
 を完了している。
 
-Phase Hで新規FAIL / BLOCKED、実装修正要求、追加Known Limitationは記録されていない。
+現行v0.2.0で未解決のFAIL / BLOCKEDは記録されていない。
