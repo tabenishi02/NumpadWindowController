@@ -1,7 +1,9 @@
 # ログオン時自動起動テスト
 
 更新日: 2026-09-28
-対象: `NumpadWindowController-Logon`
+対象バージョン: **v0.2.0**
+対象Task: `NumpadWindowController-Logon`
+状態: **PASS - 実装・自動テスト・実ログオン試験完了**
 
 ## 1. 自動テスト結果
 
@@ -39,7 +41,22 @@
 
 本番Task `NumpadWindowController-Logon` は現在ユーザーへ登録済み。登録後に同じinstallコマンドを再実行し、既存タスクを安全に更新できることを確認した。Task Schedulerから起動して常駐状態が`Running`になることも確認済み。`267009`は常駐Taskが現在実行中であることを示す正常値。
 
-## 2. 実機ログオン試験
+## 2. 実機ログオン試験結果
+
+結果記録Commit: `512fc0a09a6b67dedeeb8e8941fe637129b4d21d`
+
+`TASKS.md` で次の実機項目を完了記録している。
+
+| Test | 結果 |
+|---|---|
+| S-1 実際のサインアウト / ログオンによる自動起動 | PASS |
+| S-2 自動起動後の既存Window操作 / Virtual000 / NumLock lifecycle | PASS |
+| S-3 自動起動済み状態からの手動起動・1インスタンス維持 | PASS |
+| S-4 Task無効化 / 削除後の次回ログオン非起動 | PASS |
+
+S-5の遅延起動は任意確認項目であり、Task Scheduler Integration Testでは45秒Delayの登録値を検証済み。実ログオンでの遅延時間確認はv0.2.0受入必須条件には含めない。
+
+以下は再試験用の手順として保持する。
 
 実際のサインアウト／ログオンが必要な項目は、次の形式で記録する。
 
@@ -127,3 +144,20 @@ Test ID:
 - 通常権限のControllerは、管理者権限で起動したアプリをWindowsの権限分離により操作できない場合がある。
 - リポジトリまたはAutoHotkeyを移動した場合はタスクの再登録が必要。
 - 強制終了やProcess Killでは既存仕様どおりNumLock復元を保証しない。
+
+
+---
+
+## 4. 最終判定
+
+**PASS - v0.2.0 ログオン時自動起動機能は実装・検証完了**
+
+確認済み:
+
+- PowerShell / cmd等の常駐Windowを必要としないTask Scheduler起動
+- 現在ユーザー / InteractiveToken / LeastPrivilege
+- AutoHotkey v2およびControllerの正しいPath登録
+- `IgnoreNew` + `#SingleInstance Force` による多重起動防止
+- 既存Controller機能へのRegressionなし
+- 実ログオン後のWindow操作 / Virtual000 / NumLock lifecycle
+- Disable / uninstall後の非起動
