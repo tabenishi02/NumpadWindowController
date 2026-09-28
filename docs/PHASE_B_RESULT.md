@@ -1,7 +1,7 @@
 # Numpad Window Controller - Phase B Result
 
 更新日: 2026-09-24  
-対象: MVP / v0.1  
+対象: MVP / v0.1.0  
 状態: Phase B Complete
 
 ## 1. 結論
