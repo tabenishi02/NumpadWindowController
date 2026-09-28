@@ -1,8 +1,8 @@
 # Numpad Window Controller - Phase G Test Guide
 
 更新日: 2026-09-25  
-対象: MVP / v0.1  
-状態: Phase G実施用  
+対象: MVP / v0.1.0  
+状態: **Completed - Phase G実施済み / 結果はPHASE_G_RESULT.md**  
 目的: `TASKS.md` のPhase Gについて、実Window / 実Config / 物理テンキーを使った具体的な試験方法、期待結果、記録方法を定義する。
 
 > 本書の期待結果はPhase A～Fで確定した現行仕様を基準とする。
