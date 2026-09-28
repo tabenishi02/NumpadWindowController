@@ -1,11 +1,12 @@
 # Numpad Window Controller - MVP Design
 
 更新日: 2026-09-28  
-対象バージョン: **v0.1.0**  
+対象バージョン: **v0.2.0**  
 状態: **Final**  
 実装状態: **実装・機能テスト・実機受入試験完了**
 
-> 本書はNumpadWindowController v0.1.0のMVP全体設計をまとめる。
+> 本書はNumpadWindowController v0.2.0の現行設計をまとめる。
+> v0.2.0はv0.1.0のWindow Controller Coreを維持し、Windows Task Schedulerによるログオン時自動起動を追加する。
 > Configuration、Auto Bind、実装構造などの詳細はPhase A～E仕様書を参照し、検証結果はPhase F～H結果文書を参照する。
 
 ---
@@ -21,6 +22,7 @@ MVPでは次の機能を提供する。
 3. 一部キーをShortcutとして設定し、exe / bat / cmd / lnkを実行する。
 4. Manual Bind、Slot Clear、Clear All、Lazy Auto Bindにより日常利用中のWindow増減へ対応する。
 5. 000キーを独立した論理キー `Virtual000` として利用する。
+6. Windowsログオン時にTask Schedulerから非表示・自動起動できるようにする。
 
 同一アプリケーションを複数Windowで使用する場合でも、個々のWindowへ直接移動できることを重視する。
 
@@ -36,6 +38,8 @@ MVPでは次の機能を提供する。
 - Configファイル: `KeyBindings.ini`
 - Config Version: 1
 - Config Encoding: UTF-16 LE with BOM
+- Startup Task: Windows Task Scheduler
+- Startup Script / Test Runner: Windows PowerShell 5.1+
 
 専用USBドライバ、AutoHotInterception、常設GUIはMVP要件に含めない。
 
@@ -43,7 +47,7 @@ MVPでは次の機能を提供する。
 
 ## 3. ファイル構成
 
-v0.1.0の主要構成:
+v0.2.0の主要構成:
 
 ```text
 NumpadWindowController/
@@ -52,6 +56,7 @@ NumpadWindowController/
 ├─ LICENSE
 ├─ SECURITY.md
 ├─ CONTRIBUTING.md
+├─ CHANGELOG.md
 ├─ NumpadWindowController.ahk
 ├─ KeyBindings.ini
 ├─ README.md
@@ -59,6 +64,9 @@ NumpadWindowController/
 ├─ PROJECT_HANDOFF.md
 ├─ examples/
 │  └─ KeyBindings.example.ini
+├─ scripts/
+│  ├─ install-startup-task.ps1
+│  └─ uninstall-startup-task.ps1
 ├─ docs/
 │  ├─ MVP_DESIGN.md
 │  ├─ DESIGN_DRAFT.md
@@ -74,12 +82,16 @@ NumpadWindowController/
 │  ├─ PHASE_G_TEST.md
 │  ├─ PHASE_G_RESULT.md
 │  ├─ PHASE_H_RESULT.md
-│  └─ PHASE_I_RESULT.md
+│  ├─ PHASE_I_RESULT.md
+│  └─ STARTUP_TASK_TEST.md
 ├─ poc/
 └─ tests/
+   ├─ PhaseF.Tests.ahk
+   ├─ Run-PhaseFTests.ps1
+   └─ StartupTask.Tests.ps1
 ```
 
-本体は単一AHKファイルとし、v0.1.0では `lib/` 分割しない。
+本体は単一AHKファイルとし、v0.2.0でも `lib/` 分割しない。
 
 ---
 
@@ -514,7 +526,7 @@ Windows側NumLock状態は:
 
 ---
 
-## 19. Startup
+## 19. Controller Startup / Windows Logon Startup
 
 起動順:
 
@@ -533,6 +545,44 @@ Windows側NumLock状態は:
 13. 常駐
 
 Config Validation完了前にNumLockやHotkeyなどの外部状態を変更しない。
+
+### 19.1 Windowsログオン時自動起動
+
+通常運用ではWindows Task Schedulerを使用する。
+
+登録Script:
+
+```powershell
+.\scripts\install-startup-task.ps1
+```
+
+解除Script:
+
+```powershell
+.\scripts\uninstall-startup-task.ps1
+```
+
+既定Task定義:
+
+- Task Name: `NumpadWindowController-Logon`
+- Task Path: `\`
+- Trigger: 現在ユーザーのLogon
+- Logon Type: InteractiveToken
+- Run Level: LeastPrivilege
+- Execute: AutoHotkey v2 executable
+- Arguments: `NumpadWindowController.ahk` のquoted absolute path
+- Working Directory: Repository Root
+- Delay: 0秒
+- Multiple Instances: IgnoreNew
+- Execution Time Limit: unlimited
+
+任意の `-DelaySeconds`、`-AutoHotkeyPath`、`-Preview`、`-PassThru` をサポートする。
+
+同名Taskが存在する場合は現在設定で更新する。
+
+本体の `#SingleInstance Force` とTask Schedulerの `IgnoreNew` を併用し、多重常駐を防止する。
+
+RepositoryまたはAutoHotkey v2の配置Pathを変更した場合はTaskを再登録する。
 
 ---
 
@@ -596,6 +646,20 @@ H-1 / H-2:
 
 通常利用で追加操作なしに主要Windowへ安定して移動できる受入条件を満たした。
 
+### v0.2.0 ログオン時自動起動
+
+- Preview / Path / Arguments: 24 assertions PASS
+- Task Scheduler Integration: 37 assertions PASS
+- Phase F Regression after startup addition: 134 assertions PASS
+- Production Task登録 / 更新 / 定義照合: PASS
+- Task Scheduler起動・常駐: PASS
+- 実ログオン起動: PASS
+- 自動起動後の既存機能 / Virtual000 / NumLock lifecycle: PASS
+- 手動再起動時の1インスタンス維持: PASS
+- Task無効化 / 削除後の非起動: PASS
+
+詳細は [STARTUP_TASK_TEST.md](STARTUP_TASK_TEST.md) を参照する。
+
 ---
 
 ## 23. Known Limitations
@@ -613,6 +677,8 @@ H-1 / H-2:
 - Config Hot Reloadなし
 - Backspaceは通常Keyboardと区別不可
 - デバイス単位入力識別なし
+- 自動起動Taskは通常権限のため、管理者権限Applicationを操作できない場合がある
+- Repository / AutoHotkey Path変更時はStartup Task再登録が必要
 
 ---
 
@@ -645,5 +711,7 @@ H-1 / H-2:
 - [Phase Gテスト結果](PHASE_G_RESULT.md)
 - [Phase H実機受入試験結果](PHASE_H_RESULT.md)
 - [Known Limitations](KNOWN_LIMITATIONS.md)
+- [ログオン時自動起動テスト](STARTUP_TASK_TEST.md)
+- [Changelog](../CHANGELOG.md)
 
 旧暫定設計は [DESIGN_DRAFT.md](DESIGN_DRAFT.md) に最終結果を反映したうえで、設計確定までの経緯記録として保持する。
