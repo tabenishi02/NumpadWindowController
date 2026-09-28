@@ -2,7 +2,7 @@
 
 更新日: 2026-09-28  
 対象: NumpadWindowController  
-状態: **v0.2.0 Released / ログオン時自動起動統合済み**
+状態: **Release済み / ログオン時自動起動統合済み**
 
 ## 現在地点
 
@@ -11,12 +11,13 @@ Phase A～IのMVP工程は完了している。
 現在のVersion / Release関係:
 
 - Repository: **Public**
-- 最新の公開Release: **v0.2.0**
-- `v0.2.0` Tag / GitHub Release: **公開済み**
+- 最新Release: **GitHub Releasesを参照**
 - `v0.1.0`: 初回MVP Release
+- `v0.2.0`: ログオン時自動起動追加
+- `v0.2.1`: Release後ドキュメント同期
 - License: MIT
 
-`v0.1.0` は自動起動機能追加前の初回MVP Release。`v0.2.0` はWindows Task Schedulerによるログオン時自動起動を追加した現行Release。
+`v0.1.0` は自動起動機能追加前の初回MVP Release。`v0.2.0` でWindows Task Schedulerによるログオン時自動起動を追加し、`v0.2.1` でRelease後のドキュメント同期を行った。今後の最新Release判定はGitHub Releasesを参照する。
 
 ## 主要成果物
 
@@ -181,7 +182,7 @@ Controller:
 
 ## 次の作業
 
-v0.2.0のRelease作業は完了済み。
+v0.2.xのRelease作業は完了済み。最新ReleaseはGitHub Releasesを参照する。
 
 今後の候補:
 
