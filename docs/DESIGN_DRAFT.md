@@ -1,12 +1,12 @@
 # Numpad Window Controller - 設計確定記録
 
 更新日: 2026-09-28  
-対象バージョン: **v0.1.0**  
+対象バージョン: **v0.2.0**  
 状態: **Finalized - Phase I反映済み**  
 実装状態: **実装・機能テスト・実機受入試験完了**
 
 > このファイルは旧 `DESIGN_DRAFT.md` のファイル名を既存リンク互換のため維持している。
-> 内容はDraftではなく、Phase A～Hで確定・検証された実装結果を反映した設計確定記録である。
+> 内容はDraftではなく、Phase A～Hで確定・検証されたWindow Controller Coreと、v0.2.0で追加したログオン時自動起動を反映した設計確定記録である。
 > 現行MVP全体設計は [MVP_DESIGN.md](MVP_DESIGN.md)、詳細仕様は各Phase仕様書を参照する。
 
 ---
@@ -392,6 +392,34 @@ Debug File I/O失敗はController本体の動作へ波及させない。
 
 ---
 
+## 19.1 v0.2.0 ログオン時自動起動
+
+v0.2.0ではWindow Controller Coreを変更せず、Windows Task Schedulerによるログオン時自動起動を追加した。
+
+正式方式:
+
+- 現在ユーザーのLogon Trigger
+- InteractiveToken
+- LeastPrivilege
+- AutoHotkey v2を直接Execute
+- Repository RootをWorking Directoryに指定
+- Task Scheduler側は `IgnoreNew`
+- 本体側は `#SingleInstance Force`
+- 任意Delay対応
+- install / uninstall Script提供
+- Preview / Integration Test提供
+
+関連:
+
+- `scripts/install-startup-task.ps1`
+- `scripts/uninstall-startup-task.ps1`
+- `tests/StartupTask.Tests.ps1`
+- [STARTUP_TASK_TEST.md](STARTUP_TASK_TEST.md)
+
+自動起動追加後もPhase F Regressionに新規FAILはなく、実ログオン、自動起動後の既存操作、NumLock lifecycle、手動再起動、Task無効化・解除までPASSしている。
+
+---
+
 ## 20. Known Limitations
 
 現行の制限は [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) に集約する。
@@ -409,7 +437,7 @@ Debug File I/O失敗はController本体の動作へ波及させない。
 
 ---
 
-## 21. v0.1.0で意図的に実装しないもの
+## 21. v0.2.0で意図的に実装しないもの
 
 - 常設GUI
 - Config編集GUI
