@@ -6,12 +6,11 @@ AutoHotkey v2を利用し、設定可能なテンキーキーに `Window / Short
 
 ## 現在の段階
 
-現在は **Phase H完了 / ログオン時自動起動対応済み** です。本体実装と機能・実機受入試験は完了しています。通常運用ではWindowsタスクスケジューラによる自動起動を使用でき、開発・テスト時は従来どおり手動起動できます。
+現在は **Phase H完了 / ログオン時自動起動対応済み** です。本体実装と機能・実機受入試験は完了しています。通常運用ではWindowsタスクスケジューラによる自動起動を使用でき、開発・テスト時は従来どおり手動起動できます。次は設計・README・サンプル設定・Known Limitations・バージョン・初期リリース可否を整理してMVP初期版を完成させます。
 
 - [Phase F実装・検証結果](docs/PHASE_F_RESULT.md)
 - [Phase Gテスト手順](docs/PHASE_G_TEST.md)
 - [Phase Gテスト結果](docs/PHASE_G_RESULT.md)
-- [自動起動テスト](docs/STARTUP_TASK_TEST.md)
 
 - [MVP設計書](docs/MVP_DESIGN.md)
 - [Phase A仕様](docs/PHASE_A_SPEC.md)
