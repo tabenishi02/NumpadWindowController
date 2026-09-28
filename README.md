@@ -4,13 +4,13 @@ Windows 11上で一般的なテンキーを、**ウィンドウ直接切り替�
 
 同じアプリを複数Windowで使用する環境でも、個々のWindowをHWNDで区別して1キーで呼び出せます。
 
-**現在の開発版: v0.2.0（main）**  
-**最新の公開Release: v0.1.0**  
+**最新の公開Release: v0.2.0**  
+**License: MIT**  
 **License: MIT**
 
-Phase A～IのMVP完成後、Windows Task Schedulerを利用したログオン時自動起動機能を追加しました。現在の `main` はこの自動起動機能を含む **v0.2.0** を対象とします。
+Phase A～IのMVP完成後、Windows Task Schedulerを利用したログオン時自動起動機能を追加し、**v0.2.0** として正式リリースしました。
 
-公開済み `v0.1.0` Tag / Releaseは自動起動機能追加前のCommitを指しており、現在の `main` とは内容が異なります。
+`v0.1.0` は自動起動機能追加前の初回MVP Release、`v0.2.0` は自動起動機能を含む現行Releaseです。
 
 ---
 
@@ -553,19 +553,13 @@ Desktop操作を含むテスト:
 
 ## バージョン
 
-現在の `main` が対象とする開発版:
+最新の公開Release:
 
 ```text
 v0.2.0
 ```
 
-最新の公開Release:
-
-```text
-v0.1.0
-```
-
-`v0.1.0` は初回MVP Releaseであり、ログオン時自動起動機能は含みません。自動起動を含む現在実装は後方互換のある機能追加として `v0.2.0` に更新しました。
+`v0.1.0` は初回MVP Releaseであり、ログオン時自動起動機能は含みません。`v0.2.0` は後方互換のある機能追加として、Windows Task Schedulerによるログオン時自動起動を追加した現行Releaseです。
 
 Semantic Versioning形式を使用します。
 
@@ -575,11 +569,11 @@ Semantic Versioning形式を使用します。
 
 Repositoryは **Public** です。
 
-- `v0.1.0`: 公開済みの初回MVP Release
-- `main`: **v0.2.0** 開発版。ログオン時自動起動機能を含む
-- `v0.2.0` Tag / GitHub Release: 未作成
+- `v0.1.0`: 初回MVP Release
+- `v0.2.0`: **Latest Release**。ログオン時自動起動機能を含む
+- `v0.2.0` TagはRelease作成時点の `main` を指す
 
-現在の実装内容を配布する場合は、`v0.1.0` ではなく次の `v0.2.0` Releaseを使用する予定です。
+通常利用では `v0.2.0` Releaseを使用してください。
 
 ---
 
