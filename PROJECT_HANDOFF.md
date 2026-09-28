@@ -2,7 +2,7 @@
 
 更新日: 2026-09-28  
 対象: NumpadWindowController  
-状態: **v0.2.0 main / ログオン時自動起動統合済み**
+状態: **v0.2.0 Released / ログオン時自動起動統合済み**
 
 ## 現在地点
 
@@ -11,12 +11,12 @@ Phase A～IのMVP工程は完了している。
 現在のVersion / Release関係:
 
 - Repository: **Public**
-- 最新の公開Release: **v0.1.0**
-- 現在の `main`: **v0.2.0**
-- `v0.2.0` Tag / Release: 未作成
+- 最新の公開Release: **v0.2.0**
+- `v0.2.0` Tag / GitHub Release: **公開済み**
+- `v0.1.0`: 初回MVP Release
 - License: MIT
 
-公開済み `v0.1.0` Tagは自動起動機能追加前のCommitを指す。現在の `main` はその後にWindows Task Schedulerによるログオン時自動起動を追加しているため、内容は同一ではない。
+`v0.1.0` は自動起動機能追加前の初回MVP Release。`v0.2.0` はWindows Task Schedulerによるログオン時自動起動を追加した現行Release。
 
 ## 主要成果物
 
@@ -181,10 +181,13 @@ Controller:
 
 ## 次の作業
 
-現在の実装内容をReleaseする場合:
+v0.2.0のRelease作業は完了済み。
 
-1. v0.2.0として最終確認
-2. v0.2.0 Tag作成
-3. GitHub Release v0.2.0作成
+今後の候補:
 
-公開済みv0.1.0 Tagを移動して現在mainへ付け替える運用は採用しない。
+- v0.2.x bugfix
+- v0.3.0以降の機能追加
+- Private vulnerability reporting設定の確認
+- GitHub Secret scanning alertの継続確認
+
+公開済みTagを後から移動して内容を書き換える運用は採用しない。
