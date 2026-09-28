@@ -6,7 +6,7 @@
 
 ## 0. 現在地点
 
-**現在のmain: v0.2.0 / Phase I完了 / ログオン時自動起動統合済み。v0.2.0 Release作成待ち。**
+**v0.2.0 Released / Phase I完了 / ログオン時自動起動統合済み。**
 
 完了済み:
 
@@ -627,15 +627,15 @@ Phase A～Iは正式完了。
 公開状態:
 
 - Repository: **Public**
-- 公開済みRelease: **v0.1.0**
-- 現在の `main`: **v0.2.0**
-- `v0.2.0` Tag / Release: 未作成
+- 最新の公開Release: **v0.2.0**
+- `v0.2.0` Tag / GitHub Release: **公開済み**
+- `v0.1.0`: 初回MVP Release
 
-`v0.1.0` は自動起動実装前のCommitを指す。現在の実装をReleaseする次の作業は `v0.2.0` のTag / GitHub Release作成とする。
+`v0.1.0` は自動起動実装前の初回MVP Release。自動起動を含む実装は `v0.2.0` としてRelease済み。
 
 必要に応じた後続作業:
 
-- [ ] v0.2.0 Tag / GitHub Releaseを作成
+- [x] v0.2.0 Tag / GitHub Releaseを作成
 - [ ] Public RepositoryのPrivate vulnerability reporting設定を確認
 - [ ] GitHub Secret scanning alertを確認
 - [ ] v0.2.x bugfix
@@ -716,5 +716,5 @@ v0.1.0のWindow Controller機能を維持したまま、Windowsログオン時�
 ## バージョン整理
 
 - `v0.1.0`: 公開済み初回MVP。自動起動機能なし
-- `v0.2.0`: 現在の `main`。自動起動機能を含む
+- `v0.2.0`: 公開済み現行Release。自動起動機能を含む
 - 自動起動は後方互換のある機能追加のためMinor Versionを更新
