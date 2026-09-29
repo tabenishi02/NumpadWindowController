@@ -671,10 +671,10 @@ Phase I完了条件:
 - [x] READMEを一般利用中心へ変更
 - [x] ConfigVersion 2 Migration Guideを作成
 - [x] Known LimitationsをPublic / Legacyに分離
-- [x] CHANGELOGをv0.3.0候補として更新
+- [x] CHANGELOGをv0.3.0正式Releaseセクションへ更新
 - [x] Phase J差分のPublic Release Auditを実施
 - [x] GitHub Actions CIを追加
-- [x] 次期Release候補を **v0.3.0** とする
+- [x] Release Versionを **v0.3.0** とする
 
 Phase J完了条件:
 
@@ -720,7 +720,7 @@ Phase J  General-purpose Configuration / Public Default
 
 ## 最優先タスク
 
-Phase A～Jは正式完了。次はv0.3.0 Release Ready判定へ進む。
+Phase A～Jは正式完了。v0.3.0 Release Ready判定はPASS。次はTag / GitHub Release作成。
 
 公開状態:
 
@@ -738,7 +738,7 @@ Phase A～Jは正式完了。次はv0.3.0 Release Ready判定へ進む。
 - [ ] Public RepositoryのPrivate vulnerability reporting設定を確認
 - [ ] GitHub Secret scanning alertを確認
 - [ ] v0.2.x bugfix
-- [x] v0.3.0候補のPhase J一般化を実装
+- [x] v0.3.0向けPhase J一般化を実装
 - [x] v0.3.0 Release Ready判定: PASS
 - [ ] v0.3.0 Tag / GitHub Releaseを作成
 
