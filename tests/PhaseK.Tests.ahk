@@ -128,6 +128,14 @@ Test_Config() {
         "Physical acceptance config covers MultiAction")
     Test_Assert(physical.WindowGroups["Notepad"].LaunchTarget != "",
         "Physical acceptance config covers launch fallback")
+    Test_Assert(physical.WindowGroups["Explorer"].LaunchTarget != "",
+        "ActivateThenToggle Explorer has launch fallback")
+    Test_Assert(physical.WindowGroups["ChatGPT"].LaunchTarget != "",
+        "ActivateThenToggle ChatGPT has launch fallback")
+    Test_Assert(InStr(physical.WindowGroups["ChatGPT"].LaunchArguments, "shell:AppsFolder\\"),
+        "ActivateThenToggle ChatGPT uses AppsFolder launch")
+    Test_Assert(physical.WindowGroups["PowerShell"].LaunchTarget != "",
+        "ActivateThenToggle PowerShell 7 has launch fallback")
     Test_Assert(!Config_KeyIsControllerMapped(physical, "Backspace"),
         "Physical acceptance config keeps Backspace native")
 
@@ -502,6 +510,14 @@ Test_ActivateThenToggle() {
 
     action := App.Config.Actions["Explorer"]
     Test_Assert(action.Behavior = "ActivateThenToggle", "ATT-01 behavior loaded")
+    for id in ["Explorer", "ChatGPT", "PowerShell"] {
+        group := App.Config.WindowGroups[id]
+        Test_Assert(group.LaunchTarget != "",
+            "ATT-10 " id " launch fallback configured")
+        Test_Assert(Launch_Decide(
+            id = "PowerShell" ? "PowerShell7" : id, [], 1000) = "Ready",
+            "ATT-10 " id " launch is ready with zero windows")
+    }
     Test_Assert(!App.WindowState["Explorer"].ToggleArmed,
         "ATT-12 controller startup begins in Activate phase")
 
