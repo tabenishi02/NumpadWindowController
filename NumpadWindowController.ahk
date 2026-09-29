@@ -1,18 +1,32 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
-; === App / Startup / Shutdown ===
-; Set this constant to true only for local diagnostics.
+; NumpadWindowController - Phase K runtime
+; ConfigVersion 3 only: Physical Key -> Layer -> Action.
+
 global DEBUG_ENABLED := false
 global App := App_Create()
 
 if A_LineFile = A_ScriptFullPath
     App_Start()
 
+; === App / Startup / Shutdown ===
+
 App_Create() {
-    return {Config: Map(), Keys: Map(), Slots: Map(), OriginalNumLock: 0,
-        NumLockSaved: false, ZeroDetector: Zero_New(), Hook: 0, InputQueue: [],
-        Debug: {Enabled: false, Path: ""}}
+    return {
+        Config: 0,
+        Metadata: Config_Map(),
+        WindowState: Map(),
+        ActiveLayer: "",
+        OriginalNumLock: 0,
+        NumLockSaved: false,
+        ZeroDetector: Zero_New(false, false),
+        Hook: 0,
+        InputQueue: [],
+        LaunchPending: Map(),
+        MultiRunning: Map(),
+        Debug: {Enabled: false, Path: ""}
+    }
 }
 
 App_Start() {
@@ -20,19 +34,26 @@ App_Start() {
     try {
         userConfig := A_ScriptDir "\KeyBindings.ini"
         Config_EnsureUserConfig(userConfig, A_ScriptDir "\KeyBindings.default.ini")
-        metadata := Config_Metadata()
-        App.Config := Config_Load(userConfig, metadata, A_ScriptDir)
-        App.Keys := App.Config.Keys
-        if App.Keys["Backspace"].Mode != "Disabled"
+        App.Metadata := Config_Metadata()
+        App.Config := Config_Load(userConfig, App.Metadata, A_ScriptDir)
+        App.ActiveLayer := App.Config.DefaultLayer
+        App.WindowState := Runtime_Init(App.Config)
+        App.ZeroDetector := Zero_New(App.Config.EnableVirtual00, App.Config.EnableVirtual000)
+
+        if Config_KeyIsControllerMapped(App.Config, "Backspace")
             MsgBox("Backspace is enabled.`nThe keypad Backspace and the standard keyboard Backspace cannot be distinguished.`nBoth will trigger this controller action.", "NumpadWindowController", "Icon!")
+
         App.OriginalNumLock := GetKeyState("NumLock", "T")
         App.NumLockSaved := true
         OnExit(App_OnExit)
         NumLock_ForceOn()
-        App.Slots := Runtime_Init(App.Keys)
-        App.Debug := {Enabled: DEBUG_ENABLED,
-            Path: A_ScriptDir "\logs\NumpadWindowController_" A_Now ".log"}
-        Debug_Log("Startup / Config validated")
+
+        App.Debug := {
+            Enabled: DEBUG_ENABLED,
+            Path: A_ScriptDir "\logs\NumpadWindowController_" A_Now ".log"
+        }
+
+        Debug_Log("Startup / ConfigVersion 3 validated / Layer=" App.ActiveLayer)
         Input_StartZeroDetector()
         Input_RegisterHotkeys()
         AutoBind_Run()
@@ -47,12 +68,13 @@ App_OnExit(*) {
     global App
     SetTimer(Zero_OnTimer, 0)
     SetTimer(Input_Drain, 0)
+    SetTimer(Launch_CheckPending, 0)
     SetTimer(Notify_Clear, 0)
     if IsObject(App.Hook)
         App.Hook.Stop()
     ToolTip()
     if App.NumLockSaved {
-        SetNumLockState() ; Release AlwaysOn before restoring the saved toggle.
+        SetNumLockState()
         SetNumLockState(App.OriginalNumLock ? "On" : "Off")
     }
     Debug_Log("Shutdown")
@@ -65,30 +87,38 @@ NumLock_ForceOn() {
         throw Error("Failed to force NumLock ON.")
 }
 
-; === Built-in Key Metadata ===
+; === Metadata ===
+
 Config_Metadata() {
-    result := Map()
-    ids := StrSplit("NumpadDiv,NumpadMult,NumpadSub,Numpad7,Numpad8,Numpad9,NumpadAdd,Numpad4,Numpad5,Numpad6,Backspace,Numpad1,Numpad2,Numpad3,Numpad0,Virtual000,NumpadDot,NumpadEnter", ",")
-    scans := StrSplit("135,037,04A,047,048,049,04E,04B,04C,04D,00E,04F,050,051,052,052,053,11C", ",")
-    for i, id in ids
-        result[id] := {Id: id, AhkKey: "SC" scans[i], Dedicated: false,
-            AutoBind: false, AutoBindGroup: "", SlotOrder: 1, InputStrategy: "Hotkey"}
+    result := Config_Map()
+    ids := [
+        ["NumpadDiv", "SC135", false],
+        ["NumpadMult", "SC037", false],
+        ["NumpadSub", "SC04A", false],
+        ["Numpad7", "SC047", false],
+        ["Numpad8", "SC048", false],
+        ["Numpad9", "SC049", false],
+        ["NumpadAdd", "SC04E", false],
+        ["Numpad4", "SC04B", false],
+        ["Numpad5", "SC04C", false],
+        ["Numpad6", "SC04D", false],
+        ["Backspace", "SC00E", false],
+        ["Numpad1", "SC04F", false],
+        ["Numpad2", "SC050", false],
+        ["Numpad3", "SC051", false],
+        ["Numpad0", "SC052", false],
+        ["Virtual00", "SC052", true],
+        ["Virtual000", "SC052", true],
+        ["NumpadDot", "SC053", false],
+        ["NumpadEnter", "SC11C", false]
+    ]
+    for row in ids
+        result[row[1]] := {Id: row[1], AhkKey: row[2], Virtual: row[3]}
     return result
 }
 
-Config_LegacyGroup(id) {
-    groups := Map("Numpad7", "Chrome", "Numpad8", "Chrome", "Numpad9", "Chrome",
-        "Numpad4", "VSCode", "Numpad5", "VSCode", "Numpad6", "VSCode",
-        "Numpad1", "Explorer", "Numpad2", "ChatGPT", "Numpad3", "PowerShell")
-    return groups.Get(id, "")
-}
+; === Configuration primitives ===
 
-Config_LegacyOrder(id, group) {
-    return group = "Chrome" ? SubStr(id, -1) - 6
-        : group = "VSCode" ? SubStr(id, -1) - 3 : 1
-}
-
-; === Configuration ===
 Config_Map() {
     result := Map()
     result.CaseSense := false
@@ -97,7 +127,8 @@ Config_Map() {
 
 Config_Error(path, section, field, value, reason) {
     throw Error("Configuration error`nFile: " path "`nSection: " section
-        "`nField: " field "`nValue: " (value = "" ? "<empty>" : value) "`nReason: " reason)
+        "`nField: " field "`nValue: " (value = "" ? "<empty>" : value)
+        "`nReason: " reason)
 }
 
 Config_EnsureUserConfig(path, defaultPath) {
@@ -167,115 +198,64 @@ Config_Required(fields, field, path, section) {
     return value
 }
 
-Config_Validate(sections, path, metadata, baseDir) {
-    expected := Config_Map()
-    expected["General"] := true
-    for id in metadata
-        expected["Key-" id] := true
-    for section, fields in sections
-        if !expected.Has(section)
-            Config_Error(path, section, "<section>", section, "Unknown or reserved section.")
-    for section in expected
-        if !sections.Has(section)
-            Config_Error(path, section, "<section>", "", "Missing section.")
+Config_RejectUnknown(fields, allowedFields, path, section) {
+    allowed := Config_Map()
+    for field in allowedFields
+        allowed[field] := true
+    for field, value in fields
+        if !allowed.Has(field)
+            Config_Error(path, section, field, value, "Unknown field.")
+}
 
-    general := sections["General"]
-    for field, value in general
-        if field != "ConfigVersion"
-            Config_Error(path, "General", field, value, "Unknown field.")
-    versionText := general.Get("ConfigVersion", "")
-    if versionText != "1" && versionText != "2"
-        Config_Error(path, "General", "ConfigVersion", versionText, "Supported versions: 1, 2.")
-    version := Integer(versionText)
-    legacy := version = 1
+Config_Name(value, path, section, field) {
+    if !RegExMatch(value, "^[A-Za-z0-9][A-Za-z0-9_-]*$")
+        Config_Error(path, section, field, value, "Use letters, numbers, underscore or hyphen; the first character must be alphanumeric.")
+    return value
+}
 
-    keys := Map()
-    modes := Config_Map()
-    for mode in ["Window", "Shortcut", "Disabled"]
-        modes[mode] := mode
+Config_Bool(value, path, section, field) {
+    if StrLower(value) = "on"
+        return true
+    if StrLower(value) = "off"
+        return false
+    Config_Error(path, section, field, value, "Expected On or Off.")
+}
 
-    for id, meta in metadata {
-        section := "Key-" id
-        fields := sections[section]
-        mode := Config_Required(fields, "Mode", path, section)
-        if !modes.Has(mode)
-            Config_Error(path, section, "Mode", mode, "Expected Window, Shortcut or Disabled.")
-        mode := modes[mode]
+Config_Int(value, path, section, field, minValue := 0, maxValue := 2147483647) {
+    if !RegExMatch(value, "^\d+$")
+        Config_Error(path, section, field, value, "Expected an integer.")
+    number := Integer(value)
+    if number < minValue || number > maxValue
+        Config_Error(path, section, field, value, "Integer is outside the allowed range.")
+    return number
+}
 
-        legacyGroup := legacy ? Config_LegacyGroup(id) : ""
-        dedicated := legacyGroup != ""
-        if dedicated && mode != "Window"
-            Config_Error(path, section, "Mode", mode, "ConfigVersion 1 dedicated slot requires Window mode.")
-
-        allowed := Config_Map()
-        for field in StrSplit("Mode,Label," (mode = "Window" ? "AllowedProcess,AllowedClass,AllowedTitleContains" : mode = "Shortcut" ? "Target,Arguments,WorkingDirectory" : ""), ",")
-            allowed[field] := true
-        for field, value in fields
-            if !allowed.Has(field)
-                Config_Error(path, section, field, value, "Unknown field or field not allowed for this mode.")
-
-        key := meta.Clone()
-        key.Mode := mode
-        key.Label := Config_Required(fields, "Label", path, section)
-        key.Dedicated := dedicated
-        key.AutoBind := dedicated
-        key.AutoBindGroup := legacyGroup
-        key.SlotOrder := Config_LegacyOrder(id, legacyGroup)
-        for field in ["AllowedProcess", "AllowedClass", "AllowedTitleContains"]
-            key.%field% := fields.Get(field, "")
-        key.ShortcutTarget := ""
-        key.ShortcutArguments := fields.Get("Arguments", "")
-        key.ShortcutWorkingDirectory := ""
-
-        if dedicated {
-            Config_Required(fields, "AllowedProcess", path, section)
-            if id = "Numpad1" || id = "Numpad3"
-                Config_Required(fields, "AllowedClass", path, section)
-            if id = "Numpad3"
-                Config_Required(fields, "AllowedTitleContains", path, section)
-        }
-
-        if mode = "Shortcut" {
-            target := Config_Required(fields, "Target", path, section)
-            key.ShortcutTarget := Config_ResolveTarget(target, baseDir, path, section)
-            wd := fields.Get("WorkingDirectory", "")
-            if wd != "" {
-                wd := Config_Absolute(wd, baseDir)
-                if !DirExist(wd)
-                    Config_Error(path, section, "WorkingDirectory", fields["WorkingDirectory"], "Directory does not exist.")
-                key.ShortcutWorkingDirectory := wd
-            }
-        }
-        keys[id] := key
+Config_Csv(value, path, section, field) {
+    result := []
+    seen := Config_Map()
+    for raw in StrSplit(value, ",") {
+        item := Trim(raw)
+        if item = ""
+            Config_Error(path, section, field, value, "Empty list item.")
+        Config_Name(item, path, section, field)
+        if seen.Has(item)
+            Config_Error(path, section, field, value, "Duplicate list item: " item)
+        seen[item] := true
+        result.Push(item)
     }
-
-    if legacy {
-        for group in [["Numpad7", "Numpad8", "Numpad9"], ["Numpad4", "Numpad5", "Numpad6"]]
-            for id in group
-                for field in ["AllowedProcess", "AllowedClass", "AllowedTitleContains"]
-                    if StrLower(keys[id].%field%) != StrLower(keys[group[1]].%field%)
-                        Config_Error(path, "Key-" id, field, keys[id].%field%, "ConfigVersion 1 Allowed conditions must match within the group.")
-    }
-
-    if keys["Numpad0"].Mode = "Disabled" && keys["Virtual000"].Mode != "Disabled"
-        Config_Error(path, "Key-Virtual000", "Mode", keys["Virtual000"].Mode, "Numpad0 Disabled requires Virtual000 Disabled.")
-
-    zeroDetector := legacy || keys["Virtual000"].Mode != "Disabled"
-    for id, key in keys
-        key.InputStrategy := ((id = "Numpad0" || id = "Virtual000") && zeroDetector)
-            ? "ZeroDetector" : "Hotkey"
-
-    return {Version: version, Keys: keys}
+    if !result.Length
+        Config_Error(path, section, field, value, "At least one item is required.")
+    return result
 }
 
 Config_Absolute(path, baseDir) {
     return RegExMatch(path, "i)^(?:[a-z]:[\\/]|\\\\)") ? path : baseDir "\" path
 }
 
-Config_ResolveTarget(target, baseDir, path, section) {
+Config_ResolveTarget(target, baseDir, path, section, field := "Target") {
     SplitPath(target, , , &ext)
     if !RegExMatch(ext, "i)^(exe|bat|cmd|lnk)$")
-        Config_Error(path, section, "Target", target, "Supported extensions: exe, bat, cmd, lnk. Use pwsh.exe -File for ps1.")
+        Config_Error(path, section, field, target, "Supported extensions: exe, bat, cmd, lnk. Use pwsh.exe -File for ps1.")
     if InStr(target, "\") || InStr(target, "/") || InStr(target, ":") {
         resolved := Config_Absolute(target, baseDir)
     } else {
@@ -285,45 +265,473 @@ Config_ResolveTarget(target, baseDir, path, section) {
         resolved := length && length < 32768 ? StrGet(pathBuffer) : ""
     }
     if resolved = "" || !FileExist(resolved) || DirExist(resolved)
-        Config_Error(path, section, "Target", target, "Target could not be resolved to an existing file.")
+        Config_Error(path, section, field, target, "Target could not be resolved to an existing file.")
     return resolved
 }
 
-; === Runtime State ===
-Runtime_Init(keys) {
-    slots := Map()
-    for id, key in keys
-        if key.Mode = "Window"
-            slots[id] := Runtime_Empty()
-    return slots
+Config_Validate(sections, path, metadata, baseDir) {
+    if !sections.Has("General")
+        Config_Error(path, "General", "<section>", "", "Missing section.")
+    general := sections["General"]
+    Config_RejectUnknown(general,
+        ["ConfigVersion", "DefaultLayer", "LayerOrder", "EnableVirtual00", "EnableVirtual000"],
+        path, "General")
+
+    versionText := Config_Required(general, "ConfigVersion", path, "General")
+    if versionText != "3"
+        Config_Error(path, "General", "ConfigVersion", versionText, "Phase K runtime supports ConfigVersion 3 only.")
+
+    defaultLayer := Config_Name(Config_Required(general, "DefaultLayer", path, "General"),
+        path, "General", "DefaultLayer")
+    layerOrder := Config_Csv(Config_Required(general, "LayerOrder", path, "General"),
+        path, "General", "LayerOrder")
+    enable00 := Config_Bool(Config_Required(general, "EnableVirtual00", path, "General"),
+        path, "General", "EnableVirtual00")
+    enable000 := Config_Bool(Config_Required(general, "EnableVirtual000", path, "General"),
+        path, "General", "EnableVirtual000")
+
+    layerNames := Config_Map()
+    for layer in layerOrder
+        layerNames[layer] := true
+    if !layerNames.Has(defaultLayer)
+        Config_Error(path, "General", "DefaultLayer", defaultLayer, "DefaultLayer must be included in LayerOrder.")
+
+    ; Classify sections first.
+    actionSections := Config_Map()
+    groupSections := Config_Map()
+    layerSections := Config_Map()
+    for section, fields in sections {
+        if section = "General" || section = "GlobalKeys"
+            continue
+        if RegExMatch(section, "i)^Action-(.+)$", &match) {
+            id := Config_Name(match[1], path, section, "<section>")
+            if actionSections.Has(id)
+                Config_Error(path, section, "<section>", id, "Duplicate Action ID.")
+            actionSections[id] := fields
+            continue
+        }
+        if RegExMatch(section, "i)^WindowGroup-(.+)$", &match) {
+            id := Config_Name(match[1], path, section, "<section>")
+            if groupSections.Has(id)
+                Config_Error(path, section, "<section>", id, "Duplicate WindowGroup ID.")
+            groupSections[id] := fields
+            continue
+        }
+        if RegExMatch(section, "i)^Layer-(.+)$", &match) {
+            id := Config_Name(match[1], path, section, "<section>")
+            if layerSections.Has(id)
+                Config_Error(path, section, "<section>", id, "Duplicate Layer ID.")
+            layerSections[id] := fields
+            continue
+        }
+        Config_Error(path, section, "<section>", section, "Unknown or reserved section.")
+    }
+
+    for layer in layerOrder
+        if !layerSections.Has(layer)
+            Config_Error(path, "Layer-" layer, "<section>", "", "LayerOrder entry is missing its Layer section.")
+    for layer in layerSections
+        if !layerNames.Has(layer)
+            Config_Error(path, "Layer-" layer, "<section>", layer, "Layer section is not listed in LayerOrder.")
+
+    groups := Config_Map()
+    for id, fields in groupSections
+        groups[id] := Config_ValidateWindowGroup(id, fields, path, baseDir)
+
+    actions := Config_Map()
+    for id, fields in actionSections
+        actions[id] := Config_ValidateAction(id, fields, path, baseDir, groups, layerNames)
+
+    if actions.Count = 0
+        Config_Error(path, "<actions>", "<section>", "", "At least one Action section is required.")
+
+    globalKeys := Config_Map()
+    if sections.Has("GlobalKeys")
+        globalKeys := Config_ValidateMapping(sections["GlobalKeys"], "GlobalKeys", path, metadata, actions)
+
+    layers := Config_Map()
+    for layer in layerOrder
+        layers[layer] := {
+            Name: layer,
+            Keys: Config_ValidateMapping(layerSections[layer], "Layer-" layer, path, metadata, actions)
+        }
+
+    if layerOrder.Length > 1 {
+        hasGlobalLayerSwitch := false
+        for id, actionId in globalKeys {
+            if actions[actionId].Type = "LayerSwitch" {
+                hasGlobalLayerSwitch := true
+                break
+            }
+        }
+        if !hasGlobalLayerSwitch
+            Config_Error(path, "GlobalKeys", "<mapping>", "", "Multiple layers require at least one global LayerSwitch mapping so every layer can be exited safely.")
+    }
+
+    ; Validate MultiAction references after all actions exist.
+    for id, action in actions {
+        if action.Type != "MultiAction"
+            continue
+        for step in action.Steps {
+            if !actions.Has(step)
+                Config_Error(path, "Action-" id, "<step>", step, "Referenced Action does not exist.")
+            if actions[step].Type = "MultiAction"
+                Config_Error(path, "Action-" id, "<step>", step, "Nested MultiAction is not supported in Phase K.")
+            if StrLower(step) = StrLower(id)
+                Config_Error(path, "Action-" id, "<step>", step, "Action reference cycle is not allowed.")
+        }
+    }
+
+    return {
+        Version: 3,
+        DefaultLayer: defaultLayer,
+        LayerOrder: layerOrder,
+        EnableVirtual00: enable00,
+        EnableVirtual000: enable000,
+        GlobalKeys: globalKeys,
+        Layers: layers,
+        Actions: actions,
+        WindowGroups: groups
+    }
+}
+
+Config_ValidateWindowGroup(id, fields, path, baseDir) {
+    section := "WindowGroup-" id
+    Config_RejectUnknown(fields,
+        ["MatchProcess", "MatchClass", "MatchTitleContains", "LaunchTarget",
+         "LaunchArguments", "LaunchWorkingDirectory", "LaunchPendingTimeoutMs"],
+        path, section)
+
+    group := {
+        Id: id,
+        MatchProcess: fields.Get("MatchProcess", ""),
+        MatchClass: fields.Get("MatchClass", ""),
+        MatchTitleContains: fields.Get("MatchTitleContains", ""),
+        LaunchTarget: "",
+        LaunchArguments: fields.Get("LaunchArguments", ""),
+        LaunchWorkingDirectory: "",
+        LaunchPendingTimeoutMs: fields.Get("LaunchPendingTimeoutMs", "") = ""
+            ? 5000
+            : Config_Int(fields["LaunchPendingTimeoutMs"], path, section, "LaunchPendingTimeoutMs", 250, 60000)
+    }
+
+    if group.MatchProcess = "" && group.MatchClass = "" && group.MatchTitleContains = ""
+        Config_Error(path, section, "<match>", "", "WindowGroup requires at least one Match condition.")
+
+    launchTarget := fields.Get("LaunchTarget", "")
+    if launchTarget != "" {
+        group.LaunchTarget := Config_ResolveTarget(launchTarget, baseDir, path, section, "LaunchTarget")
+        wd := fields.Get("LaunchWorkingDirectory", "")
+        if wd != "" {
+            wd := Config_Absolute(wd, baseDir)
+            if !DirExist(wd)
+                Config_Error(path, section, "LaunchWorkingDirectory", fields["LaunchWorkingDirectory"], "Directory does not exist.")
+            group.LaunchWorkingDirectory := wd
+        }
+    } else if group.LaunchArguments != "" || fields.Get("LaunchWorkingDirectory", "") != "" {
+        Config_Error(path, section, "LaunchTarget", "", "LaunchArguments/LaunchWorkingDirectory require LaunchTarget.")
+    }
+    return group
+}
+
+Config_ValidateAction(id, fields, path, baseDir, groups, layerNames) {
+    section := "Action-" id
+    type := Config_Required(fields, "Type", path, section)
+    label := Config_Required(fields, "Label", path, section)
+
+    types := Config_Map()
+    for value in ["Window", "Run", "KeySend", "LayerSwitch", "Delay", "MultiAction", "Disabled"]
+        types[value] := value
+    if !types.Has(type)
+        Config_Error(path, section, "Type", type, "Expected Window, Run, KeySend, LayerSwitch, Delay, MultiAction or Disabled.")
+    type := types[type]
+
+    if type = "Window" {
+        Config_RejectUnknown(fields,
+            ["Type", "Label", "Behavior", "WindowGroup", "AllowedProcess", "AllowedClass",
+             "AllowedTitleContains", "AutoBindStrategy", "AutoBindOrder"],
+            path, section)
+        behavior := Config_Required(fields, "Behavior", path, section)
+        if StrLower(behavior) = "toggle"
+            behavior := "Toggle"
+        else if StrLower(behavior) = "activate"
+            behavior := "Activate"
+        else
+            Config_Error(path, section, "Behavior", behavior, "Expected Toggle or Activate.")
+
+        strategy := fields.Get("AutoBindStrategy", "None")
+        strategies := Config_Map()
+        for value in ["None", "FirstMatch", "ReverseList", "PrimaryThreePane"]
+            strategies[value] := value
+        if !strategies.Has(strategy)
+            Config_Error(path, section, "AutoBindStrategy", strategy, "Expected None, FirstMatch, ReverseList or PrimaryThreePane.")
+        strategy := strategies[strategy]
+
+        order := fields.Get("AutoBindOrder", "") = "" ? 1
+            : Config_Int(fields["AutoBindOrder"], path, section, "AutoBindOrder", 1, 999)
+        if strategy = "PrimaryThreePane" && (order < 1 || order > 3)
+            Config_Error(path, section, "AutoBindOrder", order, "PrimaryThreePane requires order 1, 2 or 3.")
+
+        group := fields.Get("WindowGroup", "")
+        if group != "" && !groups.Has(group)
+            Config_Error(path, section, "WindowGroup", group, "Referenced WindowGroup does not exist.")
+
+        return {
+            Id: id, Type: type, Label: label, Behavior: behavior,
+            WindowGroup: group,
+            AllowedProcess: fields.Get("AllowedProcess", ""),
+            AllowedClass: fields.Get("AllowedClass", ""),
+            AllowedTitleContains: fields.Get("AllowedTitleContains", ""),
+            AutoBindStrategy: strategy,
+            AutoBindOrder: order
+        }
+    }
+
+    if type = "Run" {
+        Config_RejectUnknown(fields, ["Type", "Label", "Target", "Arguments", "WorkingDirectory"], path, section)
+        target := Config_ResolveTarget(Config_Required(fields, "Target", path, section), baseDir, path, section)
+        wd := fields.Get("WorkingDirectory", "")
+        if wd != "" {
+            wd := Config_Absolute(wd, baseDir)
+            if !DirExist(wd)
+                Config_Error(path, section, "WorkingDirectory", fields["WorkingDirectory"], "Directory does not exist.")
+        }
+        return {
+            Id: id, Type: type, Label: label,
+            Target: target,
+            Arguments: fields.Get("Arguments", ""),
+            WorkingDirectory: wd
+        }
+    }
+
+    if type = "KeySend" {
+        Config_RejectUnknown(fields, ["Type", "Label", "Keys"], path, section)
+        keys := Config_Required(fields, "Keys", path, section)
+        return {Id: id, Type: type, Label: label, Keys: keys, SendSpec: KeySend_Compile(keys, path, section)}
+    }
+
+    if type = "LayerSwitch" {
+        Config_RejectUnknown(fields, ["Type", "Label", "Mode", "Layer"], path, section)
+        mode := Config_Required(fields, "Mode", path, section)
+        if StrLower(mode) = "set"
+            mode := "Set"
+        else if StrLower(mode) = "next"
+            mode := "Next"
+        else
+            Config_Error(path, section, "Mode", mode, "Expected Set or Next.")
+        layer := fields.Get("Layer", "")
+        if mode = "Set" {
+            layer := Config_Required(fields, "Layer", path, section)
+            if !layerNames.Has(layer)
+                Config_Error(path, section, "Layer", layer, "Referenced Layer is not listed in LayerOrder.")
+        } else if layer != ""
+            Config_Error(path, section, "Layer", layer, "Layer is only valid with Mode=Set.")
+        return {Id: id, Type: type, Label: label, Mode: mode, Layer: layer}
+    }
+
+    if type = "Delay" {
+        Config_RejectUnknown(fields, ["Type", "Label", "Milliseconds"], path, section)
+        ms := Config_Int(Config_Required(fields, "Milliseconds", path, section),
+            path, section, "Milliseconds", 0, 60000)
+        return {Id: id, Type: type, Label: label, Milliseconds: ms}
+    }
+
+    if type = "MultiAction" {
+        steps := []
+        maxStep := 0
+        for field, value in fields {
+            if field = "Type" || field = "Label"
+                continue
+            if !RegExMatch(field, "i)^Step(\d+)$", &match)
+                Config_Error(path, section, field, value, "Unknown field.")
+            n := Integer(match[1])
+            if n < 1
+                Config_Error(path, section, field, value, "Step numbers start at 1.")
+            if n > maxStep
+                maxStep := n
+        }
+        if maxStep = 0
+            Config_Error(path, section, "Step1", "", "MultiAction requires at least one step.")
+        Loop maxStep {
+            field := "Step" A_Index
+            if !fields.Has(field)
+                Config_Error(path, section, field, "", "Step numbers must be continuous from 1.")
+            steps.Push(Config_Name(Config_Required(fields, field, path, section), path, section, field))
+        }
+        return {Id: id, Type: type, Label: label, Steps: steps}
+    }
+
+    Config_RejectUnknown(fields, ["Type", "Label"], path, section)
+    return {Id: id, Type: type, Label: label}
+}
+
+Config_ValidateMapping(fields, section, path, metadata, actions) {
+    mapping := Config_Map()
+    for keyId, actionId in fields {
+        if !metadata.Has(keyId)
+            Config_Error(path, section, keyId, actionId, "Unknown logical key.")
+        actionId := Config_Name(actionId, path, section, keyId)
+        if !actions.Has(actionId)
+            Config_Error(path, section, keyId, actionId, "Referenced Action does not exist.")
+        mapping[keyId] := actionId
+    }
+    return mapping
+}
+
+Config_KeyIsControllerMapped(config, id) {
+    if config.GlobalKeys.Has(id) && config.Actions[config.GlobalKeys[id]].Type != "Disabled"
+        return true
+    for layerName in config.LayerOrder {
+        layer := config.Layers[layerName]
+        if layer.Keys.Has(id) && config.Actions[layer.Keys[id]].Type != "Disabled"
+            return true
+    }
+    return false
+}
+
+; === KeySend parser ===
+
+KeySend_Compile(text, path := "<memory>", section := "<KeySend>") {
+    modifierSymbols := Config_Map()
+    modifierSymbols["Ctrl"] := "^"
+    modifierSymbols["Shift"] := "+"
+    modifierSymbols["Alt"] := "!"
+    modifierSymbols["Win"] := "#"
+
+    named := Config_Map()
+    for key in ["Tab", "Enter", "Escape", "Space", "Backspace", "Delete", "Insert",
+                "Home", "End", "PageUp", "PageDown", "Up", "Down", "Left", "Right",
+                "PrintScreen", "Volume_Up", "Volume_Down", "Volume_Mute",
+                "Media_Play_Pause", "Media_Next", "Media_Prev", "Media_Stop",
+                "Browser_Back", "Browser_Forward", "Browser_Refresh"]
+        named[key] := key
+
+    aliases := Config_Map()
+    aliases["Esc"] := "Escape"
+    aliases["PgUp"] := "PageUp"
+    aliases["PgDn"] := "PageDown"
+
+    modifiers := Config_Map()
+    keyToken := ""
+    for raw in StrSplit(text, "+") {
+        token := Trim(raw)
+        if token = ""
+            Config_Error(path, section, "Keys", text, "Empty KeySend token.")
+        if modifierSymbols.Has(token) {
+            if modifiers.Has(token)
+                Config_Error(path, section, "Keys", text, "Duplicate modifier: " token)
+            modifiers[token] := true
+            continue
+        }
+        if keyToken != ""
+            Config_Error(path, section, "Keys", text, "Exactly one non-modifier key is required.")
+        keyToken := token
+    }
+
+    if keyToken = ""
+        Config_Error(path, section, "Keys", text, "A non-modifier key is required.")
+
+    keySpec := ""
+    if RegExMatch(keyToken, "i)^[A-Z]$")
+        keySpec := StrLower(keyToken)
+    else if RegExMatch(keyToken, "^[0-9]$")
+        keySpec := keyToken
+    else if RegExMatch(keyToken, "i)^F([1-9]|1[0-9]|2[0-4])$")
+        keySpec := "{" StrUpper(keyToken) "}"
+    else {
+        if aliases.Has(keyToken)
+            keyToken := aliases[keyToken]
+        if !named.Has(keyToken)
+            Config_Error(path, section, "Keys", text, "Unknown KeySend key: " keyToken)
+        keySpec := "{" named[keyToken] "}"
+    }
+
+    prefix := ""
+    for modifier in ["Ctrl", "Shift", "Alt", "Win"]
+        if modifiers.Has(modifier)
+            prefix .= modifierSymbols[modifier]
+    return prefix keySpec
+}
+
+; === Layer / Action resolution ===
+
+Action_IdForKey(id) {
+    global App
+    if App.Config.GlobalKeys.Has(id)
+        return App.Config.GlobalKeys[id]
+    layer := App.Config.Layers[App.ActiveLayer]
+    return layer.Keys.Get(id, "")
+}
+
+Action_GetForKey(id) {
+    global App
+    actionId := Action_IdForKey(id)
+    return actionId != "" && App.Config.Actions.Has(actionId) ? App.Config.Actions[actionId] : 0
+}
+
+Layer_Set(name, notify := true) {
+    global App
+    if !App.Config.Layers.Has(name)
+        throw Error("Unknown layer: " name)
+    App.ActiveLayer := App.Config.Layers[name].Name
+    Debug_Log("Layer Set: " App.ActiveLayer)
+    if notify
+        Notify_Info("Layer: " App.ActiveLayer)
+}
+
+Layer_Next(notify := true) {
+    global App
+    index := 0
+    for i, name in App.Config.LayerOrder {
+        if StrLower(name) = StrLower(App.ActiveLayer) {
+            index := i
+            break
+        }
+    }
+    if !index
+        throw Error("Active layer is not in LayerOrder.")
+    nextIndex := index = App.Config.LayerOrder.Length ? 1 : index + 1
+    Layer_Set(App.Config.LayerOrder[nextIndex], notify)
+    return App.ActiveLayer
+}
+
+; === Runtime Window State ===
+
+Runtime_Init(config) {
+    state := Map()
+    for id, action in config.Actions
+        if action.Type = "Window"
+            state[id] := Runtime_Empty()
+    return state
 }
 
 Runtime_Empty() {
     return {Hwnd: 0, BindingSource: "None"}
 }
 
-Runtime_Copy(slots) {
+Runtime_Copy(state) {
     working := Map()
-    for id, slot in slots
+    for id, slot in state
         working[id] := slot.Clone()
     return working
 }
 
-Runtime_Validate(slots, keys) {
+Runtime_Validate(state, config) {
     used := Map()
-    for id, key in keys
-        if (key.Mode = "Window") != slots.Has(id)
-            throw Error("Slot/mode mismatch: " id)
-    for id, slot in slots {
-        if !keys.Has(id) || keys[id].Mode != "Window"
-            throw Error("Unexpected slot: " id)
+    for id, action in config.Actions {
+        if (action.Type = "Window") != state.Has(id)
+            throw Error("Window runtime/action mismatch: " id)
+    }
+    for id, slot in state {
+        if !config.Actions.Has(id) || config.Actions[id].Type != "Window"
+            throw Error("Unexpected Window runtime state: " id)
         if (slot.BindingSource = "None" && slot.Hwnd != 0)
             || (slot.BindingSource != "None" && slot.BindingSource != "Auto" && slot.BindingSource != "Manual")
             || (slot.Hwnd = 0 && slot.BindingSource != "None")
             throw Error("Invalid binding state: " id)
         if slot.Hwnd {
             if used.Has(slot.Hwnd)
-                throw Error("Duplicate HWND in working state.")
+                throw Error("Duplicate HWND in Window runtime state.")
             used[slot.Hwnd] := true
         }
     }
@@ -332,11 +740,12 @@ Runtime_Validate(slots, keys) {
 
 Runtime_Commit(working) {
     global App
-    Runtime_Validate(working, App.Keys)
-    App.Slots := working
+    Runtime_Validate(working, App.Config)
+    App.WindowState := working
 }
 
-; === Input / Hotkey Registration ===
+; === Input / Hotkeys ===
+
 Input_Modifier() {
     if GetKeyState("LWin", "P") || GetKeyState("RWin", "P")
         return "Unsupported"
@@ -352,55 +761,67 @@ Input_ModifierKind(ctrl, shift, alt) {
     return shift && alt ? "Unsupported" : shift ? "CtrlShift" : alt ? "CtrlAlt" : "Ctrl"
 }
 
-Input_Context(modifier, *) {
-    return Input_Modifier() = modifier
+Input_ShouldCapture(id, modifier) {
+    global App
+    if modifier = "Normal" {
+        action := Action_GetForKey(id)
+        return IsObject(action) && action.Type != "Disabled"
+    }
+    action := Action_GetForKey(id)
+    return IsObject(action) && action.Type = "Window"
 }
 
-Input_HotkeyPlan(keys) {
+Input_Context(id, modifier, *) {
+    return Input_Modifier() = modifier && Input_ShouldCapture(id, modifier)
+}
+
+Input_ZeroDetectorEnabled() {
+    global App
+    return App.Config.EnableVirtual00 || App.Config.EnableVirtual000
+}
+
+Input_HotkeyPlan(metadata, zeroDetectorEnabled) {
     plan := []
-    for id, key in keys {
-        if key.Mode = "Disabled" || key.InputStrategy = "ZeroDetector"
+    for id, meta in metadata {
+        if meta.Virtual || (id = "Numpad0" && zeroDetectorEnabled)
             continue
-        for modifier in (key.Mode = "Window" ? ["Normal", "Ctrl", "CtrlShift", "CtrlAlt"] : ["Normal"]) {
-            ; Ctrl+NumpadEnter and Ctrl+Shift+NumpadEnter are reserved Global Actions.
+        for modifier in ["Normal", "Ctrl", "CtrlShift", "CtrlAlt"] {
             if id = "NumpadEnter" && (modifier = "Ctrl" || modifier = "CtrlShift")
                 continue
-            plan.Push({Id: id, Key: key.AhkKey, Modifier: modifier})
+            plan.Push({Id: id, Key: meta.AhkKey, Modifier: modifier})
         }
     }
     return plan
 }
 
 Input_GlobalHotkeyPlan() {
-    ; NumpadEnter is SC11C. Standard keyboard Enter is SC01C and is unaffected.
     return [
         {Action: "AutoBindAll", Key: "SC11C", Modifier: "Ctrl"},
         {Action: "ClearAll", Key: "SC11C", Modifier: "CtrlShift"}
     ]
 }
 
+Input_GlobalContext(modifier, *) {
+    return Input_Modifier() = modifier
+}
+
 Input_RegisterHotkeys() {
     global App
-    plan := Input_HotkeyPlan(App.Keys)
-    for modifier in ["Normal", "Ctrl", "CtrlShift", "CtrlAlt"] {
-        HotIf(Input_Context.Bind(modifier))
-        for entry in plan
-            if entry.Modifier = modifier
-                Hotkey("*" entry.Key, Input_Dispatch.Bind(entry.Id, modifier))
+    plan := Input_HotkeyPlan(App.Metadata, Input_ZeroDetectorEnabled())
+    for entry in plan {
+        HotIf(Input_Context.Bind(entry.Id, entry.Modifier))
+        Hotkey("*" entry.Key, Input_Dispatch.Bind(entry.Id, entry.Modifier))
     }
-
-    globalPlan := Input_GlobalHotkeyPlan()
-    for entry in globalPlan {
-        HotIf(Input_Context.Bind(entry.Modifier))
+    for entry in Input_GlobalHotkeyPlan() {
+        HotIf(Input_GlobalContext.Bind(entry.Modifier))
         Hotkey("*" entry.Key, Input_GlobalDispatch.Bind(entry.Action))
     }
-
     HotIf()
-    Debug_Log("Hotkey registration: " (plan.Length + globalPlan.Length))
+    Debug_Log("Hotkey registration plan: " (plan.Length + Input_GlobalHotkeyPlan().Length))
 }
 
 Input_GlobalDispatch(action, *) {
-    Debug_Log("Global input dispatch: " action)
+    Debug_Log("Global dispatch: " action)
     try {
         switch action {
             case "AutoBindAll":
@@ -417,26 +838,35 @@ Input_GlobalDispatch(action, *) {
 
 Input_Dispatch(id, modifier, *) {
     global App
-    Debug_Log("Input dispatch: " id " / " modifier)
+    Debug_Log("Input dispatch: " id " / " modifier " / Layer=" App.ActiveLayer)
     try {
-        key := App.Keys[id]
-        if key.Mode = "Disabled"
+        actionId := Action_IdForKey(id)
+        if actionId = ""
             return
-        if key.Mode = "Shortcut" {
-            if modifier = "Normal"
-                Action_RunShortcut(id)
+        action := App.Config.Actions[actionId]
+        if action.Type = "Disabled"
             return
-        }
+
         switch modifier {
-            case "Normal": Action_ActivateWindow(id)
-            case "Ctrl": Binding_ManualBind(id)
-            case "CtrlShift": Binding_Clear(id)
+            case "Normal":
+                Action_Execute(actionId)
+            case "Ctrl":
+                if action.Type = "Window"
+                    Binding_ManualBind(actionId)
+            case "CtrlShift":
+                if action.Type = "Window"
+                    Binding_Clear(actionId)
             case "CtrlAlt":
-                if key.AutoBind {
-                    AutoBind_Run(key.AutoBindGroup)
-                    Notify_Info(App.Slots[id].Hwnd ? "Auto Bind completed: " key.Label : "No window found: " key.Label)
-                } else
-                    Notify_Info("Auto Bind disabled for this slot: " key.Label)
+                if action.Type = "Window" {
+                    if action.AutoBindStrategy = "None"
+                        Notify_Info("Auto Bind disabled: " action.Label)
+                    else {
+                        AutoBind_Action(actionId)
+                        Notify_Info(App.WindowState[actionId].Hwnd
+                            ? "Auto Bind completed: " action.Label
+                            : "No window found: " action.Label)
+                    }
+                }
         }
     } catch as err {
         Debug_Log("Action failed: " id " / " err.Message)
@@ -446,38 +876,61 @@ Input_Dispatch(id, modifier, *) {
 
 Input_Drain() {
     global App
-    ; Remove before dispatch: a callback can enqueue more input during activation.
     while App.InputQueue.Length {
         event := App.InputQueue.RemoveAt(1)
         Input_Dispatch(event.Id, event.Modifier)
     }
 }
 
-; === Numpad0 / Virtual000 Detector ===
-Zero_New() {
-    return {Active: false, Start: 0, Pattern: "", Downs: 0, Down: false,
-        IgnoreUntilUp: false, Modifier: "Normal"}
+; === Numpad0 / Virtual00 / Virtual000 detector ===
+
+Zero_New(enable00 := false, enable000 := false) {
+    return {
+        Active: false,
+        Start: 0,
+        Pattern: "",
+        Downs: 0,
+        Down: false,
+        IgnoreUntilUp: false,
+        Modifier: "Normal",
+        Enable00: enable00,
+        Enable000: enable000
+    }
 }
 
-Zero_WindowMs(modifier) {
-    ; The second manual-test log showed successful Ctrl+000 sequences at 31-47 ms.
-    ; Failures were caused by an Interrupt, not by the elapsed-time threshold.
-    ; Keep one 80 ms window for all modifier states.
+Zero_WindowMs(*) {
     return 80
 }
 
 Zero_IsModifierVk(vk) {
-    ; Generic and left/right-specific modifier VK values.
     return vk = 0x10 || vk = 0x11 || vk = 0x12
         || vk = 0xA0 || vk = 0xA1 || vk = 0xA2 || vk = 0xA3
         || vk = 0xA4 || vk = 0xA5 || vk = 0x5B || vk = 0x5C
 }
 
 Zero_ShouldIgnoreInterrupt(state, vk, modifier) {
-    ; A held modifier can emit another KeyDown while the physical 000 key is
-    ; producing SC052 D/U events. Ignore only that same modifier state.
-    ; A newly pressed modifier changes Input_Modifier() and still interrupts.
     return state.Active && Zero_IsModifierVk(vk) && modifier = state.Modifier
+}
+
+Zero_Finish(state, virtual000 := false) {
+    events := []
+    if !state.Active
+        return events
+
+    if virtual000 {
+        events.Push({Id: "Virtual000", Modifier: state.Modifier})
+    } else if state.Downs = 2 && state.Enable00 && !state.Down && state.Pattern = "DUDU" {
+        events.Push({Id: "Virtual00", Modifier: state.Modifier})
+    } else {
+        Loop state.Downs
+            events.Push({Id: "Numpad0", Modifier: state.Modifier})
+    }
+
+    state.IgnoreUntilUp := state.Down
+    state.Active := false
+    state.Pattern := ""
+    state.Downs := 0
+    return events
 }
 
 Zero_FeedInput(state, kind, tick, modifier := "Normal", vk := 0) {
@@ -486,29 +939,20 @@ Zero_FeedInput(state, kind, tick, modifier := "Normal", vk := 0) {
     return Zero_Feed(state, kind, tick, modifier)
 }
 
-Zero_Finish(state, triple := false) {
-    events := []
-    if !state.Active
-        return events
-    Loop (triple ? 1 : state.Downs)
-        events.Push({Id: triple ? "Virtual000" : "Numpad0", Modifier: state.Modifier})
-    state.IgnoreUntilUp := state.Down
-    state.Active := false
-    state.Pattern := ""
-    state.Downs := 0
-    return events
-}
-
 Zero_Feed(state, kind, tick, modifier := "Normal") {
     events := []
+
     if state.Active && tick - state.Start > Zero_WindowMs(state.Modifier)
-        events := Zero_Finish(state)
+        for event in Zero_Finish(state)
+            events.Push(event)
+
     if kind = "Interrupt" || kind = "Timer" {
         if state.Active
             for event in Zero_Finish(state)
                 events.Push(event)
         return events
     }
+
     if kind = "D" {
         if state.IgnoreUntilUp || state.Down
             return events
@@ -520,7 +964,10 @@ Zero_Feed(state, kind, tick, modifier := "Normal") {
         state.Down := true
         state.Pattern .= "D"
         state.Downs += 1
-    } else if kind = "U" {
+        return events
+    }
+
+    if kind = "U" {
         state.Down := false
         if state.IgnoreUntilUp {
             state.IgnoreUntilUp := false
@@ -529,17 +976,21 @@ Zero_Feed(state, kind, tick, modifier := "Normal") {
         if !state.Active
             return events
         state.Pattern .= "U"
-        if state.Pattern = "DUDUDU"
+
+        if state.Enable000 && state.Pattern = "DUDUDU" {
             for event in Zero_Finish(state, true)
                 events.Push(event)
+        } else if !state.Enable000 && state.Enable00 && state.Pattern = "DUDU" {
+            for event in Zero_Finish(state)
+                events.Push(event)
+        }
     }
     return events
 }
 
 Input_StartZeroDetector() {
     global App
-    if App.Keys["Numpad0"].Mode = "Disabled"
-        || App.Keys["Numpad0"].InputStrategy != "ZeroDetector"
+    if !Input_ZeroDetectorEnabled()
         return
     App.Hook := InputHook("V")
     App.Hook.KeyOpt("{All}", "N")
@@ -568,34 +1019,28 @@ Zero_Process(kind, vk := 0, sc := 0) {
     try {
         tick := A_TickCount
         modifier := Input_Modifier()
-        ignoredModifierInterrupt := kind = "Interrupt"
+        ignored := kind = "Interrupt"
             && Zero_ShouldIgnoreInterrupt(App.ZeroDetector, vk, modifier)
 
         if kind = "Interrupt" && App.ZeroDetector.Active {
             Debug_Log("Zero interrupt: vk=" Format("{:02X}", vk)
                 " sc=" Format("{:03X}", sc)
                 " modifier=" modifier
-                " ignored=" ignoredModifierInterrupt
-                " pattern=" App.ZeroDetector.Pattern)
-        } else if kind != "Interrupt" || App.ZeroDetector.Active {
-            Debug_Log("Zero input: kind=" kind " tick=" tick " modifier=" modifier
-                " active=" App.ZeroDetector.Active " start=" App.ZeroDetector.Start
+                " ignored=" ignored
                 " pattern=" App.ZeroDetector.Pattern)
         }
 
-        for event in Zero_FeedInput(App.ZeroDetector, kind, tick, modifier, vk) {
-            Debug_Log("Zero queued: " event.Id " / " event.Modifier
-                " elapsed=" (tick - App.ZeroDetector.Start))
+        for event in Zero_FeedInput(App.ZeroDetector, kind, tick, modifier, vk)
             App.InputQueue.Push(event)
-        }
 
         timeout := App.ZeroDetector.Active ? Zero_WindowMs(App.ZeroDetector.Modifier) : 0
         SetTimer(Zero_OnTimer, App.ZeroDetector.Active
-            ? -Max(1, timeout + 1 - (A_TickCount - App.ZeroDetector.Start)) : 0)
+            ? -Max(1, timeout + 1 - (A_TickCount - App.ZeroDetector.Start))
+            : 0)
         if App.InputQueue.Length
             SetTimer(Input_Drain, -1)
     } catch as err {
-        App.ZeroDetector := Zero_New()
+        App.ZeroDetector := Zero_New(App.Config.EnableVirtual00, App.Config.EnableVirtual000)
         Debug_Log("Zero detector error: " err.Message)
         Notify_Info("Zero detector reset after an error")
     } finally {
@@ -603,7 +1048,8 @@ Zero_Process(kind, vk := 0, sc := 0) {
     }
 }
 
-; === Window Probe / Matching ===
+; === Window probe / matching ===
+
 Window_GetIdentity(hwnd) {
     if !hwnd || !DllCall("IsWindow", "ptr", hwnd, "int")
         return 0
@@ -611,7 +1057,12 @@ Window_GetIdentity(hwnd) {
     try {
         DetectHiddenWindows(true)
         spec := "ahk_id " hwnd
-        return {Hwnd: hwnd, Process: WinGetProcessName(spec), Class: WinGetClass(spec), Title: WinGetTitle(spec)}
+        return {
+            Hwnd: hwnd,
+            Process: WinGetProcessName(spec),
+            Class: WinGetClass(spec),
+            Title: WinGetTitle(spec)
+        }
     } catch {
         return 0
     } finally {
@@ -619,23 +1070,32 @@ Window_GetIdentity(hwnd) {
     }
 }
 
-Window_MatchesAllowed(candidate, key) {
+Window_MatchesAllowed(candidate, action) {
     return IsObject(candidate)
-        && (key.AllowedProcess = "" || StrLower(candidate.Process) = StrLower(key.AllowedProcess))
-        && (key.AllowedClass = "" || StrLower(candidate.Class) = StrLower(key.AllowedClass))
-        && (key.AllowedTitleContains = "" || InStr(candidate.Title, key.AllowedTitleContains, false))
+        && (action.AllowedProcess = "" || StrLower(candidate.Process) = StrLower(action.AllowedProcess))
+        && (action.AllowedClass = "" || StrLower(candidate.Class) = StrLower(action.AllowedClass))
+        && (action.AllowedTitleContains = "" || InStr(candidate.Title, action.AllowedTitleContains, false))
 }
 
-Window_IsExistingBindingValid(hwnd, key) {
-    return Window_MatchesAllowed(Window_GetIdentity(hwnd), key)
+Window_MatchesGroup(candidate, group) {
+    return IsObject(candidate)
+        && (group.MatchProcess = "" || StrLower(candidate.Process) = StrLower(group.MatchProcess))
+        && (group.MatchClass = "" || StrLower(candidate.Class) = StrLower(group.MatchClass))
+        && (group.MatchTitleContains = "" || InStr(candidate.Title, group.MatchTitleContains, false))
+}
+
+Window_IsExistingBindingValid(hwnd, action) {
+    return Window_MatchesAllowed(Window_GetIdentity(hwnd), action)
 }
 
 Window_GetPrimaryWorkArea() {
     primary := MonitorGetPrimary()
     MonitorGetWorkArea(primary, &left, &top, &right, &bottom)
     MonitorGet(primary, &ml, &mt, &mr, &mb)
-    return {X: left, Y: top, W: right - left, H: bottom - top,
-        Left: ml, Top: mt, Right: mr, Bottom: mb}
+    return {
+        X: left, Y: top, W: right - left, H: bottom - top,
+        Left: ml, Top: mt, Right: mr, Bottom: mb
+    }
 }
 
 Window_GetCandidate(hwnd) {
@@ -656,12 +1116,13 @@ Window_GetCandidate(hwnd) {
         p.Cloaked := hr = 0 ? NumGet(cloaked, 0, "UInt") : 1
         return Window_IsCandidateEligible(p) ? p : 0
     } catch {
-        return 0 ; A window may disappear while being probed.
+        return 0
     }
 }
 
 Window_IsCandidateEligible(p) {
-    return p.Visible && !p.Cloaked && !p.Owner && !p.ToolWindow && p.W > 0 && p.H > 0 && p.Title != ""
+    return p.Visible && !p.Cloaked && !p.Owner && !p.ToolWindow
+        && p.W > 0 && p.H > 0 && p.Title != ""
 }
 
 Window_EnumerateCandidates() {
@@ -674,186 +1135,392 @@ Window_EnumerateCandidates() {
     return candidates
 }
 
+Window_GroupHasMatch(group, candidates) {
+    for candidate in candidates
+        if Window_MatchesGroup(candidate, group)
+            return true
+    return false
+}
+
 ; === Binding / Clear ===
-Binding_Assign(slots, keys, id, candidate) {
-    if keys[id].Mode != "Window" || !Window_MatchesAllowed(candidate, keys[id])
-        throw Error("Manual Bind rejected: " keys[id].Label)
-    working := Runtime_Copy(slots)
+
+Binding_Assign(state, config, actionId, candidate) {
+    action := config.Actions[actionId]
+    if action.Type != "Window" || !Window_MatchesAllowed(candidate, action)
+        throw Error("Manual Bind rejected: " action.Label)
+
+    working := Runtime_Copy(state)
     for oldId, slot in working
         if slot.Hwnd = candidate.Hwnd
             working[oldId] := Runtime_Empty()
-    working[id] := {Hwnd: candidate.Hwnd, BindingSource: "Manual"}
-    Runtime_Validate(working, keys)
+    working[actionId] := {Hwnd: candidate.Hwnd, BindingSource: "Manual"}
+    Runtime_Validate(working, config)
     return working
 }
 
-Binding_ManualBind(id) {
+Binding_ManualBind(actionId) {
     global App
     Critical("On")
     try {
         candidate := Window_GetIdentity(WinExist("A"))
-        Runtime_Commit(Binding_Assign(App.Slots, App.Keys, id, candidate))
-        Debug_Log("Manual Bind: " id)
-        Debug_DumpSlots()
-        Notify_Info("Manual Bind: " App.Keys[id].Label)
+        Runtime_Commit(Binding_Assign(App.WindowState, App.Config, actionId, candidate))
+        Debug_Log("Manual Bind: " actionId)
+        Debug_DumpWindows()
+        Notify_Info("Manual Bind: " App.Config.Actions[actionId].Label)
     } finally {
         Critical("Off")
     }
 }
 
-Binding_Clear(id := "", notify := true) {
+Binding_Clear(actionId := "", notify := true) {
     global App
     Critical("On")
     try {
-        working := Runtime_Copy(App.Slots)
-        if id = ""
-            working := Runtime_Init(App.Keys)
-        else if working.Has(id)
-            working[id] := Runtime_Empty()
+        working := Runtime_Copy(App.WindowState)
+        if actionId = ""
+            working := Runtime_Init(App.Config)
+        else if working.Has(actionId)
+            working[actionId] := Runtime_Empty()
         Runtime_Commit(working)
-        Debug_Log("Clear: " (id = "" ? "All" : id))
-        Debug_DumpSlots()
+        Debug_Log("Clear: " (actionId = "" ? "All" : actionId))
+        Debug_DumpWindows()
         if notify
-            Notify_Info(id = "" ? "All bindings cleared" : "Slot cleared: " App.Keys[id].Label)
+            Notify_Info(actionId = ""
+                ? "All window bindings cleared"
+                : "Binding cleared: " App.Config.Actions[actionId].Label)
     } finally {
         Critical("Off")
     }
 }
 
-; === AutoBind / Working State ===
-AutoBind_Run(group := "") {
+; === Auto Bind ===
+
+AutoBind_Action(actionId) {
+    global App
+    action := App.Config.Actions[actionId]
+    if action.Type != "Window" || action.AutoBindStrategy = "None"
+        return
+    filterGroup := action.WindowGroup
+    filterAction := filterGroup = "" ? actionId : ""
+    working := AutoBind_Calculate(App.Config, App.WindowState,
+        Window_EnumerateCandidates(), Window_GetPrimaryWorkArea(),
+        filterGroup, filterAction)
+    Runtime_Commit(working)
+    Debug_DumpWindows()
+}
+
+AutoBind_Run() {
     global App
     Critical("On")
     try {
-        Debug_Log("Auto Bind start: " (group = "" ? "All" : group))
-        working := AutoBind_Calculate(App.Keys, App.Slots, Window_EnumerateCandidates(), Window_GetPrimaryWorkArea(), group)
+        working := AutoBind_Calculate(App.Config, App.WindowState,
+            Window_EnumerateCandidates(), Window_GetPrimaryWorkArea())
         Runtime_Commit(working)
-        Debug_Log("Auto Bind complete")
-        Debug_DumpSlots()
+        Debug_Log("Auto Bind completed")
+        Debug_DumpWindows()
     } finally {
         Critical("Off")
     }
 }
 
-AutoBind_Calculate(keys, slots, candidates, area, group := "", valid := Window_IsExistingBindingValid) {
-    working := Runtime_Copy(slots)
-    ; A group operation does not clear unrelated slots. Their HWNDs remain reserved.
-    for id, slot in working
-        if (group = "" || keys[id].AutoBindGroup = group) && slot.Hwnd && !valid.Call(slot.Hwnd, keys[id])
+AutoBind_Calculate(config, state, candidates, area, filterGroup := "", filterAction := "",
+        valid := Window_IsExistingBindingValid) {
+    working := Runtime_Copy(state)
+
+    ; Invalidate only relevant bindings.
+    for id, slot in working {
+        action := config.Actions[id]
+        selected := (filterAction = "" && filterGroup = "")
+            || (filterAction != "" && StrLower(id) = StrLower(filterAction))
+            || (filterGroup != "" && StrLower(action.WindowGroup) = StrLower(filterGroup))
+        if selected && slot.Hwnd && !valid.Call(slot.Hwnd, action)
             working[id] := Runtime_Empty()
-    used := Runtime_Validate(working, keys)
-    hasAutoBind := false
-    for id, key in keys
-        if key.AutoBind {
-            hasAutoBind := true
-            break
-        }
-    if !hasAutoBind
-        return working
-    for current in ["Chrome", "VSCode", "Explorer", "ChatGPT", "PowerShell"] {
-        if group != "" && group != current
+    }
+
+    used := Runtime_Validate(working, config)
+
+    for id, action in config.Actions {
+        if action.Type != "Window" || action.AutoBindStrategy = "None"
             continue
-        ids := current = "Chrome" ? ["Numpad7", "Numpad8", "Numpad9"]
-            : current = "VSCode" ? ["Numpad4", "Numpad5", "Numpad6"]
-            : [current = "Explorer" ? "Numpad1" : current = "ChatGPT" ? "Numpad2" : "Numpad3"]
-        for id in ids {
-            if working[id].Hwnd
-                continue
-            best := 0
-            bestScore := 1.0e20
-            Loop candidates.Length {
-                p := candidates[current = "VSCode" ? candidates.Length - A_Index + 1 : A_Index]
-                if used.Has(p.Hwnd) || !Window_MatchesAllowed(p, keys[id]) || !Window_IsCandidateEligible(p)
-                    continue
-                if current = "Chrome" {
-                    score := AutoBind_ChromeScore(p, area, keys[id].SlotOrder)
-                    if score < 0 || score >= bestScore
-                        continue
-                    best := p
-                    bestScore := score
-                } else if current = "VSCode" {
-                    best := p
-                    break
-                } else if !IsObject(best) || (best.MinMax = -1 && p.MinMax != -1) {
-                    best := p
-                }
-            }
-            if IsObject(best) {
-                working[id] := {Hwnd: best.Hwnd, BindingSource: "Auto"}
-                used[best.Hwnd] := true
-            }
+        if filterAction != "" && StrLower(id) != StrLower(filterAction)
+            continue
+        if filterGroup != "" && StrLower(action.WindowGroup) != StrLower(filterGroup)
+            continue
+        if working[id].Hwnd
+            continue
+
+        best := AutoBind_SelectCandidate(action, candidates, used, area)
+        if IsObject(best) {
+            working[id] := {Hwnd: best.Hwnd, BindingSource: "Auto"}
+            used[best.Hwnd] := true
         }
     }
-    Runtime_Validate(working, keys)
+
+    Runtime_Validate(working, config)
     return working
 }
 
-AutoBind_ChromeScore(p, area, order) {
+AutoBind_SelectCandidate(action, candidates, used, area) {
+    best := 0
+    bestScore := 1.0e20
+
+    Loop candidates.Length {
+        index := action.AutoBindStrategy = "ReverseList"
+            ? candidates.Length - A_Index + 1
+            : A_Index
+        candidate := candidates[index]
+        if used.Has(candidate.Hwnd)
+            continue
+        if !Window_MatchesAllowed(candidate, action) || !Window_IsCandidateEligible(candidate)
+            continue
+
+        if action.AutoBindStrategy = "PrimaryThreePane" {
+            score := AutoBind_PrimaryThreePaneScore(candidate, area, action.AutoBindOrder)
+            if score < 0 || score >= bestScore
+                continue
+            best := candidate
+            bestScore := score
+        } else {
+            best := candidate
+            break
+        }
+    }
+    return best
+}
+
+AutoBind_PrimaryThreePaneScore(p, area, order) {
     cx := p.X + p.W / 2, cy := p.Y + p.H / 2
     if p.MinMax != 0 || cx < area.Left || cx >= area.Right || cy < area.Top || cy >= area.Bottom
         return -1
     x := (p.X - area.X) / area.W, y := (p.Y - area.Y) / area.H
     w := p.W / area.W, h := p.H / area.H
     nx := (cx - area.X) / area.W, ny := (cy - area.Y) / area.H
-    ; Same thresholds and ideal rectangle score as Phase B's Chrome PoC.
+
     if order < 3 {
         if !(nx < 0.40 && w >= 0.15 && w <= 0.45 && h >= 0.30 && h <= 0.70)
             || (order = 1 ? ny >= 0.50 : ny < 0.50)
             return -1
         return Abs(x) + Abs(y - (order = 1 ? 0 : 0.5)) + Abs(w - 0.3) + Abs(h - 0.5)
     }
+
     if !(nx >= 0.40 && w >= 0.50 && w <= 0.90 && h >= 0.70 && h <= 1.05)
         return -1
     return Abs(x - 0.3) + Abs(y) + Abs(w - 0.7) + Abs(h - 1)
 }
 
-; === Window Actions ===
-Action_ActivateWindow(id) {
+; === Window action / Toggle ===
+
+Window_BehaviorDecision(behavior, isActive, minMax) {
+    if behavior = "Toggle" && isActive
+        return "Minimize"
+    return minMax = -1 ? "RestoreActivate" : "Activate"
+}
+
+Action_Window(actionId) {
     global App
-    key := App.Keys[id]
-    if !Window_IsExistingBindingValid(App.Slots[id].Hwnd, key) {
-        Binding_Clear(id, false)
-        if key.AutoBind {
-            AutoBind_Run(key.AutoBindGroup)
-            Debug_Log("Lazy Auto Bind: " id)
-        }
+    action := App.Config.Actions[actionId]
+    slot := App.WindowState[actionId]
+
+    if slot.Hwnd && !Window_IsExistingBindingValid(slot.Hwnd, action) {
+        Binding_Clear(actionId, false)
+        slot := App.WindowState[actionId]
     }
-    hwnd := App.Slots[id].Hwnd
-    if !hwnd {
-        Notify_Info("No window found: " key.Label)
+
+    if !slot.Hwnd && action.AutoBindStrategy != "None" {
+        AutoBind_Action(actionId)
+        slot := App.WindowState[actionId]
+        Debug_Log("Lazy Auto Bind: " actionId)
+    }
+
+    if !slot.Hwnd {
+        status := Launch_Try(actionId)
+        if status = "Launched" || status = "Pending"
+            Notify_Info("Launching: " action.Label)
+        else
+            Notify_Info("No window found: " action.Label)
         return
     }
+
+    hwnd := slot.Hwnd
     try {
         spec := "ahk_id " hwnd
-        if WinGetMinMax(spec) = -1
+        decision := Window_BehaviorDecision(action.Behavior, !!WinActive(spec), WinGetMinMax(spec))
+        if decision = "Minimize" {
+            WinMinimize(spec)
+            return
+        }
+        if decision = "RestoreActivate"
             WinRestore(spec)
         WinActivate(spec)
         if !WinWaitActive(spec, , 0.5)
             throw Error("Foreground activation failed.")
     } catch as err {
-        if !Window_IsExistingBindingValid(hwnd, key) && App.Slots[id].Hwnd = hwnd
-            Binding_Clear(id, false)
-        Debug_Log("Activate failed: " id " / " err.Message)
-        Notify_Info("Activate failed: " key.Label)
+        if !Window_IsExistingBindingValid(hwnd, action) && App.WindowState[actionId].Hwnd = hwnd
+            Binding_Clear(actionId, false)
+        Debug_Log("Window action failed: " actionId " / " err.Message)
+        Notify_Info("Window action failed: " action.Label)
     }
 }
 
-; === Shortcut Actions ===
-Action_RunShortcut(id) {
+; === Launch fallback ===
+
+Launch_Decide(actionId, candidates, nowTick := -1) {
     global App
-    key := App.Keys[id]
+    action := App.Config.Actions[actionId]
+    if action.Type != "Window" || action.WindowGroup = ""
+        return "Unavailable"
+    group := App.Config.WindowGroups[action.WindowGroup]
+    if group.LaunchTarget = ""
+        return "Unavailable"
+
+    if Window_GroupHasMatch(group, candidates)
+        return "Existing"
+
+    if nowTick < 0
+        nowTick := A_TickCount
+    if App.LaunchPending.Has(group.Id) {
+        pending := App.LaunchPending[group.Id]
+        if nowTick < pending.Expires
+            return "Pending"
+        App.LaunchPending.Delete(group.Id)
+    }
+    return "Ready"
+}
+
+Launch_Try(actionId) {
+    global App
+    candidates := Window_EnumerateCandidates()
+    decision := Launch_Decide(actionId, candidates)
+
+    action := App.Config.Actions[actionId]
+    if action.WindowGroup = ""
+        return decision
+    group := App.Config.WindowGroups[action.WindowGroup]
+
+    if decision = "Existing" {
+        if App.LaunchPending.Has(group.Id)
+            App.LaunchPending.Delete(group.Id)
+        Launch_SchedulePendingTimer()
+        return "Existing"
+    }
+    if decision != "Ready"
+        return decision
+
     try {
-        Run('"' key.ShortcutTarget '"' (key.ShortcutArguments = "" ? "" : " " key.ShortcutArguments), key.ShortcutWorkingDirectory, , &pid)
-        Debug_Log("Shortcut launched: " id)
+        Run('"' group.LaunchTarget '"' (group.LaunchArguments = "" ? "" : " " group.LaunchArguments),
+            group.LaunchWorkingDirectory, , &pid)
+        App.LaunchPending[group.Id] := {
+            Expires: A_TickCount + group.LaunchPendingTimeoutMs,
+            Pid: pid
+        }
+        Launch_SchedulePendingTimer()
+        Debug_Log("Launch fallback: " group.Id " pid=" pid)
+        return "Launched"
+    } catch as err {
+        Debug_Log("Launch fallback failed: " group.Id " / " err.Message)
+        return "Failed"
+    }
+}
+
+Launch_SchedulePendingTimer() {
+    global App
+    SetTimer(Launch_CheckPending, App.LaunchPending.Count ? 250 : 0)
+}
+
+Launch_CheckPending() {
+    global App
+    if !App.LaunchPending.Count {
+        SetTimer(Launch_CheckPending, 0)
+        return
+    }
+
+    candidates := Window_EnumerateCandidates()
+    remove := []
+    nowTick := A_TickCount
+    for groupId, pending in App.LaunchPending {
+        if !App.Config.WindowGroups.Has(groupId)
+            || nowTick >= pending.Expires
+            || Window_GroupHasMatch(App.Config.WindowGroups[groupId], candidates)
+            remove.Push(groupId)
+    }
+    for groupId in remove
+        App.LaunchPending.Delete(groupId)
+    if !App.LaunchPending.Count
+        SetTimer(Launch_CheckPending, 0)
+}
+
+; === Actions ===
+
+Action_Execute(actionId, fromMulti := false) {
+    global App
+    if !App.Config.Actions.Has(actionId)
+        throw Error("Unknown Action: " actionId)
+    action := App.Config.Actions[actionId]
+
+    switch action.Type {
+        case "Window":
+            Action_Window(actionId)
+        case "Run":
+            Action_Run(action)
+        case "KeySend":
+            Action_KeySend(action)
+        case "LayerSwitch":
+            if action.Mode = "Set"
+                Layer_Set(action.Layer)
+            else
+                Layer_Next()
+        case "Delay":
+            Sleep(action.Milliseconds)
+        case "MultiAction":
+            MultiAction_Run(actionId)
+        case "Disabled":
+            return
+    }
+}
+
+Action_Run(action) {
+    try {
+        Run('"' action.Target '"' (action.Arguments = "" ? "" : " " action.Arguments),
+            action.WorkingDirectory, , &pid)
+        Debug_Log("Run action: " action.Id " pid=" pid)
         return pid
     } catch as err {
-        Debug_Log("Shortcut failed: " id " / " err.Message)
-        Notify_Info("Shortcut failed: " key.Label)
+        Debug_Log("Run action failed: " action.Id " / " err.Message)
+        Notify_Info("Run failed: " action.Label)
         return 0
     }
 }
 
+Action_KeySend(action) {
+    try {
+        Send(action.SendSpec)
+        Debug_Log("KeySend: " action.Id " / " action.Keys)
+    } catch as err {
+        Debug_Log("KeySend failed: " action.Id " / " err.Message)
+        Notify_Info("KeySend failed: " action.Label)
+    }
+}
+
+MultiAction_Run(actionId, executor := Action_Execute) {
+    global App
+    action := App.Config.Actions[actionId]
+    if action.Type != "MultiAction"
+        throw Error("Not a MultiAction: " actionId)
+    if App.MultiRunning.Has(actionId)
+        return false
+
+    App.MultiRunning[actionId] := true
+    try {
+        for step in action.Steps
+            executor.Call(step, true)
+        return true
+    } finally {
+        App.MultiRunning.Delete(actionId)
+    }
+}
+
 ; === Notification ===
+
 Notify_Info(text) {
     ToolTip(text)
     SetTimer(Notify_Clear, -1200)
@@ -863,7 +1530,8 @@ Notify_Clear() {
     ToolTip()
 }
 
-; === Debug Logging ===
+; === Debug ===
+
 Debug_Log(text) {
     global App
     if !App.Debug.Enabled
@@ -873,16 +1541,15 @@ Debug_Log(text) {
         DirCreate(dir)
         FileAppend(A_Now " " text "`n", App.Debug.Path, "UTF-8")
     } catch {
-        ; Diagnostics must never break input or binding operations.
     }
 }
 
-Debug_DumpSlots() {
+Debug_DumpWindows() {
     global App
     if !App.Debug.Enabled
         return
-    snapshot := "Slots:"
-    for id, slot in App.Slots
+    snapshot := "WindowState:"
+    for id, slot in App.WindowState
         snapshot .= "`n" id " " slot.BindingSource " " Format("0x{:X}", slot.Hwnd)
     Debug_Log(snapshot)
 }
