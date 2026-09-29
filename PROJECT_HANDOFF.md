@@ -328,7 +328,7 @@ GitHub Actions Windows + AutoHotkey v2.0.28。
 
 PASS済み:
 
-- Phase K Controller Regression: **127 assertions**
+- Phase K Controller Regression: **135 assertions**
 - Startup Preview Regression: **24 assertions**
 - Startup Task Scheduler Integration Regression: **37 assertions**
 
@@ -384,7 +384,7 @@ Virtual00のみN/A。
 
 ## 次の作業
 
-1. `docs/PHASE_K_MANUAL_TEST.md` に従い実機受入を実施
+1. `docs/PHASE_K_MANUAL_TEST.md` に従い、`examples/KeyBindings.phase-k-test.ini` を使って実機受入を実施
 2. 結果を `docs/PHASE_K_RESULT.md` へ反映
 3. `TASKS.md` のPhysical Acceptance完了条件を更新
 4. v0.4.0 Release Ready監査
