@@ -2,7 +2,7 @@
 
 更新日: 2026-09-29  
 対象: NumpadWindowController  
-状態: **Phase J実装・自動検証完了 / Public Default実機受入pending**
+状態: **Phase J実装・自動検証完了 / 物理受入 J-PA-7再試験pending**
 
 ## 現在地点
 
@@ -10,7 +10,7 @@ Phase A～IのMVP工程とv0.2.xのRelease作業は完了している。
 
 Phase J - General-purpose Configuration / Public Defaultは、設計・実装・Migration・文書更新・自動Regression・公開差分監査まで完了した。
 
-現在の残作業は **Public Defaultを物理テンキーで受入確認すること**。これがPASSした後にPhase Jを正式Closeし、v0.3.0 Release判定へ進む。
+物理受入1回目では J-PA-1～6 がPASSし、J-PA-7 NumLock lifecycleのみFAILした。OFF状態から起動した際にNumLockがONへ遷移しなかったため、`NumLock_ForceOn()` を「Onへ明示遷移 → AlwaysOn」の順へ修正した。現在の残作業は **J-PA-7の再試験**。PASS後にPhase Jを正式Closeし、v0.3.0 Release判定へ進む。
 
 現在のVersion / Release関係:
 
@@ -86,15 +86,14 @@ Virtual000をWindow / Shortcutへ変更するとopt-inでZero Detectorへ切り�
 
 ## Configuration Encoding
 
-ConfigVersion 2 TemplateはUTF-8。
+Configuration INIはConfigVersionに関係なくUTF-8を前提とする。
 
-Runtimeは互換性のため:
+Runtimeがサポートするのは:
 
 - UTF-8 BOMなし
 - UTF-8 BOMあり
-- UTF-16 LE BOM
 
-を読み込める。
+のみ。UTF-16 LE / BEはサポートしない。配布INIはUTF-8 BOMなしへ統一した。
 
 ## 操作
 
@@ -129,7 +128,7 @@ Phase J CI:
 - ConfigVersion 2 Public Default: PASS
 - ConfigVersion 1 Legacy Workflow: PASS
 - Virtual000 ON / OFF Regression: PASS
-- Config生成 / UTF-8 / UTF-16互換: PASS
+- Config生成 / UTF-8読込 / UTF-16拒否: PASS
 
 既存v0.2系検証履歴:
 
@@ -146,12 +145,20 @@ Phase J差分の公開監査:
 
 ## Pending
 
+物理受入1回目:
+
+- [x] J-PA-1 初回起動 / Config
+- [x] J-PA-2 Generic Manual Bind
+- [x] J-PA-3 Slot Clear
+- [x] J-PA-4 Clear All
+- [x] J-PA-5 Public Default Numpad0
+- [x] J-PA-6 Virtual000 opt-in
+- [ ] J-PA-7 NumLock lifecycle — 初回FAIL、修正済み、再試験待ち
+
 Phase J正式Close前に必要:
 
-- [ ] Public Defaultで物理テンキーからManual Bind / Activate / Clearを確認
-- [ ] Virtual000 Disabled状態でNumpad0が違和感なく即時動作することを確認
-- [ ] 必要に応じてVirtual000 opt-in実機Regressionを確認
-- [ ] 上記PASS後、Phase Jを正式Close
+- [ ] J-PA-7を再試験してPASS
+- [ ] Phase Jを正式Close
 - [ ] v0.3.0 Release判定
 
 ## 次に読む資料
