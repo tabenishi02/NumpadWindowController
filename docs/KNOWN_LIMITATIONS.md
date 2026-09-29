@@ -1,203 +1,107 @@
 # Numpad Window Controller - Known Limitations
 
-更新日: 2026-09-28  
-対象バージョン: **v0.2.0**  
+更新日: 2026-09-29  
+対象: Phase J / 次期v0.3.0候補  
 状態: **Current**
 
-この文書は、Phase A～Hで確認・採用したWindow Controller Coreと、v0.2.0で追加したログオン時自動起動の既知の制限を一か所へ集約する。
-
-「不具合」ではなく、MVPで意図的に受け入れている仕様上の制限も含む。
+この文書はConfigVersion 2 Public Defaultの制限と、ConfigVersion 1 Legacy Developer Workflow固有の制限を分けて記録する。
 
 ---
 
-## 1. Chrome Auto BindはPrimary Monitor基準
+## 1. Config Hot Reloadなし
 
-Chrome 7 / 8 / 9の新規Auto BindはPrimary MonitorのWork Areaを基準に座標分類する。
+`KeyBindings.ini` は起動時に1回読み込む。
 
-Secondary Monitor上のChromeは新規Auto Bind候補にしない。
-
-既存Binding済みのChromeを後から移動した場合は、HWNDとAllowed条件が有効ならBindingを維持する。
-
-### 将来拡張候補
-
-- MonitorごとのChrome Group
-- Monitor指定Configuration
-- Primary以外への座標分類
+設定変更後はNumpadWindowControllerを再起動する必要がある。
 
 ---
 
-## 2. Minimized / Maximized Chromeは新規座標分類しない
+## 2. HWNDは永続化しない
 
-Chromeの新規Auto BindではNormal Windowだけを座標分類する。
+Window BindingはRuntime Stateだけに保持する。
 
-Minimized / Maximized状態のChromeは、ゼロからの新規割り当て対象にしない。
+Script再起動、Application再起動、Windows再起動をまたいでManual Bindingを保存・復元しない。
 
-ただし、すでにBinding済みのChromeはMinimize / Maximize後もBindingを維持する。
-
----
-
-## 3. VS Codeの真のOpen順は保証しない
-
-Windows / AutoHotkeyから、起動前から存在する複数VS Code Windowの真の生成順を安定して復元できない。
-
-v0.1.0ではAuto Bind時点の未使用 `Code.exe` 候補を `WinGetList` 逆順で4→5→6へ割り当てる。
-
-必要な並びと異なる場合はManual Bindで補正する。
-
-常時監視によるObservation Sequenceは実装しない。
+ConfigVersion 2 Public Defaultにはbuilt-in Auto Bindがないため、再起動後は必要なWindowを再度Manual Bindする。
 
 ---
 
-## 4. Chrome / VS Codeの4つ目以降は自動割り当てしない
+## 3. Public Defaultには汎用Auto Bind Rule Engineがない
 
-専用Auto Bind Slotは次に固定する。
+ConfigVersion 2は特定アプリをCoreへ固定しない代わりに、一般Windowを自動分類するRule Engineも実装しない。
 
-- Chrome: 7 / 8 / 9
-- VS Code: 4 / 5 / 6
+Public DefaultはManual Bindを基本とする。
 
-4つ目以降のChrome / VS Codeは任意Slotへ自動転送しない。
-
-必要な場合だけ任意SlotへManual Bindする。
+`Ctrl + NumpadEnter` / `Ctrl + Alt + Key` のAuto Bind操作は互換性のため維持するが、Auto Bind Profileを持たないPublic Defaultでは新規割り当てを行わない。
 
 ---
 
-## 5. 任意SlotはManual専用
+## 4. Backspaceは通常Keyboardと区別できない
 
-次の任意Slotには一般Window Auto Bindを行わない。
+対象実機では外付けテンキーBackspaceと通常Keyboard Backspaceが同じKey Eventとして届く。
 
-- NumpadDiv
-- NumpadMult
-- NumpadSub
-- NumpadAdd
-- Backspace
-- Numpad0
-- Virtual000
-- NumpadDot
-- NumpadEnter
+そのためPublic DefaultではBackspaceをDisabledにする。
 
-Window Modeとして使用する場合はManual Bindする。
-
-ShortcutまたはDisabledへ変更することもできる。
+BackspaceをWindow / Shortcutへ変更すると通常Keyboard側BackspaceもController Actionを発火するため、起動時Warningを表示する。
 
 ---
 
-## 6. HWNDは永続化しない
+## 5. Keyboard Device単位の識別なし
 
-Window BindingにはHWNDを使用するが、HWNDはRuntime Stateのみで保持する。
+通常のAutoHotkey Keyboard Hook / InputHookを使用し、同じVK / SCを送る複数Keyboard Deviceを区別しない。
 
-Script再起動、アプリ再起動、Windows再起動をまたいでHWNDを保存・復元しない。
-
-Script起動時にAuto Bindで専用Slotを再構築する。
+専用デバイス単位制御が必要な場合はAutoHotInterception等を別途検討する。
 
 ---
 
-## 7. Config Hot Reloadなし
+## 6. 物理NumLockをController Actionとして利用しない
 
-`KeyBindings.ini` は起動時に1回だけ読み込む。
+対象実機では物理NumLockをAutoHotkey InputHook / Windows Raw Inputで安定取得できなかった。
 
-変更後はNumpadWindowControllerを再起動する必要がある。
+NumLock自体へController Actionを割り当てない。
 
-File Watcherや自動再読込はv0.1.0では実装しない。
-
----
-
-## 8. Backspaceは通常Keyboardと区別できない
-
-実機の外付けテンキーBackspaceは通常Keyboard Backspaceと同じ:
-
-```text
-VK 08
-SC 00E
-```
-
-として届く。
-
-そのため標準設定ではBackspaceをDisabledにする。
-
-BackspaceをWindow / Shortcutへ変更すると、通常Keyboard側Backspaceも同じController Actionを発火する。
-
-起動時にWarningを表示するが、デバイス単位での区別はしない。
+実行中のWindows側NumLock状態はON固定し、正常終了時に起動前状態へ戻す。
 
 ---
 
-## 9. 外付けテンキーと通常Keyboardをデバイス単位で区別しない
+## 7. 強制終了時のNumLock復元は保証しない
 
-v0.1.0は通常のAutoHotkey Keyboard Hook / InputHookを使用する。
-
-同じVK / SCを送る複数Keyboard Deviceを識別しない。
-
-専用デバイス単位制御が必要になった場合は、AutoHotInterception等の導入を別途検討する。
+Process Kill、OS障害等でOnExitが実行されない場合は、起動前NumLock状態への復元を保証しない。
 
 ---
 
-## 10. 物理NumLockをController Actionに使えない
+## 8. Virtual000有効時はNumpad0へ最大約80msの判定待ちがある
 
-対象実機の外付けテンキーNumLockは、AutoHotkey InputHook / Windows Raw Inputの双方でKeyboard Eventが観測されなかった。
+Public DefaultではVirtual000をDisabledにするため、この待機は発生しない。
 
-そのためNumLock自体へController Actionを割り当てない。
-
-Global ActionはNumpadEnterのCtrl系Combinationへ移行している。
-
-Windows側NumLock状態は、実行中ON固定・正常終了時復元を行う。
+Virtual000をWindow / Shortcutとして有効化した場合のみ、物理000の `D-U-D-U-D-U` を識別するためNumpad0も最大約80ms待って確定する。
 
 ---
 
-## 11. 強制終了時のNumLock復元は保証しない
-
-正常終了時はOnExitで起動前NumLock状態へ復元する。
-
-ただし、Process Kill、OS障害、強制終了などでOnExitが実行されない場合は復元を保証しない。
-
----
-
-## 12. 0 / 000判定には最大約80msの待ち時間がある
-
-物理000キーは独立キーではなくNumpad0のDown/Upを3回高速送信する。
-
-そのためNumpad0とVirtual000を識別するため、通常の0入力も最大約80ms待って確定する。
-
-日常操作上の受入試験はPASSしているが、完全な即時入力ではない。
-
----
-
-## 13. Numpad0とVirtual000にはConfig上の依存関係がある
+## 9. Numpad0 / Virtual000には依存関係がある
 
 `Numpad0=Disabled` の場合、`Virtual000` もDisabledでなければならない。
 
-Virtual000だけControllerで処理しながら、通常Numpad0だけを完全なネイティブ入力として再送する構成はv0.1.0では実装しない。
-
-通常の0入力を完全にController対象外にしたい場合は両方Disabledにする。
+Virtual000だけControllerで処理しつつ、通常Numpad0だけを完全なNative Inputとして扱う構成は実装しない。
 
 ---
 
-## 14. Shortcutは既存Window Activateを行わない
+## 10. Shortcut Target種別は限定
 
-Shortcut Modeは押下ごとにTargetをRunする。
-
-既に同じアプリが起動していてもWindow検索・Activateへ切り替えない。
-
-既存Windowへ移動したい場合はWindow Modeを使用する。
-
----
-
-## 15. Shortcut Target種別は限定
-
-v0.1.0で直接Targetとして許可するのは:
+直接Targetとして許可するのは:
 
 - exe
 - bat
 - cmd
 - lnk
 
-のみ。
+`.ps1` は直接Targetにせず `pwsh.exe -File ...` を使用する。
 
-`.ps1` の直接Target指定は行わず、`pwsh.exe -File ...` を使用する。
-
-URL、Document Association、任意URI Scheme等はMVP対象外。
+URL、Document Association、任意URI Scheme等は現行対象外。
 
 ---
 
-## 16. Config独自の環境変数展開なし
+## 11. Config独自の環境変数展開なし
 
 Shortcut Target / WorkingDirectoryで:
 
@@ -205,15 +109,64 @@ Shortcut Target / WorkingDirectoryで:
 - `%LOCALAPPDATA%`
 - `~`
 
-等をNumpadWindowController独自には展開しない。
+等を独自展開しない。
 
-絶対Path、A_ScriptDir基準相対Path、またはWindows側で解決できる実行ファイル名を使用する。
+絶対Path、Script Directory基準の相対Path、またはWindows側で解決可能な実行ファイル名を使用する。
 
 ---
 
-## 17. 専用Slotのアプリ識別は現在のProcess / Class / Titleに依存
+## 12. 常設GUIなし
 
-v0.1.0の標準条件:
+現行版には次を用意しない。
+
+- 設定GUI
+- Binding一覧GUI
+- 常設Status Window
+- Tray MenuからのConfig編集
+
+設定はINIを編集する。
+
+---
+
+# Legacy Developer Workflow固有
+
+以下は `examples/KeyBindings.developer-workflow.ini`（ConfigVersion 1）を使用した場合だけ適用する。
+
+## 13. Chrome Auto BindはPrimary Monitor基準
+
+Chrome 7 / 8 / 9の新規Auto BindはPrimary Monitor Work Areaを基準にする。
+
+Secondary Monitor上のChromeは新規候補にしない。
+
+---
+
+## 14. Minimized / Maximized Chromeは新規座標分類しない
+
+Chromeの新規Auto BindではNormal Windowだけを座標分類する。
+
+既存Binding済みWindowはHWNDとAllowed条件が有効ならMinimize / Maximize後も維持する。
+
+---
+
+## 15. Chromeは最大3Window
+
+Legacy PresetではChrome Auto Bind Slotを7 / 8 / 9に固定する。
+
+4つ目以降を他Slotへ自動転送しない。
+
+---
+
+## 16. VS Codeは最大3Window・真のOpen順非保証
+
+Legacy Presetでは4 / 5 / 6へ最大3Windowを割り当てる。
+
+起動前から存在する複数VS Code Windowの真の生成順は復元せず、Auto Bind時点の `WinGetList` 逆順を使用する。
+
+---
+
+## 17. Legacyアプリ識別はProcess / Class / Titleに依存
+
+ConfigVersion 1 Presetの条件:
 
 - Chrome: `chrome.exe`
 - VS Code: `Code.exe`
@@ -221,94 +174,44 @@ v0.1.0の標準条件:
 - ChatGPT Desktop: `ChatGPT.exe`
 - PowerShell 7: `WindowsTerminal.exe + CASCADIA_HOSTING_WINDOW_CLASS + Title contains PowerShell 7`
 
-対象アプリ側のProcess名、Window Class、Title仕様が将来変更された場合はConfigまたは実装調整が必要になる可能性がある。
+対象Application側の仕様変更時にはPreset調整が必要になる可能性がある。
 
 ---
 
-## 18. 一般Windowの優先順位エンジンなし
+## 18. Legacy Auto BindにBackground Retryなし
 
-任意Windowを自動分類する汎用Rule Engineは実装しない。
+候補が見つからなかった場合はNoneを維持する。
 
-MVPは専用Groupだけを自動化し、それ以外はManual Bindに限定することで挙動を単純化している。
-
----
-
-## 19. Background Retryなし
-
-Lazy Auto Bindまたは明示Auto Bindで候補が見つからなかった場合、その時点ではNoneを維持する。
-
-常時監視や一定間隔での自動Retryは行わない。
-
-次回キー押下または明示Auto Bindで再評価する。
+次回キー押下によるLazy Auto Bind、または明示Auto Bindで再評価する。常時監視は行わない。
 
 ---
 
-## 20. 常設GUIなし
+# Startup Task固有
 
-v0.2.0には次を用意しない。
+## 19. 自動起動Taskは通常権限
 
-- 設定GUI
-- Binding一覧GUI
-- 常設Status Window
-- Tray Menu拡張によるConfig編集
+Task Scheduler登録はLeastPrivilege / InteractiveTokenを使用する。
 
-通常の状態通知はToolTip / Error表示を使用する。
+管理者権限で起動したApplicationをWindowsの権限分離により操作できない場合がある。
 
 ---
 
-## 21. Debug Logは通常OFF
+## 20. 自動起動Taskは絶対Pathを保持
 
-通常利用では永続ログを作らない。
+Task Scheduler Actionには登録時点のAutoHotkey executable、Controller Script、Repository Rootを保存する。
 
-問題解析時にコード内Debug設定を有効化した場合だけログを生成する。
-
-そのため通常運用後に過去の詳細操作履歴を遡ることはできない。
-
----
-
-## 22. 自動起動Taskは通常権限
-
-v0.2.0のTask Scheduler登録はLeastPrivilege / InteractiveTokenを使用する。
-
-そのためWindowsの権限分離により、管理者権限で起動したApplicationへHotkey送信やWindow操作が届かない場合がある。
-
-通常運用では対象Applicationも通常権限で起動する。
-
----
-
-## 23. 自動起動Taskは絶対Pathを保持
-
-Task Scheduler Actionには登録時点のAutoHotkey v2 executable、`NumpadWindowController.ahk`、Repository RootのPathを保存する。
-
-Repository DirectoryまたはAutoHotkey v2の配置場所を変更した場合、既存Taskは自動追従しない。
-
-次を再実行してTaskを更新する。
+配置場所を変更した場合は:
 
 ```powershell
 .\scripts\install-startup-task.ps1
 ```
 
----
-
-## 24. 自動起動は現在ユーザー単位
-
-既定のStartup Taskは、install Scriptを実行した現在ユーザーのLogon Triggerだけを登録する。
-
-全ユーザー共通Startup、Service化、Session 0実行はv0.2.0の対象外。
+を再実行する。
 
 ---
 
-## 25. 現行版の受入状態
+## 21. 自動起動は現在ユーザー単位
 
-これらの制限を含む現在仕様で:
+既定Taskはinstall scriptを実行した現在ユーザーのLogon Triggerだけを登録する。
 
-- Phase G: 65 / 65 PASS
-- Phase H: 16 / 16 PASS
-- Startup Preview: 24 assertions PASS
-- Task Scheduler Integration: 37 assertions PASS
-- Startup追加後 Phase F Regression: 134 assertions PASS
-- 実ログオン / 自動起動後操作 / 手動再起動 / Task無効化・解除: PASS
-
-を完了している。
-
-現行v0.2.0で未解決のFAIL / BLOCKEDは記録されていない。
+全ユーザー共通StartupやService化は対象外。
