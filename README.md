@@ -310,9 +310,11 @@ Public DefaultではBackspaceをDisabledにしています。有効化した場�
 
 ## NumLock
 
-対象実機では物理NumLockイベントをController Actionとして安定取得できなかったため、NumLock自体にはActionを割り当てません。
+対象実機では物理NumLockイベントをController Actionとして取得できないため、NumLock自体にはActionを割り当てません。
 
-本体実行中はWindows側NumLockをON固定し、正常終了時に起動前状態へ復元します。OFF状態からの起動でも、まず明示的にONへ切り替えてからAlwaysOnを適用します。Process強制終了等では復元を保証しません。
+外付けテンキーのNumLockキーは、対象実機ではテンキー内部の入力切替として機能し、WindowsへNumLock Keyboard Eventを送信しません。したがって、この物理キーの表示・入力モードとWindows側NumLock状態は別物として扱います。
+
+本体実行中はWindows側NumLockをON固定し、正常終了時に起動前状態へ復元します。Windows側lifecycleは過去のR-14実機試験で確認済みです。Process強制終了等では復元を保証しません。
 
 ---
 
