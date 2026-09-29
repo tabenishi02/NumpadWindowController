@@ -188,3 +188,22 @@ Release Notesにはログオン時自動起動機能、検証結果、通常権�
 Phase JではtrackedなユーザーConfigを廃止し、`KeyBindings.ini` を `.gitignore` 対象へ変更した。配布Default / Example / Legacy PresetにはCredentialや個人固有Shortcut Pathを含めない。
 
 GitHub Actions workflowは公開Chocolatey packageからAutoHotkey v2を導入してRegression Testを実行するだけで、Repository Secretを使用しない。
+
+
+---
+
+## 11. Phase J Configuration Encoding再監査
+
+2026-09-29にConfiguration Encoding方針を再変更した。
+
+- `KeyBindings.default.ini`
+- `examples/KeyBindings.example.ini`
+- `examples/KeyBindings.developer-workflow.ini`
+
+をUTF-8 BOMなしへ統一した。
+
+RuntimeもUTF-8前提へ変更し、UTF-16 LE / BEはConfiguration Errorとして拒否する。
+
+手動試験時に生成・commitされた `KeyBindings.phasej-backup.ini` は `examples/KeyBindings.developer-workflow.ini` と内容が完全一致していたため、重複Artifactとして削除した。今後同種の一時Backupをcommitしないよう `.gitignore` に `KeyBindings.*backup*.ini` を追加した。
+
+`.editorconfig` では `*.ini` に `charset = utf-8` を指定している。
