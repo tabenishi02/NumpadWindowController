@@ -111,7 +111,7 @@ Test_Config() {
         "Step2=Delay100", "Step2=CopyToNotepad", , , 1)),
         "Nested/self MultiAction rejected")
     Test_Throws(Test_ValidateText.Bind(StrReplace(exampleText,
-        "Step2=Delay100`nStep3=NotepadActivate", "Step3=NotepadActivate", , , 1)),
+        "Step2=Delay100", "Step5=Delay100", , , 1)),
         "MultiAction step gap rejected")
     Test_Throws(Test_ValidateText.Bind(StrReplace(exampleText,
         "MatchProcess=notepad.exe", "MatchProcess=", , , 1)),
