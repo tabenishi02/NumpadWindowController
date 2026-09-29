@@ -264,4 +264,4 @@ Phase K完了判定は物理受入後にTASKS / PROJECT_HANDOFFへ最終反映�
 
 **Implementation Complete / Automated Regression PASS / Physical Acceptance Pending**
 
-実装上のPhase K残作業は物理受入結果の反映とRelease Preparationのみ。
+実装上のPhase K残作業は物理受入結果の反映とRelease Ready判定のみ。次Release予定は **v0.4.0**。
