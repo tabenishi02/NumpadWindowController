@@ -4,7 +4,11 @@
 
 ## [Unreleased]
 
-次期Release候補: **v0.3.0**
+現在、次Release向けの記録なし。
+
+## v0.3.0 - 2026-09-29
+
+Phase J「General-purpose Configuration / Public Default」を反映した一般公開向けConfiguration刷新Release。
 
 ### Added
 
