@@ -7,7 +7,7 @@ Windows 11上で一般的なテンキーを、**任意Windowへの直接切り�
 **最新Release: GitHub Releasesを参照**  
 **License: MIT**
 
-現在の `main` にはPhase J「General-purpose Configuration / Public Default」の一般化変更が含まれています。次期Release候補はv0.3.0です。v0.2.x以前のConfigVersion 1も互換Profileとして引き続き読み込めます。
+現在の `main` には完了済みPhase J「General-purpose Configuration / Public Default」の一般化変更が含まれています。次期Release候補はv0.3.0です。v0.2.x以前のConfigVersion 1も互換Profileとして引き続き読み込めます。
 
 ---
 
