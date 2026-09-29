@@ -26,7 +26,6 @@
 
 - Configuration INIをConfigVersionに関係なくUTF-8前提へ統一
 - UTF-16 LE / BE Configurationの読込サポートを廃止
-- NumLock OFFからの起動時に明示的にONへ遷移してからAlwaysOnを適用
 - Built-in key metadataから個人用Dedicated用途を分離
 - ConfigVersion 2では旧Dedicated Slot 1～9のWindow Mode強制を廃止
 - ConfigVersion 2ではChrome / VS Code Group整合Validationを適用しない
@@ -46,7 +45,6 @@
 - GitHub Actions Windows runner
 - AutoHotkey v2.0.28
 - Controller Regression: **168 assertions PASS**
-- NumLock OFF→ON Regression: PASS
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
 - Public ConfigVersion 2 / Legacy ConfigVersion 1 / Virtual000 ON-OFF Regression: PASS
@@ -55,9 +53,10 @@
 ### Manual Acceptance
 
 - J-PA-1～6: PASS
-- J-PA-7 NumLock lifecycle: 1回目FAIL
-- NumLock force-on処理を修正済み
-- J-PA-7再試験: PENDING
+- J-PA-7 NumLock lifecycle: Not Executed / N/A
+  - 対象テンキーNumLockは内部入力切替として機能し、WindowsへNumLock Eventを送らない既知ハードウェア仕様
+  - Windows側NumLock lifecycleはPhase F R-14で実機PASS済み
+- Phase J Physical Acceptance: PASS
 
 ## v0.2.0 - 2026-09-28
 
