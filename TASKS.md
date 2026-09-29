@@ -1,12 +1,12 @@
 # Numpad Window Controller - Implementation Tasks
 
-更新日: 2026-09-28
+更新日: 2026-09-29
 対象: NumpadWindowController  
-目的: AutoHotkey v2によるMVP v0.1.0の設計・実装・検証・初期版完成までを管理するタスク一覧
+目的: AutoHotkey v2によるNumpadWindowControllerの設計・実装・検証・Release後の一般化までを管理するタスク一覧
 
 ## 0. 現在地点
 
-**Phase I完了 / ログオン時自動起動統合済み / Release済み。最新ReleaseはGitHub Releasesを参照。**
+**Phase A～I完了 / ログオン時自動起動統合済み / Release済み。Phase J - General-purpose Configuration / Public Defaultを新設し、次工程として未着手。最新ReleaseはGitHub Releasesを参照。**
 
 完了済み:
 
@@ -596,6 +596,82 @@ Phase I完了条件:
 
 ---
 
+# Phase J - General-purpose Configuration / Public Default ⏳ 未着手
+
+計画: [Phase J Plan](docs/PHASE_J_PLAN.md)
+
+目的:
+
+現行MVPでコード・Configへ固定されている個人用WorkflowをCoreから分離し、特定アプリや特定Window配置を前提としない一般公開向けDefaultへ移行する。
+
+## J-1. Public Default仕様
+- [ ] 特定アプリ非依存の既定キー配置を確定
+- [ ] 主要Slotを任意WindowのManual Bind中心にするか確定
+- [ ] Backspace / Virtual000を含む安全な既定値を確定
+- [ ] 特定アプリなしでも初回利用可能な要件を確定
+
+## J-2. Configuration一般化
+- [ ] 物理キーMetadataと用途Metadataを分離
+- [ ] Dedicated Slot 1～9の固定制約を見直す
+- [ ] Auto BindをConfig / Presetのどちらへ置くか決定
+- [ ] ConfigVersion / Migration方針を決定
+- [ ] UTF-16 LE BOM固定の見直し要否を判断
+
+## J-3. Auto Bind / Preset分離
+- [ ] 固定Auto Bind GroupをCoreから分離
+- [ ] Chrome座標Auto BindとVS Code逆順Auto Bindを個人Workflow側へ分離
+- [ ] 現行WorkflowをPreset / Exampleとして再利用可能にする
+- [ ] 汎用Rule Engineを必要以上に導入しない最小Scopeを確定
+
+## J-4. User Config / Distribution Config
+- [ ] trackedな配布Defaultとユーザー編集Configを分離
+- [ ] fresh clone / ZIPからの初回Config生成方法を確定
+- [ ] ユーザーConfigを更新時に上書きしない方式を確定
+- [ ] .gitignore / .gitattributesを新運用へ同期
+
+## J-5. Numpad0 / Virtual000一般化
+- [ ] 000キーなしを標準ケースとして扱う
+- [ ] Virtual000無効時はZero Detectorを使用しない方式を検討
+- [ ] Virtual000無効時のNumpad0即時処理を実現
+- [ ] 000対応をopt-inとして維持する場合の仕様を確定
+
+## J-6. 実装
+- [ ] Metadata / Config Validatorを一般仕様へ変更
+- [ ] Auto Bind Core / Preset境界を実装
+- [ ] Public Default Configを作成
+- [ ] Developer Workflow Preset / Exampleを作成
+- [ ] User Config生成・読込方式を実装
+- [ ] Virtual000 opt-in / Numpad0即時処理を実装
+
+## J-7. Test / Migration
+- [ ] Core Testと個人Workflow Testを分離
+- [ ] Public Default Testを追加
+- [ ] Config Migration Testを追加
+- [ ] Developer Workflow Regression Testを追加
+- [ ] Virtual000 ON/OFF Regressionを追加
+- [ ] Startup Task Regressionを実施
+- [ ] Public Default実機受入試験を実施
+
+## J-8. Documentation / Release
+- [ ] READMEを一般利用中心へ変更
+- [ ] Migration Guideを作成
+- [ ] Known Limitationsを同期
+- [ ] CHANGELOGを更新
+- [ ] Release Versionを決定
+- [ ] Release前Regression / Public release auditを実施
+
+Phase J完了条件:
+- [ ] Public Defaultが特定アプリを必須としない
+- [ ] 主要Slotが個人用途へコード固定されていない
+- [ ] ユーザーConfigと配布Configが安全に分離されている
+- [ ] 000なしテンキーで不要なZero Detector待機を発生させない
+- [ ] 現行Developer WorkflowをPreset / Exampleで再現できる
+- [ ] v0.2.xからの移行方法が明文化されている
+- [ ] 自動テスト・実機受入・Startup RegressionがPASS
+- [ ] 利用者向け・開発者向け文書が新仕様と整合
+
+---
+
 # 推奨する実行順
 
 大きな依存関係は次の通り。
@@ -618,11 +694,13 @@ Phase G  機能テスト
 Phase H  実機受入試験
    ↓
 Phase I  初期版完成処理
+   ↓
+Phase J  General-purpose Configuration / Public Default
 ```
 
 ## 最優先タスク
 
-Phase A～Iは正式完了。
+Phase A～Iは正式完了。Phase Jを次工程として新設した。
 
 公開状態:
 
