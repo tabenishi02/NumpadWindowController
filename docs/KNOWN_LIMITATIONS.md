@@ -215,3 +215,16 @@ Task Scheduler Actionには登録時点のAutoHotkey executable、Controller Scr
 既定Taskはinstall scriptを実行した現在ユーザーのLogon Triggerだけを登録する。
 
 全ユーザー共通StartupやService化は対象外。
+
+
+---
+
+## 22. Configuration INIはUTF-8のみ
+
+現行版は `KeyBindings.ini` および配布INIをUTF-8前提で扱う。
+
+- UTF-8 BOMなし: 対応
+- UTF-8 BOMあり: 対応
+- UTF-16 LE / BE: 非対応
+
+v0.2.x以前のUTF-16 LE Configを継続利用する場合は、起動前にUTF-8へ変換する。
