@@ -185,10 +185,10 @@ GitHub Actions Windows runner + AutoHotkey v2.0.28で実施。
 
 結果:
 
-- Phase K Controller Regression: **168 assertions PASS**
+- Phase K Controller Regression: **183 assertions PASS**
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
-- Local Windows re-verification (AutoHotkey v2.0.26): **168 assertions PASS** / Startup Preview **24 assertions PASS**
+- Local Windows re-verification (AutoHotkey v2.0.26): **183 assertions PASS** / Startup Preview **24 assertions PASS**
 
 確認内容には以下を含む。
 
@@ -256,6 +256,28 @@ Physical Acceptance Config:
 - PowerShell 7 / Numpad3 = `ActivateThenToggle`
 
 Runtime実装済み。物理試験Fixtureは `ActivateThenToggle` をそのままConfigVersion 3として読み込み、ATT-01～12を通常Regressionへ統合済み。
+
+
+K-PA-12 1回目はFAIL。
+
+症状:
+
+- Explorer / ChatGPT Desktop / PowerShell 7を未起動状態でKey入力すると `No window found`。
+
+原因:
+
+- Physical Acceptance Configの3 WindowGroupにLaunchTargetがなかった。
+- Launch後のWindow生成を検出してActivateThenToggleを続行する処理も不足していた。
+
+修正:
+
+- Explorer = `explorer.exe`
+- ChatGPT Desktop = AppsFolder経由
+- PowerShell 7 = `pwsh.exe`
+- LaunchPendingへ元Action IDを保持し、Window生成後に自動Bind → Activate → Toggle phase移行を実装
+- ATT Regressionへ3対象のLaunch fallback / continuation確認を追加
+
+修正後のK-PA-12再試験待ち。
 
 ---
 
