@@ -105,12 +105,16 @@ Test_Config() {
     Test_Assert(example.Actions["CopyToNotepad"].Type = "MultiAction", "MultiAction example loads")
     Test_Assert(example.WindowGroups["Notepad"].LaunchTarget != "", "Launch fallback target resolves")
 
-    physicalText := FileRead(TestRoot "\examples\KeyBindings.phase-k-test.ini", "UTF-8")
-    Test_Assert(RegExMatch(physicalText, "s)\[Action-Explorer\].*?Behavior=ActivateThenToggle(?=\R\[|$)"),
+    physicalText := StrReplace(
+        FileRead(TestRoot "\examples\KeyBindings.phase-k-test.ini", "UTF-8"), "`r", "")
+    Test_Assert(InStr(physicalText,
+        "[Action-Explorer]`nType=Window`nLabel=Explorer`nBehavior=ActivateThenToggle"),
         "Physical acceptance Explorer uses ActivateThenToggle")
-    Test_Assert(RegExMatch(physicalText, "s)\[Action-ChatGPT\].*?Behavior=ActivateThenToggle(?=\R\[|$)"),
+    Test_Assert(InStr(physicalText,
+        "[Action-ChatGPT]`nType=Window`nLabel=ChatGPT Desktop`nBehavior=ActivateThenToggle"),
         "Physical acceptance ChatGPT uses ActivateThenToggle")
-    Test_Assert(RegExMatch(physicalText, "s)\[Action-PowerShell7\].*?Behavior=ActivateThenToggle(?=\R\[|$)"),
+    Test_Assert(InStr(physicalText,
+        "[Action-PowerShell7]`nType=Window`nLabel=PowerShell 7`nBehavior=ActivateThenToggle"),
         "Physical acceptance PowerShell 7 uses ActivateThenToggle")
 
     physical := Test_LoadPhysicalAcceptance()
