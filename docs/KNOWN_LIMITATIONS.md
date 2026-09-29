@@ -1,7 +1,7 @@
 # Numpad Window Controller - Known Limitations
 
 更新日: 2026-09-29  
-対象: Phase J / 次期v0.3.0候補  
+対象: v0.3.0 / ConfigVersion 2 Public Default  
 状態: **Current**
 
 この文書はConfigVersion 2 Public Defaultの制限と、ConfigVersion 1 Legacy Developer Workflow固有の制限を分けて記録する。
