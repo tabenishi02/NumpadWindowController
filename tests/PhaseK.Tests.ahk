@@ -60,6 +60,11 @@ Test_LoadExample() {
     return Config_Load(TestRoot "\examples\KeyBindings.example.ini", Config_Metadata(), TestRoot)
 }
 
+Test_LoadPhysicalAcceptance() {
+    global TestRoot
+    return Config_Load(TestRoot "\examples\KeyBindings.phase-k-test.ini", Config_Metadata(), TestRoot)
+}
+
 Test_ValidateText(text) {
     global TestRoot
     return Config_Validate(Config_Parse(text, "test.ini"), "test.ini", Config_Metadata(), TestRoot)
@@ -91,6 +96,21 @@ Test_Config() {
     Test_Assert(example.EnableVirtual00 && example.EnableVirtual000, "Example enables 00 and 000")
     Test_Assert(example.Actions["CopyToNotepad"].Type = "MultiAction", "MultiAction example loads")
     Test_Assert(example.WindowGroups["Notepad"].LaunchTarget != "", "Launch fallback target resolves")
+
+    physical := Test_LoadPhysicalAcceptance()
+    Test_Assert(physical.Version = 3, "Physical acceptance config uses ConfigVersion 3")
+    Test_Assert(physical.LayerOrder.Length = 4, "Physical acceptance config has four test layers")
+    Test_Assert(physical.DefaultLayer = "Window", "Physical acceptance default layer is Window")
+    Test_Assert(!physical.EnableVirtual00 && physical.EnableVirtual000,
+        "Physical acceptance config matches available 000 hardware")
+    Test_Assert(physical.Actions["Chrome1"].AutoBindStrategy = "PrimaryThreePane",
+        "Physical acceptance config covers Chrome auto bind")
+    Test_Assert(physical.Actions["CopyToNotepad"].Type = "MultiAction",
+        "Physical acceptance config covers MultiAction")
+    Test_Assert(physical.WindowGroups["Notepad"].LaunchTarget != "",
+        "Physical acceptance config covers launch fallback")
+    Test_Assert(!Config_KeyIsControllerMapped(physical, "Backspace"),
+        "Physical acceptance config keeps Backspace native")
 
     text := FileRead(TestRoot "\KeyBindings.default.ini", "UTF-8")
     Test_Throws(Test_ValidateText.Bind(StrReplace(text, "ConfigVersion=3", "ConfigVersion=2")),
