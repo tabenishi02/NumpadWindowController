@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added test specification for planned Window `Behavior=ActivateThenToggle`.
+- Phase K physical acceptance fixture now assigns ActivateThenToggle to Explorer, ChatGPT Desktop, and PowerShell 7 for follow-up acceptance testing.
+
+
 Phase K「Action / Layer Architecture」を実装。
 
 ### Added
@@ -65,7 +71,7 @@ Phase K「Action / Layer Architecture」を実装。
 
 ### Verification
 
-- GitHub Actions Windows + AutoHotkey v2.0.28: **135 assertions PASS**
+- GitHub Actions Windows + AutoHotkey v2.0.28: **138 assertions PASS**
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
 - Phase K変更13ファイルのCredential / Secret / 個人User Path監査: **検出なし**
