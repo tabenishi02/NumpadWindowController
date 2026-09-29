@@ -40,6 +40,8 @@ Public DefaultはGoogle Chrome、Visual Studio Code、ChatGPT Desktop、PowerShe
 
 ## インストール
 
+> **既存v0.2.x cloneから更新する場合:** 旧版では `KeyBindings.ini` がtracked fileでした。現在の個人設定を維持する場合は、**git pull前にバックアップ**してください。手順は [ConfigVersion 2 Migration Guide](docs/CONFIG_MIGRATION_V2.md) を参照してください。
+
 ### 1. AutoHotkey v2をインストール
 
 AutoHotkey v1ではなく**v2**を使用します。
@@ -407,6 +409,7 @@ Legacy Developer Workflow固有のChrome / VS Code Auto Bind制限も同文書�
 - [Known Limitations](docs/KNOWN_LIMITATIONS.md)
 - [Phase J Plan](docs/PHASE_J_PLAN.md)
 - [Phase J Result](docs/PHASE_J_RESULT.md)
+- [Phase J Physical Acceptance Test](docs/PHASE_J_MANUAL_TEST.md)
 - [ConfigVersion 2 Migration Guide](docs/CONFIG_MIGRATION_V2.md)
 - [Public Release Audit](docs/PUBLIC_RELEASE_AUDIT.md)
 - [ログオン時自動起動テスト](docs/STARTUP_TASK_TEST.md)
