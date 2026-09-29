@@ -207,3 +207,22 @@ RuntimeもUTF-8前提へ変更し、UTF-16 LE / BEはConfiguration Errorとし�
 手動試験時に生成・commitされた `KeyBindings.phasej-backup.ini` は `examples/KeyBindings.developer-workflow.ini` と内容が完全一致していたため、重複Artifactとして削除した。今後同種の一時Backupをcommitしないよう `.gitignore` に `KeyBindings.*backup*.ini` を追加した。
 
 `.editorconfig` では `*.ini` に `charset = utf-8` を指定している。
+
+
+---
+
+## 12. Phase J物理受入再判定
+
+2026-09-29のJ-PA-7 NumLock lifecycleについて、Phase Fの既存実機記録を再確認した。
+
+- R-8: 外付けテンキー物理NumLockはAutoHotkey InputHook / Windows Raw InputともNumLock Eventなし。
+- R-14: 外付けテンキーNumLockをWindows側NumLock状態の変更・確認には使用しないことを明示。
+- R-14 Case A/B: 通常Keyboard / `osk.exe` を使ったWindows側NumLock lifecycleはPASS。
+
+この結果は今回の観測と一貫している。
+
+対象テンキーのNumLockはテンキー内部の入力切替として機能する一方、WindowsへNumLock Keyboard Eventを送らない。そのためJ-PA-7は対象ハードウェアでは成立しない試験として **Not Executed / N/A** に再分類した。
+
+一時的に追加したNumLock workaroundおよび専用Regressionは、ソフトウェア不具合ではないことが確認できたためrevertした。
+
+**J-PA-7 hardware N/A / Phase J Physical Acceptance PASS**
