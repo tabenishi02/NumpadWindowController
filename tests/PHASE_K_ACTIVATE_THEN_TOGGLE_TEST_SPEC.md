@@ -2,11 +2,11 @@
 
 更新日: 2026-09-30  
 対象: ConfigVersion 3 / Window Action  
-状態: **Test Spec Added / Runtime Implementation Pending**
+状態: **Implemented / Automated Regression PASS**
 
 ## 1. 目的
 
-新しいWindow Behavior `ActivateThenToggle` の受入条件を、実装前に固定する。
+新しいWindow Behavior `ActivateThenToggle` の受入条件と実装済みRegressionを記録する。
 
 `ActivateThenToggle` は次の状態遷移を持つ。
 
@@ -228,18 +228,17 @@ Test Config:
 
 ---
 
-## 5. CI移行方針
+## 5. Automated Regression
 
-Runtime未実装の段階では、通常のPhase K Regressionを赤くしない。
+Runtime実装完了後、暫定的な `ActivateThenToggle → Toggle` 正規化を削除した。
 
-そのため現時点の `tests/PhaseK.Tests.ahk` は、物理試験Fixtureを構造検証する際だけ `ActivateThenToggle` を `Toggle` へ一時的に正規化する。
+現在は `examples/KeyBindings.phase-k-test.ini` をそのままConfigVersion 3として読み込み、ATT-01～12を通常の `tests/PhaseK.Tests.ahk` で検証する。
 
-Runtime実装時に次を行う。
+結果:
 
-1. この一時正規化を削除。
-2. `KeyBindings.phase-k-test.ini` をそのままConfigVersion 3としてLoadする。
-3. ATT-01～12の自動Regressionを実装。
-4. 通常CIへ統合。
-5. K-PA-12を物理テンキーで実施。
+- Local Windows / AutoHotkey v2.0.26: **168 assertions PASS**
+- GitHub Actions / AutoHotkey v2.0.28: **168 assertions PASS**
+- Startup Preview: **24 assertions PASS**
+- Startup Task Scheduler Integration: **37 assertions PASS**
 
-実装完了後、この文書の状態を **Implemented / Regression PASS** へ更新する。
+残作業はK-PA-4 / 5 / 6 / 9のWindow系再試験と、K-PA-12の物理受入。
