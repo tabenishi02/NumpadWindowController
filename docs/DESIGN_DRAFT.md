@@ -1,5 +1,7 @@
 # Numpad Window Controller - 設計確定記録
 
+> **履歴文書:** 本書はv0.2.0までの設計確定記録です。v0.3.0ではPhase JによりPublic Default / Configurationが一般化されています。現行仕様はREADMEとPhase J資料を参照してください。
+
 更新日: 2026-09-28  
 対象バージョン: **v0.2.0**  
 状態: **Finalized - Phase I反映済み**  
