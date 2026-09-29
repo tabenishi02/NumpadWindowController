@@ -4,7 +4,52 @@
 
 ## [Unreleased]
 
-現在、次Release向けの記録なし。
+次期Release候補: **v0.3.0**
+
+### Added
+
+- ConfigVersion 2
+  - 1～9を含む各Slotを特定アプリ非依存でWindow / Shortcut / Disabledへ設定可能
+  - Public Defaultではbuilt-in Auto Bindを無効化
+- `KeyBindings.default.ini`
+  - fresh clone / Release ZIP向け一般Default
+  - 初回起動時にローカル `KeyBindings.ini` を自動生成
+- `examples/KeyBindings.developer-workflow.ini`
+  - v0.2.xまでのChrome / VS Code / Explorer / ChatGPT / PowerShell構成をLegacy Presetとして保存
+- UTF-8 Configuration読込
+  - UTF-8 BOMあり / なし
+  - 既存UTF-16 LE BOMも継続対応
+- ConfigVersion 2 Migration Guide
+- GitHub Actions Windows Regression Test
+
+### Changed
+
+- Built-in key metadataから個人用Dedicated用途を分離
+- ConfigVersion 2では旧Dedicated Slot 1～9のWindow Mode強制を廃止
+- ConfigVersion 2ではChrome / VS Code Group整合Validationを適用しない
+- `KeyBindings.ini` をユーザー専用・Git管理対象外へ変更
+- Public DefaultでBackspace / Virtual000をDisabled
+- Virtual000無効時はZero Detectorを起動せず、Numpad0を通常Hotkeyとして即時処理
+- Public README / Known Limitationsを一般用途中心へ再構成
+
+### Compatibility
+
+- ConfigVersion 1をLegacy Developer Workflowとして引き続きサポート
+- ConfigVersion 1では従来のDedicated Slot / Auto Bind / Zero Detector仕様を維持
+- Startup Taskの起動方式は変更なし
+
+### Verified
+
+- GitHub Actions Windows runner
+- AutoHotkey v2.0.28
+- Controller Regression: **166 assertions PASS**
+- Public ConfigVersion 2 / Legacy ConfigVersion 1 / Virtual000 ON-OFF Regression: PASS
+- Phase J差分のSecret / 個人Path監査: 公開阻害要因なし
+
+### Pending Manual Acceptance
+
+- 一般的な物理テンキーによるPublic Default実機受入
+- Virtual000無効時の物理Numpad0即時操作感確認
 
 ## v0.2.0 - 2026-09-28
 
