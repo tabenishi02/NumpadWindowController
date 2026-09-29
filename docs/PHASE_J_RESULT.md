@@ -156,7 +156,7 @@ Windows GitHub Actions runnerへAutoHotkey v2.0.28を導入してRegressionを�
 結果:
 
 ```text
-PASS 168 assertions (AHK 2.0.28)
+PASS 167 assertions (AHK 2.0.28)
 PASS 24 startup-task assertions
 PASS 37 startup-task assertions (Integration)
 ```
@@ -259,7 +259,7 @@ J-PA-7は当初、外付けテンキーNumLockで作った「OFF」状態をWind
 Design                 PASS
 Implementation         PASS
 Config Migration       PASS
-Controller Regression  PASS (168 assertions)
+Controller Regression  PASS (167 assertions)
 Startup Preview         PASS (24 assertions)
 Startup Integration     PASS (37 assertions)
 Documentation          PASS
