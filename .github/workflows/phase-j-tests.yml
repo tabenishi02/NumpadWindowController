@@ -25,3 +25,7 @@ jobs:
       - name: Run startup preview tests
         shell: powershell
         run: .\tests\StartupTask.Tests.ps1
+
+      - name: Run startup integration tests
+        shell: powershell
+        run: .\tests\StartupTask.Tests.ps1 -Integration
