@@ -4,7 +4,7 @@ Contributions are welcome.
 
 ## Development Environment
 
-The current main branch targets v0.2.0:
+The current main branch targets v0.3.0:
 
 - Windows 11
 - AutoHotkey v2
