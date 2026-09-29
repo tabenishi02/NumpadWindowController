@@ -12,7 +12,7 @@ Phase Kで実装したAction / Layer Architectureを、実際のテンキーとD
 
 `examples/KeyBindings.phase-k-test.ini`
 
-を使用する。従来のようにPublic Default / Example / Developer Workflowを試験途中で切り替えず、原則として**1つのINIだけでK-PA-1～11を実施する**。
+を使用する。従来のようにPublic Default / Example / Developer Workflowを試験途中で切り替えず、原則として**1つのINIだけでK-PA-1～12を実施する**。
 
 Virtual00は00キー実機を所有していないためPhysical Acceptance対象外とし、Logic Regression PASS / Physical Acceptance N/Aとする。
 
@@ -203,9 +203,9 @@ Window Layer割当:
 |---|---|
 | 7 / 8 / 9 | Chrome 1 / 2 / 3 |
 | 4 / 5 / 6 | VS Code 1 / 2 / 3 |
-| 1 | Explorer |
-| 2 | ChatGPT Desktop |
-| 3 | PowerShell 7 |
+| 1 | Explorer / ActivateThenToggle |
+| 2 | ChatGPT Desktop / ActivateThenToggle |
+| 3 | PowerShell 7 / ActivateThenToggle |
 
 最初に:
 
@@ -235,9 +235,14 @@ Minimized → Restore + Activate
 
 Chrome / VS Code / Explorer / ChatGPT / PowerShell 7について確認する。
 
-結果:
+結果（初回試験 / Toggle仕様）:
 
 - [x] PASS
+- [ ] FAIL
+
+ActivateThenToggle追加後の再試験:
+
+- [ ] PASS
 - [ ] FAIL
 
 備考:
@@ -565,6 +570,85 @@ Controllerを正常終了する。
 
 ---
 
+
+# K-PA-12 ActivateThenToggle
+
+Runtime実装完了後に実施する。
+
+`Window` Layerで次の3 Actionを確認する。
+
+| Key | Window | Behavior |
+|---|---|---|
+| Numpad1 | Explorer | ActivateThenToggle |
+| Numpad2 | ChatGPT Desktop | ActivateThenToggle |
+| Numpad3 | PowerShell 7 | ActivateThenToggle |
+
+## A. 初回Activation
+
+1. `Ctrl + Shift + NumpadEnter` で全BindingをClearする。
+2. `Ctrl + NumpadEnter` でAuto Bind Allする。
+3. 対象WindowをActiveにする。
+4. 対象Keyを1回押す。
+
+期待:
+
+- 初回はActive WindowでもMinimizeしない。
+- Activate相当として扱われる。
+- 正常なActivation完了後にToggle phaseへ移行する。
+
+## B. Toggle phase
+
+Activation成功後に同じKeyを再度押す。
+
+期待:
+
+- Active → Minimize
+- 再度押す → Restore + Activate
+- 別Windowから押す → Activate
+
+## C. Binding ClearによるReset
+
+1. Toggle phaseまで進める。
+2. `Ctrl + Shift + 対象Key` でBinding Clear。
+3. 再度Auto BindまたはManual Bindする。
+4. 対象WindowをActiveにした状態で対象Keyを押す。
+
+期待:
+
+- Activate phaseへ戻っている。
+- 初回入力ではMinimizeしない。
+
+## D. Manual RebindによるReset
+
+1. Toggle phaseまで進める。
+2. 別の許可対象WindowへManual Bindする。
+3. 新しいBinding先をActiveにして対象Keyを押す。
+
+期待:
+
+- 新しいBindingではActivate phaseから開始する。
+- 旧BindingのToggle phaseを引き継がない。
+
+## E. Controller Restart
+
+1. Toggle phaseまで進める。
+2. Controllerを終了。
+3. 再起動して同じActionを確認。
+
+期待:
+
+- Runtime phaseは永続化されない。
+- 再起動後はActivate phaseから開始する。
+
+結果:
+
+- [ ] PASS
+- [ ] FAIL
+
+備考:
+
+---
+
 # Virtual00
 
 00キー搭載テンキーを所有していないため:
@@ -591,11 +675,14 @@ Physical AcceptanceのPASS条件には含めない。
 | K-PA-9 Auto Bind Strategy | [ ] PASS / [ ] FAIL |
 | K-PA-10 Native Pass-through | [ ] PASS / [ ] FAIL |
 | K-PA-11 NumLock lifecycle | [ ] PASS / [ ] FAIL |
+| K-PA-12 ActivateThenToggle | [ ] PASS / [ ] FAIL |
 | Virtual00 physical test | N/A |
 
 Phase K Physical Acceptance PASS条件:
 
-- K-PA-1～11がすべてPASS
+- 既存K-PA-1～11の初回試験結果を保持
+- ActivateThenToggle実装後、K-PA-4 / K-PA-5 / K-PA-6 / K-PA-9を再確認
+- K-PA-12がPASS
 - Virtual00はN/A
 - 新しいFAIL / BLOCKEDがない、または既知制限として整理済み
 - Phase K Result / TASKS / PROJECT_HANDOFFへ結果を反映済み
