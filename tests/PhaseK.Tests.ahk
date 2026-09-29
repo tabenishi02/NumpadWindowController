@@ -521,6 +521,22 @@ Test_ActivateThenToggle() {
     Test_Assert(!App.WindowState["Explorer"].ToggleArmed,
         "ATT-12 controller startup begins in Activate phase")
 
+    Test_Assert(Launch_PendingContinuationAction(
+        {Expires: 2000, Pid: 123, ActionId: "Explorer"}, App.Config) = "Explorer",
+        "ATT-10 ActivateThenToggle launch continues with original Action")
+    Test_Assert(Launch_PendingContinuationAction(
+        {Expires: 2000, Pid: 123, ActionId: "ChatGPT"}, App.Config) = "ChatGPT",
+        "ATT-10 ChatGPT launch continuation selected")
+    Test_Assert(Launch_PendingContinuationAction(
+        {Expires: 2000, Pid: 123, ActionId: "PowerShell7"}, App.Config) = "PowerShell7",
+        "ATT-10 PowerShell launch continuation selected")
+    Test_Assert(Launch_PendingContinuationAction(
+        {Expires: 2000, Pid: 123, ActionId: "Chrome1"}, App.Config) = "",
+        "ATT-10 ordinary Toggle launch does not auto-continue")
+    Test_Assert(Launch_PendingContinuationAction(
+        {Expires: 2000, Pid: 123}, App.Config) = "",
+        "ATT-10 legacy pending state without ActionId has no continuation")
+
     Test_Assert(Window_EffectiveBehavior(action.Behavior, false) = "Activate",
         "ATT-02 initial phase uses Activate behavior")
     Test_Assert(Window_BehaviorDecision(
