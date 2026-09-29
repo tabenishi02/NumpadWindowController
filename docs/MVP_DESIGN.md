@@ -1,5 +1,7 @@
 # Numpad Window Controller - MVP Design
 
+> **履歴文書:** 本書はv0.2.0時点の設計記録です。v0.3.0の現行仕様はREADME、Phase J資料、`KNOWN_LIMITATIONS.md`を参照してください。Chrome固定Default、ConfigVersion 1、UTF-16 LE等はv0.2.x当時の仕様です。
+
 更新日: 2026-09-28  
 対象バージョン: **v0.2.0**  
 状態: **Final**  
