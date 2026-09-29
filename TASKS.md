@@ -6,7 +6,7 @@
 
 ## 0. 現在地点
 
-**Phase A～J完了。Phase Kは設計・実装・自動Regressionまで完了。物理テンキー受入試験のみ未実施。最新安定Releaseはv0.3.0。**
+**Phase A～J完了。Phase Kは設計・実装・自動Regressionまで完了。物理テンキー受入試験のみ未実施。最新安定Releaseはv0.3.0、Phase Kの次Release予定はv0.4.0。**
 
 > Phase A～Iの各項目はv0.1/v0.2系を作った時点の履歴であり、Chrome固定割り当て・ConfigVersion 1・UTF-16等の記述は現行v0.3.0仕様を示さない。現行仕様はPhase J、README、`docs/KNOWN_LIMITATIONS.md` を正とする。
 
@@ -851,8 +851,8 @@ Phase Kでは実装せず、将来候補としてのみ維持する。
 - [x] 旧ConfigVersion 1 / 2が現行対応のように見える記述を現行文書から削除
 - [x] Phase A～J文書は過去履歴として原則維持
 - [x] Public Default / Exampleの秘密情報・個人Path監査
-- [ ] 次Release Versionを決定
-- [ ] Release Ready判定
+- [x] 次Release Versionを **v0.4.0** に決定
+- [ ] Release Ready判定（Physical Acceptance完了後）
 
 Phase K完了条件:
 
