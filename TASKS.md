@@ -6,7 +6,7 @@
 
 ## 0. 現在地点
 
-**Phase A～I完了 / ログオン時自動起動統合済み / Release済み。Phase J - General-purpose Configuration / Public Defaultを新設し、次工程として未着手。最新ReleaseはGitHub Releasesを参照。**
+**Phase A～I完了 / ログオン時自動起動統合済み / Release済み。Phase J - General-purpose Configuration / Public Defaultは設計・実装・自動Regressionまで完了し、Public Defaultの物理テンキー実機受入のみpending。最新ReleaseはGitHub Releasesを参照。**
 
 完了済み:
 
@@ -596,79 +596,95 @@ Phase I完了条件:
 
 ---
 
-# Phase J - General-purpose Configuration / Public Default ⏳ 未着手
+# Phase J - General-purpose Configuration / Public Default 🟡 自動検証完了 / 実機受入pending
 
-計画: [Phase J Plan](docs/PHASE_J_PLAN.md)
+計画: [Phase J Plan](docs/PHASE_J_PLAN.md)  
+結果: [Phase J Result](docs/PHASE_J_RESULT.md)  
+移行: [ConfigVersion 2 Migration Guide](docs/CONFIG_MIGRATION_V2.md)
 
 目的:
 
-現行MVPでコード・Configへ固定されている個人用WorkflowをCoreから分離し、特定アプリや特定Window配置を前提としない一般公開向けDefaultへ移行する。
+現行MVPでコード・Configへ固定されていた個人用WorkflowをCoreから分離し、特定アプリや特定Window配置を前提としない一般公開向けDefaultへ移行する。
 
 ## J-1. Public Default仕様
-- [ ] 特定アプリ非依存の既定キー配置を確定
-- [ ] 主要Slotを任意WindowのManual Bind中心にするか確定
-- [ ] Backspace / Virtual000を含む安全な既定値を確定
-- [ ] 特定アプリなしでも初回利用可能な要件を確定
+
+- [x] 特定アプリ非依存の既定キー配置を確定
+- [x] 主要Slotを任意WindowのManual Bind中心とする
+- [x] BackspaceをDisabled、Virtual000をDisabledとする安全な既定値を確定
+- [x] Chrome / VS Code / ChatGPT / PowerShell等がなくても初回利用可能とする
 
 ## J-2. Configuration一般化
-- [ ] 物理キーMetadataと用途Metadataを分離
-- [ ] Dedicated Slot 1～9の固定制約を見直す
-- [ ] Auto BindをConfig / Presetのどちらへ置くか決定
-- [ ] ConfigVersion / Migration方針を決定
-- [ ] UTF-16 LE BOM固定の見直し要否を判断
+
+- [x] 物理キーMetadataと用途Metadataを分離
+- [x] ConfigVersion 2ではDedicated Slot 1～9の固定制約を廃止
+- [x] Public Defaultのbuilt-in Auto Bindを無効化
+- [x] ConfigVersion 1をLegacy互換、ConfigVersion 2を一般向けとして採用
+- [x] ConfigVersion 2 TemplateをUTF-8化し、UTF-16 LE BOM読込互換を維持
 
 ## J-3. Auto Bind / Preset分離
-- [ ] 固定Auto Bind GroupをCoreから分離
-- [ ] Chrome座標Auto BindとVS Code逆順Auto Bindを個人Workflow側へ分離
-- [ ] 現行WorkflowをPreset / Exampleとして再利用可能にする
-- [ ] 汎用Rule Engineを必要以上に導入しない最小Scopeを確定
+
+- [x] Chrome / VS Code / Explorer / ChatGPT / PowerShell固定GroupをConfigVersion 2 Coreから分離
+- [x] Chrome座標Auto BindとVS Code逆順Auto BindをConfigVersion 1 Legacy Workflowへ限定
+- [x] 現行Workflowを `examples/KeyBindings.developer-workflow.ini` として保存
+- [x] 汎用Rule Engineは導入せずPublic DefaultをManual Bind中心とする
 
 ## J-4. User Config / Distribution Config
-- [ ] trackedな配布Defaultとユーザー編集Configを分離
-- [ ] fresh clone / ZIPからの初回Config生成方法を確定
-- [ ] ユーザーConfigを更新時に上書きしない方式を確定
-- [ ] .gitignore / .gitattributesを新運用へ同期
+
+- [x] `KeyBindings.default.ini` とローカル `KeyBindings.ini` を分離
+- [x] fresh clone / ZIPで初回起動時にUser Configを自動生成
+- [x] `KeyBindings.ini` をGit管理対象外へ変更
+- [x] `.gitignore` / `.gitattributes` を新運用へ同期
 
 ## J-5. Numpad0 / Virtual000一般化
-- [ ] 000キーなしを標準ケースとして扱う
-- [ ] Virtual000無効時はZero Detectorを使用しない方式を検討
-- [ ] Virtual000無効時のNumpad0即時処理を実現
-- [ ] 000対応をopt-inとして維持する場合の仕様を確定
+
+- [x] 000キーなしをPublic Defaultの標準ケースとする
+- [x] Virtual000無効時はZero Detectorを起動しない
+- [x] Virtual000無効時のNumpad0を通常Hotkeyとして即時処理
+- [x] Virtual000有効時だけ従来Zero Detectorへ切り替えるopt-in方式を実装
 
 ## J-6. 実装
-- [ ] Metadata / Config Validatorを一般仕様へ変更
-- [ ] Auto Bind Core / Preset境界を実装
-- [ ] Public Default Configを作成
-- [ ] Developer Workflow Preset / Exampleを作成
-- [ ] User Config生成・読込方式を実装
-- [ ] Virtual000 opt-in / Numpad0即時処理を実装
+
+- [x] Metadata / Config ValidatorをConfigVersion 1 / 2両対応へ変更
+- [x] Public CoreとLegacy Auto Bindの境界を実装
+- [x] Public Default Configを作成
+- [x] Developer Workflow Presetを作成
+- [x] User Config生成・読込方式を実装
+- [x] Virtual000 opt-in / Numpad0即時処理を実装
 
 ## J-7. Test / Migration
-- [ ] Core Testと個人Workflow Testを分離
-- [ ] Public Default Testを追加
-- [ ] Config Migration Testを追加
-- [ ] Developer Workflow Regression Testを追加
-- [ ] Virtual000 ON/OFF Regressionを追加
-- [ ] Startup Task Regressionを実施
-- [ ] Public Default実機受入試験を実施
+
+- [x] Public ConfigVersion 2とLegacy ConfigVersion 1 Regressionを分離
+- [x] Public Default Testを追加
+- [x] ConfigVersion 1 / 2 Compatibility Testを追加
+- [x] Developer Workflow Regression Testを維持
+- [x] Virtual000 ON/OFF Regressionを追加
+- [x] GitHub Actions Windows + AutoHotkey v2.0.28でController Regression **166 assertions PASS**
+- [x] Startup Preview Regression **24 assertions PASS**
+- [ ] Public Defaultの物理テンキー実機受入試験を実施
 
 ## J-8. Documentation / Release
-- [ ] READMEを一般利用中心へ変更
-- [ ] Migration Guideを作成
-- [ ] Known Limitationsを同期
-- [ ] CHANGELOGを更新
-- [ ] Release Versionを決定
-- [ ] Release前Regression / Public release auditを実施
+
+- [x] READMEを一般利用中心へ変更
+- [x] ConfigVersion 2 Migration Guideを作成
+- [x] Known LimitationsをPublic / Legacyに分離
+- [x] CHANGELOGをv0.3.0候補として更新
+- [x] Phase J差分のPublic Release Auditを実施
+- [x] GitHub Actions CIを追加
+- [x] 次期Release候補を **v0.3.0** とする
 
 Phase J完了条件:
-- [ ] Public Defaultが特定アプリを必須としない
-- [ ] 主要Slotが個人用途へコード固定されていない
-- [ ] ユーザーConfigと配布Configが安全に分離されている
-- [ ] 000なしテンキーで不要なZero Detector待機を発生させない
-- [ ] 現行Developer WorkflowをPreset / Exampleで再現できる
-- [ ] v0.2.xからの移行方法が明文化されている
-- [ ] 自動テスト・実機受入・Startup RegressionがPASS
-- [ ] 利用者向け・開発者向け文書が新仕様と整合
+
+- [x] Public Defaultが特定アプリを必須としない
+- [x] 主要Slotが個人用途へコード固定されていない
+- [x] User Configと配布Configが安全に分離されている
+- [x] 000なしテンキーで不要なZero Detector待機を発生させない
+- [x] 現行Developer WorkflowをLegacy Presetで再現できる
+- [x] v0.2.xからの移行方法が明文化されている
+- [x] 自動Regression / Startup Preview RegressionがPASS
+- [x] 利用者向け・開発者向け文書が新仕様と整合
+- [ ] Public Defaultの物理テンキー実機受入がPASS
+
+**Phase J現在判定: AUTOMATED PASS / Physical Acceptance Pending**
 
 ---
 
@@ -700,7 +716,7 @@ Phase J  General-purpose Configuration / Public Default
 
 ## 最優先タスク
 
-Phase A～Iは正式完了。Phase Jを次工程として新設した。
+Phase A～Iは正式完了。Phase Jは設計・実装・自動Regressionまで完了し、Public Defaultの物理テンキー実機受入のみ残っている。
 
 公開状態:
 
@@ -718,7 +734,8 @@ Phase A～Iは正式完了。Phase Jを次工程として新設した。
 - [ ] Public RepositoryのPrivate vulnerability reporting設定を確認
 - [ ] GitHub Secret scanning alertを確認
 - [ ] v0.2.x bugfix
-- [ ] v0.3.0以降の機能拡張
+- [x] v0.3.0候補のPhase J一般化を実装
+- [ ] Public Default実機受入後にv0.3.0 Release判定
 
 ---
 
