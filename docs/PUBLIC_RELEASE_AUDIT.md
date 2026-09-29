@@ -1,8 +1,8 @@
 # Public Release Audit
 
 更新日: 2026-09-29  
-対象: NumpadWindowController v0.1.0 initial audit + v0.2.0 / Phase J delta audit  
-状態: **Public repository / Phase J delta audit complete**
+対象: NumpadWindowController v0.1.0 / v0.2.x audit + Phase J / v0.3.0 pre-release audit  
+状態: **Public repository / v0.3.0 Release Ready audit complete**
 
 ## 1. 監査範囲
 
@@ -62,17 +62,19 @@ Debug Logを有効化した場合はWindow title等のローカル情報を含�
 - `SECURITY.md`
 - `CONTRIBUTING.md`
 - 強化した `.gitignore`
-- UTF-16 Configurationを保護する `.gitattributes`
+- Config / local artifactを安全に扱う `.gitignore` / `.gitattributes` / `.editorconfig`
 - READMEのPrivacy / Security / License説明
 
 ## 5. 現在の公開状態
 
 - Repository Visibility: **Public**
 - Default branch: `main`
-- 公開済みTag / Release: `v0.1.0`, `v0.2.0`
-- v0.2.0公開時点のLatest Release: **`v0.2.0`**
+- 公開済みTag / Release: `v0.1.0`, `v0.2.0`, `v0.2.1`
+- 現在のLatest Stable Release: **`v0.2.1`**
+- `v0.2.1`公開日時: 2026-09-28 18:47:50 JST
+- `v0.2.1` Tag対象Commit: `8bc08d370ee4ae75029640dc37364c9a24f93b3a`
 - `v0.2.0`公開日時: 2026-09-28 18:17:55 JST
-- `v0.2.0` Release対象Commit: `7c244a87358295b223e9892ca5f6c51b13df9bea`
+- `v0.2.0` Tag対象Commit: `7c244a87358295b223e9892ca5f6c51b13df9bea`
 
 GitHub Settingsでは引き続き次を確認対象とする。
 
@@ -226,3 +228,56 @@ RuntimeもUTF-8前提へ変更し、UTF-16 LE / BEはConfiguration Errorとし�
 一時的に追加したNumLock workaroundおよび専用Regressionは、ソフトウェア不具合ではないことが確認できたためrevertした。
 
 **J-PA-7 hardware N/A / Phase J Physical Acceptance PASS**
+
+
+---
+
+## 13. v0.2.1 Release確認
+
+2026-09-28にGitHub Release `v0.2.1` を公開済みであることを再確認した。
+
+- Tag: `v0.2.1`
+- Release Name: `v0.2.1`
+- Draft: false
+- Pre-release: false
+- 公開日時: 2026-09-28 18:47:50 JST
+- Tag対象Commit: `8bc08d370ee4ae75029640dc37364c9a24f93b3a`
+
+v0.2.1はv0.2.0公開後のドキュメント同期Patch Releaseであり、Controller本体とStartup Taskの実装変更は含まない。
+
+---
+
+## 14. v0.3.0 Pre-release Audit
+
+Phase J完了後、v0.3.0公開前に現行文書とRelease条件を再監査した。
+
+確認結果:
+
+- Phase J: **PASS / 正式完了**
+- Physical Acceptance: **PASS**
+  - J-PA-1～6: PASS
+  - J-PA-7: 対象テンキーの既知ハードウェア仕様によりNot Executed / N/A
+- Controller Regression: **167 assertions PASS**
+- Startup Preview Regression: **24 assertions PASS**
+- Startup Task Scheduler Integration Regression: **37 assertions PASS**
+- ConfigVersion 2 Public Default: PASS
+- ConfigVersion 1 Legacy Workflow: PASS
+- Virtual000 ON/OFF Regression: PASS
+- Configuration INI: UTF-8前提へ統一
+- UTF-16 LE / BE: 明示的に非対応
+- `KeyBindings.ini`: User ConfigとしてGit管理対象外
+- Public Default / Example / Legacy Preset: UTF-8 BOMなし
+- Credential / Secret / 個人固有Path: 公開阻害要因なし
+
+ドキュメント整合性について:
+
+- README / TASKS / PROJECT_HANDOFF / CHANGELOG / SECURITY / CONTRIBUTINGをv0.3.0 Release Ready状態へ同期
+- Known Limitationsをv0.3.0対象へ更新
+- ConfigVersion 2 Migration Guideをv0.3.0対象へ更新
+- v0.2.x以前のMVP Design / Phase仕様書には履歴文書である旨を明示
+- v0.2.1 Release履歴を本監査文書へ反映
+- 最新Release参照はGitHub Releasesを正本とする方針を維持
+
+**v0.3.0 Release Ready: PASS**
+
+Tag / GitHub Releaseは、この監査完了後のcurrent `main` を対象として作成する。
