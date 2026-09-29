@@ -47,9 +47,9 @@ Changes that affect input handling, Auto Bind, NumLock lifecycle, Shortcut execu
 
 ## Configuration Encoding
 
-`KeyBindings.ini` is a local user file and is not tracked. Distributed ConfigVersion 2 templates use UTF-8; the runtime also accepts legacy UTF-16 LE BOM ConfigVersion 1 files.
+`KeyBindings.ini` is a local user file and is not tracked. All configuration INI files are UTF-8.
 
-Do not convert these files to UTF-8 or remove the BOM.
+Repository INI files should be saved as UTF-8 without BOM. The runtime accepts an optional UTF-8 BOM, but UTF-16 LE / BE is not supported. `.editorconfig` declares `charset = utf-8` for `*.ini`.
 
 ## Do Not Commit Personal or Secret Data
 
