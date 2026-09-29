@@ -1480,7 +1480,8 @@ Launch_Try(actionId) {
             group.LaunchWorkingDirectory, , &pid)
         App.LaunchPending[group.Id] := {
             Expires: A_TickCount + group.LaunchPendingTimeoutMs,
-            Pid: pid
+            Pid: pid,
+            ActionId: actionId
         }
         Launch_SchedulePendingTimer()
         Debug_Log("Launch fallback: " group.Id " pid=" pid)
@@ -1496,6 +1497,17 @@ Launch_SchedulePendingTimer() {
     SetTimer(Launch_CheckPending, App.LaunchPending.Count ? 250 : 0)
 }
 
+Launch_PendingContinuationAction(pending, config) {
+    if !pending.HasProp("ActionId") || pending.ActionId = ""
+        return ""
+    if !config.Actions.Has(pending.ActionId)
+        return ""
+    action := config.Actions[pending.ActionId]
+    return action.Type = "Window" && action.Behavior = "ActivateThenToggle"
+        ? action.Id
+        : ""
+}
+
 Launch_CheckPending() {
     global App
     if !App.LaunchPending.Count {
@@ -1505,17 +1517,50 @@ Launch_CheckPending() {
 
     candidates := Window_EnumerateCandidates()
     remove := []
+    continuations := []
     nowTick := A_TickCount
+
     for groupId, pending in App.LaunchPending {
-        if !App.Config.WindowGroups.Has(groupId)
-            || nowTick >= pending.Expires
-            || Window_GroupHasMatch(App.Config.WindowGroups[groupId], candidates)
+        if !App.Config.WindowGroups.Has(groupId) {
+            remove.Push(groupId)
+            continue
+        }
+
+        matched := Window_GroupHasMatch(App.Config.WindowGroups[groupId], candidates)
+        if matched {
+            actionId := Launch_PendingContinuationAction(pending, App.Config)
+            if actionId != ""
+                continuations.Push(actionId)
+            remove.Push(groupId)
+            continue
+        }
+
+        if nowTick >= pending.Expires
             remove.Push(groupId)
     }
+
     for groupId in remove
         App.LaunchPending.Delete(groupId)
     if !App.LaunchPending.Count
         SetTimer(Launch_CheckPending, 0)
+
+    ; ActivateThenToggle should complete the original key action after the
+    ; asynchronously launched window appears. This keeps launch non-blocking:
+    ; first key launches + activates, then later presses use Toggle behavior.
+    for actionId in continuations {
+        try {
+            AutoBind_Action(actionId)
+            if App.WindowState.Has(actionId) && App.WindowState[actionId].Hwnd {
+                Debug_Log("Launch continuation: " actionId)
+                Action_Window(actionId)
+            } else {
+                Debug_Log("Launch continuation could not bind: " actionId)
+            }
+        } catch as err {
+            Debug_Log("Launch continuation failed: " actionId " / " err.Message)
+            Notify_Info("Launch continuation failed: " App.Config.Actions[actionId].Label)
+        }
+    }
 }
 
 ; === Actions ===
