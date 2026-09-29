@@ -544,6 +544,7 @@ Desktop操作を含むテスト:
 - [Phase Gテスト結果](docs/PHASE_G_RESULT.md)
 - [Phase H実機受入試験結果](docs/PHASE_H_RESULT.md)
 - [Phase I初期版完成処理結果](docs/PHASE_I_RESULT.md)
+- [Phase J一般公開向けConfiguration計画](docs/PHASE_J_PLAN.md)
 - [ログオン時自動起動テスト](docs/STARTUP_TASK_TEST.md)
 - [Changelog](CHANGELOG.md)
 - [実装タスク一覧](TASKS.md)
