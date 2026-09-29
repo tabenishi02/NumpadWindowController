@@ -41,9 +41,18 @@ Test_Throws(callback, name) {
     Test_Assert(caught, name)
 }
 
-Test_Load() {
+Test_LoadPublic() {
     global TestRoot
-    return Config_Load(TestRoot "\KeyBindings.ini", Config_Metadata(), TestRoot)
+    return Config_Load(TestRoot "\KeyBindings.default.ini", Config_Metadata(), TestRoot)
+}
+
+Test_LoadLegacy() {
+    global TestRoot
+    return Config_Load(TestRoot "\examples\KeyBindings.developer-workflow.ini", Config_Metadata(), TestRoot)
+}
+
+Test_Load() {
+    return Test_LoadPublic()
 }
 
 Test_ValidateText(text) {
@@ -53,64 +62,109 @@ Test_ValidateText(text) {
 
 Test_Config() {
     global TestRoot, TestTemp
-    config := Test_Load()
-    Test_Assert(config.Keys.Count = 18, "All 18 key definitions")
-    Test_Assert(config.Keys["Backspace"].Mode = "Disabled", "Backspace default Disabled")
-    Test_Assert(Runtime_Init(config.Keys).Count = 17, "Only Window keys have slots")
-    text := FileRead(TestRoot "\KeyBindings.ini", "UTF-16")
-    bad := [
-        StrReplace(text, "ConfigVersion=1", "ConfigVersion=2"),
+
+    public := Test_LoadPublic()
+    Test_Assert(public.Version = 2, "Public config uses ConfigVersion 2")
+    Test_Assert(public.Keys.Count = 18, "Public config has all 18 key definitions")
+    Test_Assert(public.Keys["Backspace"].Mode = "Disabled", "Backspace public default Disabled")
+    Test_Assert(public.Keys["Virtual000"].Mode = "Disabled", "Virtual000 public default Disabled")
+    Test_Assert(public.Keys["Numpad0"].InputStrategy = "Hotkey", "Public Numpad0 uses direct hotkey")
+    Test_Assert(public.Keys["Numpad7"].AllowedProcess = "", "Public numeric slots are app agnostic")
+    Test_Assert(Runtime_Init(public.Keys).Count = 16, "Public default has 16 Window slots")
+    for id, key in public.Keys
+        Test_Assert(!key.AutoBind, "Public default has no built-in Auto Bind " id)
+
+    legacy := Test_LoadLegacy()
+    Test_Assert(legacy.Version = 1, "Legacy developer preset uses ConfigVersion 1")
+    Test_Assert(legacy.Keys["Numpad7"].AutoBind && legacy.Keys["Numpad7"].AutoBindGroup = "Chrome",
+        "Legacy Chrome Auto Bind metadata preserved")
+    Test_Assert(legacy.Keys["Numpad4"].AutoBindGroup = "VSCode", "Legacy VS Code metadata preserved")
+    Test_Assert(legacy.Keys["Numpad0"].InputStrategy = "ZeroDetector", "Legacy zero detector preserved")
+    Test_Assert(Runtime_Init(legacy.Keys).Count = 17, "Legacy Window slot count preserved")
+
+    text := FileRead(TestRoot "\KeyBindings.default.ini", "UTF-8")
+    invalid := [
+        StrReplace(text, "ConfigVersion=2", "ConfigVersion=3"),
         StrReplace(text, "[General]", "[Other]"),
         text "`n[Key-NumLock]`nMode=Window`nLabel=Invalid",
         text "`n[key-numpad7]`nMode=Window",
-        StrReplace(text, "ConfigVersion=1", "ConfigVersion=1`nconfigversion=1"),
-        StrReplace(text, "Label=Slash", "Label=Slash`nAutoBind=true"),
+        StrReplace(text, "ConfigVersion=2", "ConfigVersion=2`nconfigversion=2"),
+        StrReplace(text, "Label=Window /", "Label=Window /`nAutoBind=true"),
         StrReplace(text, "Mode=Window", "Mode=Invalid", , , 1),
-        StrReplace(text, "Label=Slash", "Label="),
+        StrReplace(text, "Label=Window /", "Label="),
         StrReplace(text, "[Key-Numpad7]", "[Key-NumpadTypo]"),
-        StrReplace(text, "AllowedProcess=chrome.exe", "AllowedProcess=", , , 1),
-        StrReplace(text, "AllowedProcess=chrome.exe", "AllowedProcess=other.exe", , , 1),
-        StrReplace(text, "AllowedClass=CabinetWClass", "AllowedClass="),
-        StrReplace(text, "AllowedProcess=ChatGPT.exe", "AllowedProcess="),
-        StrReplace(text, "AllowedTitleContains=PowerShell 7", "AllowedTitleContains="),
-        StrReplace(text, "Mode=Disabled", "Mode=Disabled`nTarget=unused.exe"),
-        RegExReplace(text, "s)\[Key-Numpad0\].*?(?=\[Key-Virtual000\])", "[Key-Numpad0]`nMode=Disabled`nLabel=Zero`n"),
+        StrReplace(text, "Mode=Disabled", "Mode=Disabled`nTarget=unused.exe", , , 1),
         text "`nMalformed line",
-        RegExReplace(text, "s)\[Key-NumpadEnter\].*$", "")]
-    ; Normalize line endings for the mode-specific mutation as well.
-    bad.Push(StrReplace(StrReplace(text, "`r"), "[Key-Numpad7]`nMode=Window", "[Key-Numpad7]`nMode=Disabled"))
-    for i, input in bad
-        Test_Throws(Test_ValidateText.Bind(input), "Reject invalid configuration " i)
+        RegExReplace(text, "s)\[Key-NumpadEnter\].*$", "")
+    ]
+    for i, input in invalid
+        Test_Throws(Test_ValidateText.Bind(input), "Reject invalid public configuration " i)
+
     mixed := StrReplace(text, "Mode=Window", "mode=wInDoW")
-    Test_Assert(Test_ValidateText(mixed).Keys["Numpad7"].Mode = "Window", "Case insensitive fields and modes")
-    section := Config_Parse(text, "test.ini")
-    shortcut := section["Key-NumpadDiv"]
+    Test_Assert(Test_ValidateText(mixed).Keys["Numpad7"].Mode = "Window",
+        "Case insensitive fields and modes")
+
+    sections := Config_Parse(text, "test.ini")
+    seven := sections["Key-Numpad7"]
+    for field in ["AllowedProcess", "AllowedClass", "AllowedTitleContains"]
+        seven.Delete(field)
+    seven["Mode"] := "Shortcut"
+    seven["Target"] := "cmd.exe"
+    seven["Arguments"] := "/c echo public-v2"
+    seven["WorkingDirectory"] := ""
+    result := Config_Validate(sections, "test.ini", Config_Metadata(), TestRoot)
+    Test_Assert(result.Keys["Numpad7"].Mode = "Shortcut",
+        "ConfigVersion 2 allows former dedicated slot as Shortcut")
+
+    legacyText := FileRead(TestRoot "\examples\KeyBindings.developer-workflow.ini", "UTF-8")
+    Test_Throws(Test_ValidateText.Bind(StrReplace(StrReplace(legacyText, "`r"),
+        "[Key-Numpad7]`nMode=Window", "[Key-Numpad7]`nMode=Disabled")),
+        "ConfigVersion 1 still rejects disabled dedicated slot")
+    Test_Throws(Test_ValidateText.Bind(StrReplace(legacyText,
+        "AllowedProcess=chrome.exe", "AllowedProcess=", , , 1)),
+        "ConfigVersion 1 still requires dedicated process")
+    Test_Throws(Test_ValidateText.Bind(StrReplace(legacyText,
+        "AllowedProcess=chrome.exe", "AllowedProcess=other.exe", , , 1)),
+        "ConfigVersion 1 still requires matching Chrome group")
+
+    sections := Config_Parse(text, "test.ini")
+    shortcut := sections["Key-NumpadDiv"]
     for field in ["AllowedProcess", "AllowedClass", "AllowedTitleContains"]
         shortcut.Delete(field)
     shortcut["Mode"] := "Shortcut"
     shortcut["Target"] := "cmd.exe"
     shortcut["Arguments"] := '/c echo "test value"'
-    config := Config_Validate(section, "test.ini", Config_Metadata(), TestRoot)
+    config := Config_Validate(sections, "test.ini", Config_Metadata(), TestRoot)
     Test_Assert(FileExist(config.Keys["NumpadDiv"].ShortcutTarget), "Resolve executable via Windows search")
     Test_Assert(config.Keys["NumpadDiv"].ShortcutArguments = '/c echo "test value"', "Preserve argument quotes")
     for target in ["missing-command-example.exe", "script.ps1", "https://example.invalid", "missing.cmd"] {
         shortcut["Target"] := target
-        Test_Throws(() => Config_Validate(section, "test.ini", Config_Metadata(), TestRoot), "Reject target " target)
+        Test_Throws(() => Config_Validate(sections, "test.ini", Config_Metadata(), TestRoot), "Reject target " target)
     }
     for ext in ["exe", "bat", "cmd", "lnk"] {
         target := TestTemp "\target with spaces." ext
         FileAppend("test", target)
         shortcut["Target"] := target
         shortcut["WorkingDirectory"] := TestTemp
-        result := Config_Validate(section, "test.ini", Config_Metadata(), TestRoot)
+        result := Config_Validate(sections, "test.ini", Config_Metadata(), TestRoot)
         Test_Assert(result.Keys["NumpadDiv"].ShortcutTarget = target, "Accept target extension " ext)
     }
     shortcut["WorkingDirectory"] := TestTemp "\missing-directory"
-    Test_Throws(() => Config_Validate(section, "test.ini", Config_Metadata(), TestRoot), "Reject missing working directory")
-    FileAppend(text, TestTemp "\utf8.ini", "UTF-8")
-    Test_Throws(() => Config_Load(TestTemp "\utf8.ini", Config_Metadata(), TestRoot), "Reject wrong BOM")
+    Test_Throws(() => Config_Validate(sections, "test.ini", Config_Metadata(), TestRoot), "Reject missing working directory")
+
+    generated := TestTemp "\generated-KeyBindings.ini"
+    Config_EnsureUserConfig(generated, TestRoot "\KeyBindings.default.ini")
+    Test_Assert(FileExist(generated), "Create user config from public default")
+    generatedConfig := Config_Load(generated, Config_Metadata(), TestRoot)
+    Test_Assert(generatedConfig.Version = 2, "Generated user config loads as version 2")
+
+    utf16 := TestTemp "\legacy-utf16.ini"
+    FileAppend(legacyText, utf16, "UTF-16")
+    Test_Assert(Config_Load(utf16, Config_Metadata(), TestRoot).Version = 1,
+        "UTF-16 legacy configuration remains supported")
     Test_Throws(() => Config_Load(TestTemp "\missing.ini", Config_Metadata(), TestRoot), "Reject missing file")
-    Test_Assert(Config_Absolute("scripts\test.cmd", TestRoot) = TestRoot "\scripts\test.cmd", "Relative paths use script directory")
+    Test_Assert(Config_Absolute("scripts\test.cmd", TestRoot) = TestRoot "\scripts\test.cmd",
+        "Relative paths use script directory")
 }
 
 Test_Candidate(hwnd, process, className := "WindowClass", title := "Test Window", x := 0, y := 0, w := 300, h := 500, minmax := 0) {
@@ -129,7 +183,8 @@ Test_Binding() {
     Test_Assert(!App.Slots["Numpad7"].Hwnd, "Manual uses isolated working state")
     moved := Binding_Assign(first, App.Keys, "Numpad0", p)
     Test_Assert(!moved["Numpad7"].Hwnd && moved["Numpad0"].Hwnd = 101, "Manual transfer clears old slot")
-    Test_Throws(() => Binding_Assign(moved, App.Keys, "Numpad4", p), "Reject wrong app before clearing original")
+    App.Keys["Numpad4"].AllowedProcess := "Code.exe"
+    Test_Throws(() => Binding_Assign(moved, App.Keys, "Numpad4", p), "Reject explicit AllowedProcess mismatch")
     Test_Assert(moved["Numpad0"].Hwnd = 101, "Rejection preserves old state")
     Test_Throws(() => Binding_Assign(moved, App.Keys, "Backspace", p), "Disabled cannot bind")
     invalid := Runtime_Copy(moved)
@@ -144,11 +199,11 @@ Test_Binding() {
     Runtime_Commit(first)
     Binding_Clear("", false)
     Test_Assert(Runtime_Validate(App.Slots, App.Keys).Count = 0, "Clear all")
-    Test_Assert(App.Keys["Numpad7"].AllowedProcess = "chrome.exe", "Clear preserves configuration")
+    Test_Assert(App.Keys["Numpad7"].AllowedProcess = "", "Clear preserves public configuration")
 }
 
 Test_AutoBind() {
-    keys := Test_Load().Keys
+    keys := Test_LoadLegacy().Keys
     slots := Runtime_Init(keys)
     area := {X: 0, Y: 0, W: 1000, H: 1000, Left: 0, Top: 0, Right: 1000, Bottom: 1000}
     candidates := [Test_Candidate(11, "chrome.exe"),
@@ -206,6 +261,12 @@ Test_AutoBind() {
     p := candidates[1].Clone()
     p.Visible := false
     Test_Assert(!Window_IsCandidateEligible(p), "Filter invisible")
+
+    publicKeys := Test_LoadPublic().Keys
+    publicSlots := Runtime_Init(publicKeys)
+    publicResult := AutoBind_Calculate(publicKeys, publicSlots, candidates, area)
+    Test_Assert(Runtime_Validate(publicResult, publicKeys).Count = 0,
+        "Public ConfigVersion 2 performs no built-in Auto Bind")
 }
 
 Test_ProbeFailure() {
@@ -306,18 +367,28 @@ Test_Zero() {
 
 Test_Input() {
     global App, TestTemp
-    keys := Test_Load().Keys
+    keys := Test_LoadPublic().Keys
     keys["NumpadDiv"].Mode := "Shortcut"
     plan := Input_HotkeyPlan(keys)
     counts := Map()
     for entry in plan
         counts[entry.Id] := counts.Get(entry.Id, 0) + 1
-    Test_Assert(counts["Numpad7"] = 4, "Window registers four actions")
+    Test_Assert(counts["Numpad7"] = 4, "Public Window registers four actions")
     Test_Assert(counts["NumpadDiv"] = 1, "Shortcut registers Normal only")
-    Test_Assert(!counts.Has("Backspace"), "Disabled registers no hotkeys")
-    Test_Assert(!counts.Has("Numpad0") && !counts.Has("Virtual000"), "Zero input uses detector only")
+    Test_Assert(!counts.Has("Backspace"), "Disabled Backspace registers no hotkeys")
+    Test_Assert(counts["Numpad0"] = 4, "Public Numpad0 uses direct hotkeys")
+    Test_Assert(!counts.Has("Virtual000"), "Public Virtual000 is disabled")
     Test_Assert(counts["NumpadEnter"] = 2,
         "NumpadEnter generic plan keeps Normal and CtrlAlt only")
+
+    legacyKeys := Test_LoadLegacy().Keys
+    legacyPlan := Input_HotkeyPlan(legacyKeys)
+    legacyCounts := Map()
+    for entry in legacyPlan
+        legacyCounts[entry.Id] := legacyCounts.Get(entry.Id, 0) + 1
+    Test_Assert(!legacyCounts.Has("Numpad0") && !legacyCounts.Has("Virtual000"),
+        "Legacy zero input remains detector-only")
+
     globalPlan := Input_GlobalHotkeyPlan()
     Test_Assert(globalPlan.Length = 2, "NumpadEnter has two reserved global actions")
     Test_Assert(globalPlan[1].Action = "AutoBindAll"
@@ -328,6 +399,7 @@ Test_Input() {
         "Ctrl Shift NumpadEnter routes to Clear All")
     Test_Assert(globalPlan[1].Key != "SC01C" && globalPlan[2].Key != "SC01C",
         "Standard Enter SC01C is not a Global Action key")
+
     keys["NumpadEnter"].Mode := "Disabled"
     disabledEnterPlan := Input_HotkeyPlan(keys)
     hasGenericEnter := false
@@ -337,6 +409,13 @@ Test_Input() {
     Test_Assert(!hasGenericEnter, "Disabled NumpadEnter has no generic hotkeys")
     Test_Assert(Input_GlobalHotkeyPlan().Length = 2,
         "NumpadEnter Global Actions remain reserved regardless of Config Mode")
+
+    App := App_Create()
+    App.Keys := Test_LoadPublic().Keys
+    App.Slots := Runtime_Init(App.Keys)
+    Input_StartZeroDetector()
+    Test_Assert(!IsObject(App.Hook), "Public default does not start Zero Detector")
+
     Test_Assert(Input_ModifierKind(1, 1, 1) = "Unsupported", "Reject Ctrl Shift Alt")
     Test_Assert(Input_ModifierKind(0, 1, 0) = "Unsupported", "Shift alone passes through")
     Test_Assert(Input_ModifierKind(1, 1, 0) = "CtrlShift", "Ctrl Shift mapping")
@@ -369,7 +448,7 @@ Test_Probe() {
 Test_Lazy() {
     global App
     App := App_Create()
-    App.Keys := Test_Load().Keys
+    App.Keys := Test_LoadLegacy().Keys
     App.Slots := Runtime_Init(App.Keys)
     App.Keys["Numpad1"].AllowedProcess := "NWC-nonexistent-fixture.exe"
     App.Slots["Numpad1"] := {Hwnd: -1, BindingSource: "Manual"}
@@ -388,7 +467,7 @@ Test_Lazy() {
     Input_StartZeroDetector()
     Test_Assert(!IsObject(App.Hook), "Both zero keys disabled means no InputHook")
     ; Recreate consistent configuration before checking Global Actions.
-    App.Keys := Test_Load().Keys
+    App.Keys := Test_LoadLegacy().Keys
     App.Slots := Runtime_Init(App.Keys)
     Input_GlobalDispatch("AutoBindAll")
     Test_Assert(Runtime_Validate(App.Slots, App.Keys) is Map,
@@ -409,7 +488,7 @@ Test_Desktop() {
     window := Gui(, "NWC activation fixture")
     try {
         App := App_Create()
-        App.Keys := Test_Load().Keys
+        App.Keys := Test_LoadLegacy().Keys
         App.Slots := Runtime_Init(App.Keys)
         App.OriginalNumLock := original
         App.NumLockSaved := true
