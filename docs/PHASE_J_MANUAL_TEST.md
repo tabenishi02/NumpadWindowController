@@ -166,16 +166,16 @@ Controllerを再起動。
 
 必須:
 
-- [ ] J-PA-1 PASS
-- [ ] J-PA-2 PASS
-- [ ] J-PA-3 PASS
-- [ ] J-PA-4 PASS
-- [ ] J-PA-5 PASS
-- [ ] J-PA-7 PASS
+- [x] J-PA-1 PASS
+- [x] J-PA-2 PASS
+- [x] J-PA-3 PASS
+- [x] J-PA-4 PASS
+- [x] J-PA-5 PASS
+- [ ] J-PA-7 PASS  NG:Controller起動前NumLockOFFで起動後もNumLockOFF
 
 000キー搭載機のみ:
 
-- [ ] J-PA-6 PASS または対象外としてSKIP記録
+- [x] J-PA-6 PASS または対象外としてSKIP記録
 
 必須項目がすべてPASSした時点でPhase Jを正式Closeし、v0.3.0 Release Ready判定を行う。
 
