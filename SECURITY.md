@@ -2,15 +2,14 @@
 
 ## Supported Versions
 
-Security fixes are currently provided for the latest v0.2.x release line.
+Security fixes are provided for the latest stable release.
 
 | Version | Supported |
 |---|---|
-| latest v0.2.x | Yes |
-| v0.1.0 | No |
-| older versions | No |
+| latest stable release | Yes |
+| older releases | No |
 
-The published v0.1.0 release is superseded by v0.2.0.
+Use GitHub Releases as the source of truth for the current stable version.
 
 ## Reporting a Vulnerability
 
