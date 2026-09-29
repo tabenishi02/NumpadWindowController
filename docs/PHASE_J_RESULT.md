@@ -156,7 +156,7 @@ Windows GitHub Actions runnerへAutoHotkey v2.0.28を導入してRegressionを�
 結果:
 
 ```text
-PASS 167 assertions (AHK 2.0.28)
+PASS 168 assertions (AHK 2.0.28)
 PASS 24 startup-task assertions
 PASS 37 startup-task assertions (Integration)
 ```
@@ -164,6 +164,7 @@ PASS 37 startup-task assertions (Integration)
 判定:
 
 - Controller Regression: **PASS**
+- NumLock OFF → ON Regression: **PASS**
 - ConfigVersion 2: **PASS**
 - ConfigVersion 1 Compatibility: **PASS**
 - Virtual000 ON / OFF: **PASS**
@@ -251,7 +252,7 @@ J-PA-7のみ再試験が必要。
 Design                 PASS
 Implementation         PASS
 Config Migration       PASS
-Controller Regression  PASS (167 assertions)
+Controller Regression  PASS (168 assertions)
 Startup Preview         PASS (24 assertions)
 Startup Integration     PASS (37 assertions)
 Documentation          PASS
