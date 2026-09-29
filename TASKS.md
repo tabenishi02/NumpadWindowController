@@ -838,7 +838,7 @@ Phase Kでは実装せず、将来候補としてのみ維持する。
 - [x] MultiAction Testを追加
 - [x] Startup Task Regressionを再実行
 - [x] GitHub Actions Windows RegressionをPASSさせる
-- [ ] 物理テンキー受入試験を実施
+- [ ] 物理テンキー受入試験を実施（`docs/PHASE_K_MANUAL_TEST.md` + `examples/KeyBindings.phase-k-test.ini`）
 - [x] Virtual00のみ実機なしのためN/Aとして記録
 - [x] Phase K Result文書を作成
 
