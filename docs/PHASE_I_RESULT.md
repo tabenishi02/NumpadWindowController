@@ -1,5 +1,7 @@
 # Phase I 初期版完成処理結果
 
+> **履歴文書:** 本書はMVP初期Release工程の結果です。現在はPhase Jまで完了し、v0.3.0がRelease Readyです。
+
 更新日: 2026-09-28  
 対象: NumpadWindowController / **v0.1.0**  
 状態: **PASS - Phase I完了 / Release Ready**
