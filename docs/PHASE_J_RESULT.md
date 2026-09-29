@@ -1,7 +1,7 @@
 # Phase J - General-purpose Configuration / Public Default Result
 
 更新日: 2026-09-29  
-状態: **AUTOMATED PASS / Physical Acceptance Partial PASS / J-PA-7 Retest Pending**  
+状態: **PASS / Phase J Complete**  
 次期Release候補: **v0.3.0**
 
 ## 1. 結果概要
@@ -10,7 +10,7 @@ Phase Jでは、v0.2.xまでユーザー本人の運用環境へ固定されて�
 
 設計・実装・Config移行・自動Regression・Startup Regression・Documentation・公開差分監査は完了している。
 
-物理受入1回目を実施し、J-PA-1～6はPASSした。J-PA-7 NumLock lifecycleのみ、起動前OFF → 起動後もOFFとなりFAILしたため修正済み。残る完了条件はJ-PA-7再試験のみ。手順は `docs/PHASE_J_MANUAL_TEST.md` に固定した。
+物理受入ではJ-PA-1～6がPASSした。J-PA-7はPhase F R-8 / R-14の既存実機記録と照合した結果、対象テンキーの物理NumLockがテンキー内部の入力切替でありWindowsへNumLock Eventを送らない既知ハードウェア仕様のため、Not Executed / N/Aとした。これによりPhase Jの完了条件を満たした。
 
 ---
 
@@ -164,7 +164,6 @@ PASS 37 startup-task assertions (Integration)
 判定:
 
 - Controller Regression: **PASS**
-- NumLock OFF → ON Regression: **PASS**
 - ConfigVersion 2: **PASS**
 - ConfigVersion 1 Compatibility: **PASS**
 - Virtual000 ON / OFF: **PASS**
@@ -226,7 +225,7 @@ User Configをtracked fileから外したため、今後の個人Path混入リ�
 
 ## 9. Physical Acceptance
 
-2026-09-29に物理テンキーで1回目の受入試験を実施した。
+2026-09-29に物理テンキーで受入試験を実施した。
 
 結果:
 
@@ -236,13 +235,21 @@ User Configをtracked fileから外したため、今後の個人Path混入リ�
 - [x] J-PA-4 Clear All
 - [x] J-PA-5 Public Default Numpad0
 - [x] J-PA-6 Virtual000 opt-in
-- [ ] J-PA-7 NumLock lifecycle
+- [x] J-PA-7 Not Executed / N/A
 
-J-PA-7ではController起動前NumLock OFFの状態から起動した際、起動後もOFFのままだった。
+J-PA-7は当初、外付けテンキーNumLockで作った「OFF」状態をWindows側NumLock stateとして扱ったためFAIL記録となった。
 
-対策として `NumLock_ForceOn()` を修正し、`SetNumLockState("On")` で明示的にONへ遷移してから `AlwaysOn` を適用する順序へ変更した。
+過去記録を再確認すると:
 
-J-PA-7のみ再試験が必要。
+- Phase F R-8: 外付けテンキー物理NumLockはAHK InputHook / Windows Raw InputともEventなし
+- Phase F R-14: 初期状態の変更・確認に外付けテンキーNumLockを使用しないことを明示
+- R-14 Case A/B: Windows側NumLock lifecycleは通常Keyboard / osk.exeで実機PASS
+
+で一貫している。
+
+対象テンキーのNumLockキーはテンキー内部の入力切替として機能するが、WindowsへNumLock Keyboard Eventを送信しない。したがってJ-PA-7は対象ハードウェアでは成立しない試験であり、Not Executed / N/Aとして完了扱いとする。
+
+この再判定に伴い、J-PA-7 FAILをソフトウェア不具合と誤認して一時追加したNumLock workaroundと専用Regressionはrevertした。
 
 ---
 
@@ -257,9 +264,9 @@ Startup Preview         PASS (24 assertions)
 Startup Integration     PASS (37 assertions)
 Documentation          PASS
 Public Delta Audit     PASS
-Physical Acceptance    PARTIAL PASS (J-PA-7 retest pending)
+Physical Acceptance    PASS (J-PA-7 N/A)
 ```
 
-したがってPhase Jは **実装・自動検証完了** とする。
+したがってPhase Jは **PASS / 正式完了** とする。
 
-ただしPhase Jの正式な最終完了判定とv0.3.0 Release Ready判定は、J-PA-7再試験PASS後に行う。
+次の工程はv0.3.0 Release Ready判定。
