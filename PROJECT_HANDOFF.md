@@ -2,7 +2,7 @@
 
 更新日: 2026-09-29  
 対象: NumpadWindowController  
-状態: **Phase J完了 / v0.3.0 Release Ready判定前**
+状態: **Phase J完了 / v0.3.0 Release Ready**
 
 ## 現在地点
 
@@ -10,7 +10,7 @@ Phase A～IのMVP工程とv0.2.xのRelease作業は完了している。
 
 Phase J - General-purpose Configuration / Public Defaultは、設計・実装・Migration・文書更新・自動Regression・公開差分監査まで完了した。
 
-物理受入ではJ-PA-1～6がPASSした。J-PA-7はPhase F R-8/R-14と照合し、対象テンキーの物理NumLockがテンキー内部の入力切替でWindowsへNumLock Eventを送らない既知ハードウェア仕様のためNot Executed / N/Aとした。Phase Jは正式完了し、次はv0.3.0 Release Ready判定へ進む。
+物理受入ではJ-PA-1～6がPASSした。J-PA-7はPhase F R-8/R-14と照合し、対象テンキーの物理NumLockがテンキー内部の入力切替でWindowsへNumLock Eventを送らない既知ハードウェア仕様のためNot Executed / N/Aとした。Phase Jは正式完了し、v0.3.0 Release Ready判定もPASSした。次はv0.3.0 Tag / GitHub Release作成。
 
 現在のVersion / Release関係:
 
@@ -19,7 +19,7 @@ Phase J - General-purpose Configuration / Public Defaultは、設計・実装・
 - `v0.1.0`: 初回MVP Release
 - `v0.2.0`: ログオン時自動起動追加
 - `v0.2.1`: Release後ドキュメント同期
-- 次期Release候補: **v0.3.0**
+- `v0.3.0`: **Release Ready / 公開前**
 - License: MIT
 
 ## Phase Jの主要成果物
@@ -145,8 +145,8 @@ Phase J差分の公開監査:
 
 ## 次の作業
 
-- [ ] v0.3.0 Release Ready判定
-- [ ] Release前最終監査
+- [x] v0.3.0 Release Ready判定
+- [x] Release前ドキュメント整合監査
 - [ ] v0.3.0 Tag / GitHub Release作成
 
 ## 次に読む資料
