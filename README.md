@@ -288,14 +288,15 @@ Virtual000有効時は通常Numpad0も判定のため最大約80ms待機しま�
 
 ## Encoding
 
-ConfigVersion 2の配布TemplateはUTF-8です。
+Configuration INIは **UTF-8** を前提とします。
 
-本体は次を読み込めます。
+- `KeyBindings.ini`
+- `KeyBindings.default.ini`
+- `examples/*.ini`
 
-- UTF-8（BOMあり / なし）
-- UTF-16 LE BOM
+はすべてUTF-8で扱います。UTF-8 BOMの有無はどちらでも読み込めますが、Repository上の配布INIはUTF-8（BOMなし）へ統一しています。
 
-そのため既存ConfigVersion 1をUTF-16 LE BOMのまま継続利用できます。
+UTF-16 LE / BEはサポートしません。v0.2.x以前のUTF-16 LE `KeyBindings.ini` を継続利用する場合は、先にUTF-8へ変換してください。変換手順は [ConfigVersion 2 Migration Guide](docs/CONFIG_MIGRATION_V2.md) を参照してください。
 
 ---
 
@@ -311,7 +312,7 @@ Public DefaultではBackspaceをDisabledにしています。有効化した場�
 
 対象実機では物理NumLockイベントをController Actionとして安定取得できなかったため、NumLock自体にはActionを割り当てません。
 
-本体実行中はWindows側NumLockをON固定し、正常終了時に起動前状態へ復元します。Process強制終了等では復元を保証しません。
+本体実行中はWindows側NumLockをON固定し、正常終了時に起動前状態へ復元します。OFF状態からの起動でも、まず明示的にONへ切り替えてからAlwaysOnを適用します。Process強制終了等では復元を保証しません。
 
 ---
 
