@@ -195,6 +195,7 @@ ConfigVersion 1 Legacy Presetにより旧Workflowの互換Regressionも継続す
 - `README.md`
 - `docs/PHASE_J_PLAN.md`
 - `docs/CONFIG_MIGRATION_V2.md`
+- `docs/PHASE_J_MANUAL_TEST.md`
 - `docs/KNOWN_LIMITATIONS.md`
 - `docs/PUBLIC_RELEASE_AUDIT.md`
 - `CONTRIBUTING.md`
