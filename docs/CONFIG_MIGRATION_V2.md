@@ -88,6 +88,28 @@ ConfigVersion 2の配布TemplateはUTF-8を使用する。
 
 既存ConfigVersion 1をUTF-16 LE BOMのまま利用してもよい。
 
+## v0.2.xの既存Git cloneを更新する前の注意
+
+v0.2.xでは `KeyBindings.ini` がtracked fileだった。
+
+Phase JではUser ConfigをGit管理対象外へ変更したため、**既存cloneで `git pull` すると、ローカル変更がない旧 `KeyBindings.ini` はGitの更新によって削除される**。
+
+現在の設定を残したい場合は、pull前に必ず別名へバックアップする。
+
+```powershell
+Copy-Item .\KeyBindings.ini .\KeyBindings.pre-v0.3.backup.ini
+git pull
+Copy-Item .\KeyBindings.pre-v0.3.backup.ini .\KeyBindings.ini -Force
+```
+
+旧標準Developer Workflowをそのまま使うだけでよい場合は、pull後に次でも復元できる。
+
+```powershell
+Copy-Item .\examples\KeyBindings.developer-workflow.ini .\KeyBindings.ini -Force
+```
+
+Release ZIPを新規展開する利用者にはこの注意は不要。
+
 ## 既存KeyBindings.iniがある場合
 
 本体は既存 `KeyBindings.ini` を自動上書きしない。
