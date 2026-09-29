@@ -13,6 +13,7 @@ try {
     Test_Zero()
     Test_Input()
     Test_Lazy()
+    Test_NumLockForce()
     Test_Probe()
     if A_Args.Length && A_Args[1] = "--desktop"
         Test_Desktop()
@@ -444,6 +445,27 @@ Test_Input() {
     App.Debug.Path := TestTemp "\should-not-exist.log"
     Debug_Log("Disabled")
     Test_Assert(!FileExist(App.Debug.Path), "Default logging writes nothing")
+}
+
+Test_NumLockForce() {
+    original := GetKeyState("NumLock", "T")
+    try {
+        SetNumLockState() ; Release a possible AlwaysOn state before test setup.
+        SetNumLockState("Off")
+        Sleep(50)
+        if GetKeyState("NumLock", "T") {
+            FileAppend("PENDING: NumLock force-on regression (test environment cannot establish OFF state).`n", "*")
+            return
+        }
+
+        NumLock_ForceOn()
+        Test_Assert(GetKeyState("NumLock", "T"),
+            "NumLock ForceOn transitions an established OFF state to ON")
+    } finally {
+        SetNumLockState()
+        SetNumLockState(original ? "On" : "Off")
+        Sleep(30)
+    }
 }
 
 Test_Probe() {
