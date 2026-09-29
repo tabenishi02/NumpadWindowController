@@ -18,8 +18,10 @@ App_Create() {
 App_Start() {
     global App, DEBUG_ENABLED
     try {
+        userConfig := A_ScriptDir "\KeyBindings.ini"
+        Config_EnsureUserConfig(userConfig, A_ScriptDir "\KeyBindings.default.ini")
         metadata := Config_Metadata()
-        App.Config := Config_Load(A_ScriptDir "\KeyBindings.ini", metadata, A_ScriptDir)
+        App.Config := Config_Load(userConfig, metadata, A_ScriptDir)
         App.Keys := App.Config.Keys
         if App.Keys["Backspace"].Mode != "Disabled"
             MsgBox("Backspace is enabled.`nThe keypad Backspace and the standard keyboard Backspace cannot be distinguished.`nBoth will trigger this controller action.", "NumpadWindowController", "Icon!")
@@ -68,17 +70,22 @@ Config_Metadata() {
     result := Map()
     ids := StrSplit("NumpadDiv,NumpadMult,NumpadSub,Numpad7,Numpad8,Numpad9,NumpadAdd,Numpad4,Numpad5,Numpad6,Backspace,Numpad1,Numpad2,Numpad3,Numpad0,Virtual000,NumpadDot,NumpadEnter", ",")
     scans := StrSplit("135,037,04A,047,048,049,04E,04B,04C,04D,00E,04F,050,051,052,052,053,11C", ",")
+    for i, id in ids
+        result[id] := {Id: id, AhkKey: "SC" scans[i], Dedicated: false,
+            AutoBind: false, AutoBindGroup: "", SlotOrder: 1, InputStrategy: "Hotkey"}
+    return result
+}
+
+Config_LegacyGroup(id) {
     groups := Map("Numpad7", "Chrome", "Numpad8", "Chrome", "Numpad9", "Chrome",
         "Numpad4", "VSCode", "Numpad5", "VSCode", "Numpad6", "VSCode",
         "Numpad1", "Explorer", "Numpad2", "ChatGPT", "Numpad3", "PowerShell")
-    for i, id in ids {
-        group := groups.Get(id, "")
-        order := group = "Chrome" ? SubStr(id, -1) - 6 : group = "VSCode" ? SubStr(id, -1) - 3 : 1
-        result[id] := {Id: id, AhkKey: "SC" scans[i], Dedicated: group != "",
-            AutoBind: group != "", AutoBindGroup: group, SlotOrder: order,
-            InputStrategy: (id = "Numpad0" || id = "Virtual000") ? "ZeroDetector" : "Hotkey"}
-    }
-    return result
+    return groups.Get(id, "")
+}
+
+Config_LegacyOrder(id, group) {
+    return group = "Chrome" ? SubStr(id, -1) - 6
+        : group = "VSCode" ? SubStr(id, -1) - 3 : 1
 }
 
 ; === Configuration ===
@@ -93,13 +100,34 @@ Config_Error(path, section, field, value, reason) {
         "`nField: " field "`nValue: " (value = "" ? "<empty>" : value) "`nReason: " reason)
 }
 
-Config_Load(path, metadata, baseDir) {
+Config_EnsureUserConfig(path, defaultPath) {
+    if FileExist(path)
+        return
+    if !FileExist(defaultPath)
+        Config_Error(path, "<file>", "Default", defaultPath, "User configuration is missing and the default configuration was not found.")
+    try FileCopy(defaultPath, path, false)
+    catch as err
+        Config_Error(path, "<file>", "Default", defaultPath, "Failed to create user configuration: " err.Message)
+}
+
+Config_ReadText(path) {
     try raw := FileRead(path, "RAW")
     catch
         Config_Error(path, "<file>", "Encoding", "", "Cannot read configuration file.")
-    if raw.Size < 2 || Mod(raw.Size, 2) || NumGet(raw, 0, "UShort") != 0xFEFF
-        Config_Error(path, "<file>", "Encoding", "", "UTF-16 LE BOM required.")
-    text := raw.Size > 2 ? StrGet(raw.Ptr + 2, (raw.Size - 2) // 2, "UTF-16") : ""
+    if raw.Size >= 2 && NumGet(raw, 0, "UShort") = 0xFEFF {
+        if Mod(raw.Size, 2)
+            Config_Error(path, "<file>", "Encoding", "", "Invalid UTF-16 LE byte length.")
+        return raw.Size > 2 ? StrGet(raw.Ptr + 2, (raw.Size - 2) // 2, "UTF-16") : ""
+    }
+    offset := raw.Size >= 3
+        && NumGet(raw, 0, "UChar") = 0xEF
+        && NumGet(raw, 1, "UChar") = 0xBB
+        && NumGet(raw, 2, "UChar") = 0xBF ? 3 : 0
+    return raw.Size > offset ? StrGet(raw.Ptr + offset, raw.Size - offset, "UTF-8") : ""
+}
+
+Config_Load(path, metadata, baseDir) {
+    text := Config_ReadText(path)
     sections := Config_Parse(text, path)
     return Config_Validate(sections, path, metadata, baseDir)
 }
@@ -148,16 +176,22 @@ Config_Validate(sections, path, metadata, baseDir) {
     for section in expected
         if !sections.Has(section)
             Config_Error(path, section, "<section>", "", "Missing section.")
+
     general := sections["General"]
     for field, value in general
         if field != "ConfigVersion"
             Config_Error(path, "General", field, value, "Unknown field.")
-    if general.Get("ConfigVersion", "") != "1"
-        Config_Error(path, "General", "ConfigVersion", general.Get("ConfigVersion", ""), "Only version 1 is supported.")
+    versionText := general.Get("ConfigVersion", "")
+    if versionText != "1" && versionText != "2"
+        Config_Error(path, "General", "ConfigVersion", versionText, "Supported versions: 1, 2.")
+    version := Integer(versionText)
+    legacy := version = 1
+
     keys := Map()
     modes := Config_Map()
     for mode in ["Window", "Shortcut", "Disabled"]
         modes[mode] := mode
+
     for id, meta in metadata {
         section := "Key-" id
         fields := sections[section]
@@ -165,29 +199,40 @@ Config_Validate(sections, path, metadata, baseDir) {
         if !modes.Has(mode)
             Config_Error(path, section, "Mode", mode, "Expected Window, Shortcut or Disabled.")
         mode := modes[mode]
-        if meta.Dedicated && mode != "Window"
-            Config_Error(path, section, "Mode", mode, "Dedicated slot requires Window mode.")
+
+        legacyGroup := legacy ? Config_LegacyGroup(id) : ""
+        dedicated := legacyGroup != ""
+        if dedicated && mode != "Window"
+            Config_Error(path, section, "Mode", mode, "ConfigVersion 1 dedicated slot requires Window mode.")
+
         allowed := Config_Map()
         for field in StrSplit("Mode,Label," (mode = "Window" ? "AllowedProcess,AllowedClass,AllowedTitleContains" : mode = "Shortcut" ? "Target,Arguments,WorkingDirectory" : ""), ",")
             allowed[field] := true
         for field, value in fields
             if !allowed.Has(field)
                 Config_Error(path, section, field, value, "Unknown field or field not allowed for this mode.")
+
         key := meta.Clone()
         key.Mode := mode
         key.Label := Config_Required(fields, "Label", path, section)
+        key.Dedicated := dedicated
+        key.AutoBind := dedicated
+        key.AutoBindGroup := legacyGroup
+        key.SlotOrder := Config_LegacyOrder(id, legacyGroup)
         for field in ["AllowedProcess", "AllowedClass", "AllowedTitleContains"]
             key.%field% := fields.Get(field, "")
         key.ShortcutTarget := ""
         key.ShortcutArguments := fields.Get("Arguments", "")
         key.ShortcutWorkingDirectory := ""
-        if meta.Dedicated {
+
+        if dedicated {
             Config_Required(fields, "AllowedProcess", path, section)
             if id = "Numpad1" || id = "Numpad3"
                 Config_Required(fields, "AllowedClass", path, section)
             if id = "Numpad3"
                 Config_Required(fields, "AllowedTitleContains", path, section)
         }
+
         if mode = "Shortcut" {
             target := Config_Required(fields, "Target", path, section)
             key.ShortcutTarget := Config_ResolveTarget(target, baseDir, path, section)
@@ -201,14 +246,24 @@ Config_Validate(sections, path, metadata, baseDir) {
         }
         keys[id] := key
     }
-    for group in [["Numpad7", "Numpad8", "Numpad9"], ["Numpad4", "Numpad5", "Numpad6"]]
-        for id in group
-            for field in ["AllowedProcess", "AllowedClass", "AllowedTitleContains"]
-                if StrLower(keys[id].%field%) != StrLower(keys[group[1]].%field%)
-                    Config_Error(path, "Key-" id, field, keys[id].%field%, "Allowed conditions must match within the group.")
+
+    if legacy {
+        for group in [["Numpad7", "Numpad8", "Numpad9"], ["Numpad4", "Numpad5", "Numpad6"]]
+            for id in group
+                for field in ["AllowedProcess", "AllowedClass", "AllowedTitleContains"]
+                    if StrLower(keys[id].%field%) != StrLower(keys[group[1]].%field%)
+                        Config_Error(path, "Key-" id, field, keys[id].%field%, "ConfigVersion 1 Allowed conditions must match within the group.")
+    }
+
     if keys["Numpad0"].Mode = "Disabled" && keys["Virtual000"].Mode != "Disabled"
         Config_Error(path, "Key-Virtual000", "Mode", keys["Virtual000"].Mode, "Numpad0 Disabled requires Virtual000 Disabled.")
-    return {Version: 1, Keys: keys}
+
+    zeroDetector := legacy || keys["Virtual000"].Mode != "Disabled"
+    for id, key in keys
+        key.InputStrategy := ((id = "Numpad0" || id = "Virtual000") && zeroDetector)
+            ? "ZeroDetector" : "Hotkey"
+
+    return {Version: version, Keys: keys}
 }
 
 Config_Absolute(path, baseDir) {
@@ -481,7 +536,7 @@ Zero_Feed(state, kind, tick, modifier := "Normal") {
 
 Input_StartZeroDetector() {
     global App
-    if App.Keys["Numpad0"].Mode = "Disabled"
+    if App.Keys["Numpad0"].InputStrategy != "ZeroDetector"
         return
     App.Hook := InputHook("V")
     App.Hook.KeyOpt("{All}", "N")
@@ -684,6 +739,14 @@ AutoBind_Calculate(keys, slots, candidates, area, group := "", valid := Window_I
         if (group = "" || keys[id].AutoBindGroup = group) && slot.Hwnd && !valid.Call(slot.Hwnd, keys[id])
             working[id] := Runtime_Empty()
     used := Runtime_Validate(working, keys)
+    hasAutoBind := false
+    for id, key in keys
+        if key.AutoBind {
+            hasAutoBind := true
+            break
+        }
+    if !hasAutoBind
+        return working
     for current in ["Chrome", "VSCode", "Explorer", "ChatGPT", "PowerShell"] {
         if group != "" && group != current
             continue
