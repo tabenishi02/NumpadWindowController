@@ -102,7 +102,7 @@ Window → Edit → Media → Tools → Window
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -145,7 +145,7 @@ Text EditorをActiveにし、適当な文章を入力する。
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -178,7 +178,7 @@ Text EditorをActiveにし、適当な文章を入力する。
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -237,7 +237,7 @@ Chrome / VS Code / Explorer / ChatGPT / PowerShell 7について確認する。
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -293,7 +293,7 @@ Ctrl + NumpadEnter
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -348,7 +348,7 @@ Notepadを再度すべて閉じる。
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -388,7 +388,7 @@ Paste
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -446,7 +446,7 @@ Virtual000 → TripleZeroWindow
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -498,7 +498,7 @@ Ctrl + NumpadEnter
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -522,7 +522,7 @@ Text Editorで確認する。
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -558,7 +558,7 @@ Controllerを正常終了する。
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
