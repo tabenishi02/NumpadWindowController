@@ -229,7 +229,23 @@ Virtual00は00キー搭載実機を所有していないためPhysical Acceptanc
 
 ---
 
-## 9. Documentation
+## 9. Public Repository Audit
+
+Phase K変更ファイル13件を対象に以下を確認した。
+
+- Private key pattern
+- GitHub token pattern
+- password / secret / API key / access token形式
+- 個人 `C:\Users\<name>\...` Path
+- Email address
+
+結果: **検出なし**
+
+Exampleに含まれる絶対PathはWindows標準 `C:\Windows\System32\notepad.exe` のみ。
+
+---
+
+## 10. Documentation
 
 更新済み:
 
@@ -244,7 +260,7 @@ Phase K完了判定は物理受入後にTASKS / PROJECT_HANDOFFへ最終反映�
 
 ---
 
-## 10. 現在判定
+## 11. 現在判定
 
 **Implementation Complete / Automated Regression PASS / Physical Acceptance Pending**
 
