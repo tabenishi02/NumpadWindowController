@@ -588,7 +588,7 @@ Controllerを正常終了する。
 
 # K-PA-12 ActivateThenToggle
 
-Runtime実装完了後に実施する。
+Runtime実装済み。以下の追加物理受入を実施する。
 
 `Window` Layerで次の3 Actionを確認する。
 
@@ -679,17 +679,17 @@ Physical AcceptanceのPASS条件には含めない。
 
 | Test | Result |
 |---|---|
-| K-PA-1 Layer | [ ] PASS / [ ] FAIL |
-| K-PA-2 KeySend | [ ] PASS / [ ] FAIL |
-| K-PA-3 Media / System | [ ] PASS / [ ] FAIL |
-| K-PA-4 Window Toggle | [ ] PASS / [ ] FAIL |
-| K-PA-5 Manual Bind / Clear | [ ] PASS / [ ] FAIL |
-| K-PA-6 Launch fallback | [ ] PASS / [ ] FAIL |
-| K-PA-7 MultiAction / Delay | [ ] PASS / [ ] FAIL |
-| K-PA-8 Virtual000 | [ ] PASS / [ ] FAIL |
-| K-PA-9 Auto Bind Strategy | [ ] PASS / [ ] FAIL |
-| K-PA-10 Native Pass-through | [ ] PASS / [ ] FAIL |
-| K-PA-11 NumLock lifecycle | [ ] PASS / [ ] FAIL |
+| K-PA-1 Layer | [x] PASS / [ ] FAIL |
+| K-PA-2 KeySend | [x] PASS / [ ] FAIL |
+| K-PA-3 Media / System | [x] PASS / [ ] FAIL |
+| K-PA-4 Window Toggle | [x] PASS / [ ] FAIL |
+| K-PA-5 Manual Bind / Clear | [x] PASS / [ ] FAIL |
+| K-PA-6 Launch fallback | [x] PASS / [ ] FAIL |
+| K-PA-7 MultiAction / Delay | [x] PASS / [ ] FAIL |
+| K-PA-8 Virtual000 | [x] PASS / [ ] FAIL |
+| K-PA-9 Auto Bind Strategy | [x] PASS / [ ] FAIL |
+| K-PA-10 Native Pass-through | [x] PASS / [ ] FAIL |
+| K-PA-11 NumLock lifecycle | [x] PASS / [ ] FAIL |
 | K-PA-12 ActivateThenToggle | [ ] PASS / [ ] FAIL |
 | Virtual00 physical test | N/A |
 
