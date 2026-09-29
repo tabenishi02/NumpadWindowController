@@ -1,7 +1,7 @@
 # ConfigVersion 2 Migration Guide
 
 更新日: 2026-09-29  
-対象: v0.2.x以前のConfigVersion 1から、Phase J / 次期v0.3.0系のConfigVersion 2へ移行する利用者
+対象: v0.2.x以前のConfigVersion 1から、v0.3.0のConfigVersion 2へ移行する利用者
 
 ## 概要
 
