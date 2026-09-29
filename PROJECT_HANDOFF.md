@@ -2,160 +2,404 @@
 
 更新日: 2026-09-29  
 対象: NumpadWindowController  
-状態: **Phase J完了 / v0.3.0 Release Ready**
+状態: **Phase K Implementation Complete / Automated Regression PASS / Physical Acceptance Pending**
 
 ## 現在地点
 
-Phase A～IのMVP工程とv0.2.xのRelease作業は完了している。
+Phase A～Jは完了済み。v0.3.0は2026-09-29にGitHub Release済み。
 
-Phase J - General-purpose Configuration / Public Defaultは、設計・実装・Migration・文書更新・自動Regression・公開差分監査まで完了した。
+Phase K - Action / Layer Architectureは、設計・実装・ConfigVersion 3移行・Automated Regression・利用者向け文書更新まで完了した。
 
-物理受入ではJ-PA-1～6がPASSした。J-PA-7はPhase F R-8/R-14と照合し、対象テンキーの物理NumLockがテンキー内部の入力切替でWindowsへNumLock Eventを送らない既知ハードウェア仕様のためNot Executed / N/Aとした。Phase Jは正式完了し、v0.3.0 Release Ready判定もPASSした。次はv0.3.0 Tag / GitHub Release作成。
+現在の残作業は **Phase K Physical Acceptance** と、その結果を反映したRelease Preparation。
 
 現在のVersion / Release関係:
 
 - Repository: **Public**
 - 最新安定Release: GitHub Releasesを参照
-- `v0.1.0`: 初回MVP Release
+- `v0.1.0`: 初回MVP
 - `v0.2.0`: ログオン時自動起動追加
 - `v0.2.1`: Release後ドキュメント同期
-- `v0.3.0`: **Release Ready / 公開前**
-- License: MIT
+- `v0.3.0`: Phase J Public Default / Configuration一般化
+- Phase K: 次Release向けUnreleased
 
-## Phase Jの主要成果物
+License: MIT
 
-- `NumpadWindowController.ahk`: ConfigVersion 1 / 2両対応Core
-- `KeyBindings.default.ini`: ConfigVersion 2 Public Default
-- `KeyBindings.ini`: ローカルUser Config。Git管理対象外
-- `examples/KeyBindings.example.ini`: ConfigVersion 2一般例
-- `examples/KeyBindings.developer-workflow.ini`: v0.2.x相当のLegacy Developer Workflow
-- `docs/PHASE_J_PLAN.md`: Phase J計画・進捗
-- `docs/PHASE_J_RESULT.md`: Phase J実装・検証結果
-- `docs/CONFIG_MIGRATION_V2.md`: ConfigVersion 1 → 2移行Guide
-- `.github/workflows/phase-j-tests.yml`: Windows + AutoHotkey CI
+---
 
-## ConfigVersion 2 Public Core
+## Phase K Architecture
 
-Public Defaultでは1～9を含む通常Slotを特定アプリへ固定しない。
-
-- Window / Shortcut / Disabledを選択可能
-- Window ModeではAllowed条件を空欄にして任意WindowをManual Bind可能
-- built-in Auto BindはOFF
-- BackspaceはDisabled
-- Virtual000はDisabled
-- Numpad0は通常Hotkeyとして即時処理
-- 特定のChrome / VS Code / ChatGPT / PowerShell環境を要求しない
-
-User Configがない初回起動では:
+現行Runtimeの正本:
 
 ```text
-KeyBindings.default.ini
-        ↓ copy
-KeyBindings.ini
+Physical Input
+    ↓
+Logical Key Resolution
+    ↓
+Reserved Global Command
+    ↓
+Global Key Mapping
+    ↓
+Active Layer Mapping
+    ↓
+Action Resolution
+    ↓
+Action Dispatcher
+    ↓
+Action Executor
 ```
 
-を自動生成する。既存User Configは上書きしない。
+Config中心概念は旧 `Mode=Window / Shortcut / Disabled` ではなく **Action**。
 
-## Legacy Developer Workflow
+RuntimeはConfigVersion 3のみ対応する。
 
-従来の個人用WorkflowはConfigVersion 1として互換維持する。
+ConfigVersion 1 / 2:
 
-```text
-7 / 8 / 9 = Chrome
-4 / 5 / 6 = VS Code
-1 = Explorer
-2 = ChatGPT Desktop
-3 = PowerShell 7用Windows Terminal
+- 互換読込なし
+- 自動Migrationなし
+- Compatibility Layerなし
+- 専用Regression削除済み
+
+過去仕様はRelease Tag / Git履歴 / Phase A～J文書で参照する。
+
+---
+
+## ConfigVersion 3
+
+### General
+
+```ini
+[General]
+ConfigVersion=3
+DefaultLayer=Base
+LayerOrder=Base,Edit,Media
+EnableVirtual00=Off
+EnableVirtual000=Off
 ```
 
-使用する場合:
+### Global Mapping
 
-```powershell
-Copy-Item .\examples\KeyBindings.developer-workflow.ini .\KeyBindings.ini -Force
+```ini
+[GlobalKeys]
+NumpadAdd=LayerNext
 ```
 
-旧Chrome座標Auto Bind、VS Code逆順Auto Bind、Lazy Auto Bind、Virtual000もこのProfileでRegression対象として維持している。
+Global MappingはActive Layer Mappingより優先。
 
-## 0 / 000
+複数Layer ConfigではGlobal LayerSwitch Actionを最低1つ要求する。
 
-ConfigVersion 2 Public DefaultではVirtual000をDisabledとし、Zero Detectorを起動しない。
+### Layer
 
-このため通常Numpad0に従来の最大約80ms判定待ちは発生しない。
+```ini
+[Layer-Base]
+Numpad7=Window7
 
-Virtual000をWindow / Shortcutへ変更するとopt-inでZero Detectorへ切り替わり、従来どおり80ms以内の `D-U-D-U-D-U` をVirtual000として扱う。
+[Layer-Edit]
+Numpad7=Undo
+```
 
-## Configuration Encoding
+Active Layerは常に1つ。
 
-Configuration INIはConfigVersionに関係なくUTF-8を前提とする。
+Phase K初期対応:
 
-Runtimeがサポートするのは:
+- Set
+- Next
 
-- UTF-8 BOMなし
-- UTF-8 BOMあり
+対象外:
 
-のみ。UTF-16 LE / BEはサポートしない。配布INIはUTF-8 BOMなしへ統一した。
+- Layer Stack
+- Momentary
+- One-shot
+- Tap / Hold
 
-## 操作
+---
+
+## Action Type
+
+現行Action Type:
+
+- `Window`
+- `Run`
+- `KeySend`
+- `LayerSwitch`
+- `Delay`
+- `MultiAction`
+- `Disabled`
+
+---
+
+## Window Action
+
+Window Binding Runtime StateはPhysical Keyではなく **Window Action ID** を正本とする。
+
+Window Actionを解決するKey:
 
 | 操作 | 動作 |
 |---|---|
-| Key | Window Activate / Shortcut |
+| Key | Window Action実行 |
 | Ctrl + Key | Manual Bind |
-| Ctrl + Shift + Key | Slot Clear |
-| Ctrl + Alt + Key | Auto Bind対応ProfileのみAuto Bind |
-| Ctrl + NumpadEnter | Auto Bind All |
-| Ctrl + Shift + NumpadEnter | Clear All |
+| Ctrl + Shift + Key | Binding Clear |
+| Ctrl + Alt + Key | Auto Bind |
+
+Reserved Global Command:
+
+- `Ctrl + NumpadEnter` = Auto Bind All
+- `Ctrl + Shift + NumpadEnter` = Clear All Window Bindings
+
+### Behavior
+
+`Toggle`:
+
+- Active → Minimize
+- Inactive → Activate
+- Minimized → Restore + Activate
+
+`Activate`:
+
+- ActiveでもMinimizeしない
+- MultiAction内Window移動向け
+
+### Auto Bind Strategy
+
+- None
+- FirstMatch
+- ReverseList
+- PrimaryThreePane
+
+---
+
+## Launch fallback
+
+WindowGroup単位でApplication存在判定を行う。
+
+Launch条件:
+
+```text
+Bindingなし
+↓
+Auto Bind候補なし
+↓
+Group一致Window = 0
+→ Launch
+```
+
+Group一致Windowが1件以上存在する場合は追加Launchしない。
+
+起動直後はGroup単位 `LaunchPending` を保持し、多重Runを防止する。
+
+長時間の同期WinWaitは行わない。
+
+---
+
+## Virtual00 / Virtual000
+
+Hardware capability:
+
+```ini
+EnableVirtual00=On
+EnableVirtual000=On
+```
+
+論理化:
+
+```text
+D-U             → Numpad0
+D-U-D-U         → Virtual00
+D-U-D-U-D-U     → Virtual000
+```
+
+判定窓は約80ms。
+
+- Virtual00 / Virtual000ともOff: Numpad0 direct hotkey
+- Virtual00のみOn: 2回目UpでVirtual00確定
+- Virtual000 On: 判定窓終了まで00/000判定
+
+Virtual00実機は未所有のためPhysical AcceptanceはN/A。Logic RegressionはPASS済み。
+
+---
+
+## KeySend / Media
+
+Config例:
+
+```ini
+[Action-Copy]
+Type=KeySend
+Label=Copy
+Keys=Ctrl+C
+```
+
+対応:
+
+- Ctrl / Shift / Alt / Win
+- A-Z / 0-9
+- F1-F24
+- Navigation
+- Volume
+- Media
+- Browser
+- PrintScreen
+
+不正Combinationは起動時Validation Error。
+
+管理者権限ApplicationへのSendはWindows Integrity Level制限を受ける場合がある。
+
+---
+
+## MultiAction / Delay
+
+例:
+
+```ini
+[Action-CopyToApp]
+Type=MultiAction
+Label=Copy to App
+Step1=Copy
+Step2=Delay100
+Step3=TargetActivate
+Step4=Paste
+```
+
+仕様:
+
+- Step1から連続
+- 不存在Action参照拒否
+- Nested MultiAction拒否
+- 同一MultiAction実行中再入抑止
+- Delay中はController全体をCritical固定しない
+
+---
+
+## Public Default
+
+`KeyBindings.default.ini` はConfigVersion 3。
+
+Layer:
+
+- Base: 汎用Window
+- Edit: Undo / Copy / Paste / Cut / Select All / Save / Find / Screenshot / Redo
+- Media: Media / Volume / Browser / Screenshot
+
+Global:
+
+- `NumpadAdd` = Layer Next
+
+安全設定:
+
+- Backspace未Mapping
+- Virtual00 Off
+- Virtual000 Off
+
+---
+
+## Developer Workflow
+
+`examples/KeyBindings.developer-workflow.ini` はConfigVersion 3へ移行済み。
+
+```text
+7 / 8 / 9 = Chrome PrimaryThreePane
+4 / 5 / 6 = VS Code ReverseList
+1 = Explorer
+2 = ChatGPT Desktop
+3 = PowerShell 7
+```
+
+Virtual000 = On。
+
+これはLegacy ConfigVersion 1互換Profileではなく、現行Action Model上のExample。
+
+---
 
 ## 自動起動
 
-Windows Task Scheduler方式はPhase Jでも変更していない。
+Windows Task Scheduler方式はPhase Kでも変更なし。
 
 ```powershell
 .\scripts\install-startup-task.ps1
 ```
 
-TaskはCurrent user / InteractiveToken / LeastPrivilegeで起動する。
+Current user / InteractiveToken / LeastPrivilege。
 
-## 検証状況
+---
 
-Phase J CI:
+## Automated Regression
 
-- Windows GitHub Actions runner
-- AutoHotkey v2.0.28
-- Controller Regression: **167 assertions PASS**
-- Startup Preview Regression: **24 assertions PASS**
-- Startup Task Scheduler Integration Regression: **37 assertions PASS**
-- ConfigVersion 2 Public Default: PASS
-- ConfigVersion 1 Legacy Workflow: PASS
-- Virtual000 ON / OFF Regression: PASS
-- Config生成 / UTF-8読込 / UTF-16拒否: PASS
+GitHub Actions Windows + AutoHotkey v2.0.28。
 
-既存v0.2系検証履歴:
+PASS済み:
 
-- Phase G: 65 / 65 PASS
-- Phase H: 16 / 16 PASS
-- Startup Integration: 37 assertions PASS
-- 実ログオン / Task Scheduler運用試験: PASS
+- Phase K Controller Regression: **123 assertions**
+- Startup Preview Regression: **24 assertions**
+- Startup Task Scheduler Integration Regression: **37 assertions**
 
-Phase J差分の公開監査:
+対象commit:
 
-- Credential / Secret: 検出なし
-- 実ユーザー固有Path: 検出なし
-- User ConfigはGit管理対象外へ変更済み
+`076b5cdf05b4777df7800ce9f6f38cae27968126`
+
+主な確認対象:
+
+- ConfigVersion 3
+- ConfigVersion 1 / 2拒否
+- Layer
+- Action reference
+- KeySend
+- Media key syntax
+- MultiAction
+- Delay
+- Virtual00 / Virtual000
+- Auto Bind
+- Window Toggle decision
+- Launch fallback
+- LaunchPending
+- Live Window Probe
+- Startup Task
+
+---
+
+## Physical Acceptance
+
+未実施。
+
+手順:
+
+`docs/PHASE_K_MANUAL_TEST.md`
+
+対象:
+
+- Layer
+- KeySend
+- Media/System
+- Window Toggle
+- Manual Bind / Clear / Global Command
+- Launch fallback / LaunchPending
+- MultiAction
+- Virtual000
+- Developer Workflow Auto Bind
+- Native pass-through / Backspace
+- NumLock lifecycle
+
+Virtual00のみN/A。
+
+---
 
 ## 次の作業
 
-- [x] v0.3.0 Release Ready判定
-- [x] Release前ドキュメント整合監査
-- [ ] v0.3.0 Tag / GitHub Release作成
+1. `docs/PHASE_K_MANUAL_TEST.md` に従い実機受入を実施
+2. 結果を `docs/PHASE_K_RESULT.md` へ反映
+3. `TASKS.md` のPhysical Acceptance完了条件を更新
+4. Release Versionを決定
+5. Release Ready監査
+6. Tag / GitHub Release
+
+---
 
 ## 次に読む資料
 
 1. `README.md`
-2. `docs/PHASE_J_RESULT.md`
-3. `docs/CONFIG_MIGRATION_V2.md`
-4. `docs/KNOWN_LIMITATIONS.md`
-5. `docs/PUBLIC_RELEASE_AUDIT.md`
+2. `docs/PHASE_K_DESIGN.md`
+3. `docs/PHASE_K_RESULT.md`
+4. `docs/PHASE_K_MANUAL_TEST.md`
+5. `docs/KNOWN_LIMITATIONS.md`
 6. `CHANGELOG.md`
+7. `TASKS.md`
 
 公開済みTagを後から移動して内容を書き換える運用は採用しない。
