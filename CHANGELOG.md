@@ -45,7 +45,8 @@
 
 - GitHub Actions Windows runner
 - AutoHotkey v2.0.28
-- Controller Regression: **167 assertions PASS**
+- Controller Regression: **168 assertions PASS**
+- NumLock OFF→ON Regression: PASS
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
 - Public ConfigVersion 2 / Legacy ConfigVersion 1 / Virtual000 ON-OFF Regression: PASS
