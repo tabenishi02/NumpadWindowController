@@ -658,7 +658,8 @@ Phase I完了条件:
 - [x] ConfigVersion 1 / 2 Compatibility Testを追加
 - [x] Developer Workflow Regression Testを維持
 - [x] Virtual000 ON/OFF Regressionを追加
-- [x] GitHub Actions Windows + AutoHotkey v2.0.28でController Regression **167 assertions PASS**
+- [x] GitHub Actions Windows + AutoHotkey v2.0.28でController Regression **168 assertions PASS**
+- [x] NumLock OFF→ON Regression PASS
 - [x] Startup Preview Regression **24 assertions PASS**
 - [x] Startup Task Scheduler Integration Regression **37 assertions PASS**
 - [x] Public Default物理受入1回目を実施（J-PA-1～6 PASS / J-PA-7 FAIL）
