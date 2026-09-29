@@ -1,3 +1,2 @@
-# ConfigVersion 2 templates are ordinary UTF-8 text.
-KeyBindings.default.ini text
-examples/*.ini text
+# All tracked INI configuration files are UTF-8 text.
+*.ini text
