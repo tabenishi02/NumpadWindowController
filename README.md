@@ -187,7 +187,9 @@ New Binding
 → Toggle phase
 ```
 
-Binding Clear、新しいManual Bind、新しいAuto Bind、Controller再起動ではActivate phaseへ戻ります。同じ有効Bindingを維持したAuto Bind AllではToggle phaseを保持します。ApplicationのLaunch成功だけではToggle phaseへ移行せず、対象WindowのActivation成功時に移行します。
+Binding Clear、新しいManual Bind、新しいAuto Bind、Controller再起動ではActivate phaseへ戻ります。同じ有効Bindingを維持したAuto Bind AllではToggle phaseを保持します。
+
+`Behavior` 自体はApplicationの起動先を定義しません。対象Windowが0件の状態から起動したい場合は、参照する `WindowGroup` に `LaunchTarget` を設定する必要があります。`ActivateThenToggle` でLaunch fallbackが発生した場合は、Window生成をLaunchPendingで検出し、自動Bind → Activateを続行し、Activation成功後にToggle phaseへ移行します。
 
 ### Global Command
 
