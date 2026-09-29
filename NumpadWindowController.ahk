@@ -837,15 +837,38 @@ Input_GlobalDispatch(action, *) {
 }
 
 Input_Dispatch(id, modifier, *) {
+    Input_DispatchCore(id, modifier, false)
+}
+
+Input_DispatchCore(id, modifier, fromZeroDetector := false) {
     global App
     Debug_Log("Input dispatch: " id " / " modifier " / Layer=" App.ActiveLayer)
     try {
         actionId := Action_IdForKey(id)
-        if actionId = ""
+        if actionId = "" {
+            if fromZeroDetector
+                Input_ZeroPassThrough(id, modifier)
             return
+        }
+
         action := App.Config.Actions[actionId]
-        if action.Type = "Disabled"
+        if action.Type = "Disabled" {
+            if fromZeroDetector
+                Input_ZeroPassThrough(id, modifier)
             return
+        }
+
+        if fromZeroDetector && modifier = "Unsupported" {
+            Input_ZeroPassThrough(id, modifier)
+            return
+        }
+
+        ; Non-Window actions only own the unmodified key. Modifier combinations
+        ; remain native input, matching direct-hotkey behavior.
+        if fromZeroDetector && modifier != "Normal" && action.Type != "Window" {
+            Input_ZeroPassThrough(id, modifier)
+            return
+        }
 
         switch modifier {
             case "Normal":
@@ -874,11 +897,27 @@ Input_Dispatch(id, modifier, *) {
     }
 }
 
+Input_ZeroPassThroughSpec(id, modifier) {
+    count := id = "Virtual000" ? 3 : id = "Virtual00" ? 2 : 1
+    prefix := modifier = "Ctrl" ? "^"
+        : modifier = "CtrlShift" ? "^+"
+        : modifier = "CtrlAlt" ? "^!"
+        : ""
+    return prefix "{Numpad0 " count "}"
+}
+
+Input_ZeroPassThrough(id, modifier) {
+    ; SendInput is ignored by InputHook, so replaying suppressed physical zero
+    ; input cannot feed the Virtual00/000 detector recursively.
+    SendInput(Input_ZeroPassThroughSpec(id, modifier))
+    Debug_Log("Zero pass-through replay: " id " / " modifier)
+}
+
 Input_Drain() {
     global App
     while App.InputQueue.Length {
         event := App.InputQueue.RemoveAt(1)
-        Input_Dispatch(event.Id, event.Modifier)
+        Input_DispatchCore(event.Id, event.Modifier, true)
     }
 }
 
