@@ -372,8 +372,9 @@ Startup Task:
 
 GitHub ActionsのWindows runnerでもRegressionを実行しています。
 
-- Controller Regression: **166 assertions PASS**（AutoHotkey v2.0.28）
+- Controller Regression: **167 assertions PASS**（AutoHotkey v2.0.28）
 - Startup Preview Regression: **24 assertions PASS**
+- Startup Task Scheduler Integration Regression: **37 assertions PASS**
 - Public ConfigVersion 2 / Legacy ConfigVersion 1 / Virtual000 ON-OFF: **PASS**
 
 ---
