@@ -123,8 +123,9 @@ Phase J CI:
 
 - Windows GitHub Actions runner
 - AutoHotkey v2.0.28
-- Controller Regression: **166 assertions PASS**
+- Controller Regression: **167 assertions PASS**
 - Startup Preview Regression: **24 assertions PASS**
+- Startup Task Scheduler Integration Regression: **37 assertions PASS**
 - ConfigVersion 2 Public Default: PASS
 - ConfigVersion 1 Legacy Workflow: PASS
 - Virtual000 ON / OFF Regression: PASS
