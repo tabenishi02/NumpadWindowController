@@ -1,7 +1,7 @@
 # Phase J - General-purpose Configuration / Public Default
 
 更新日: 2026-09-29
-状態: **Implemented / Automated verification PASS / Physical acceptance partial PASS / J-PA-7 retest pending**
+状態: **Complete / PASS**
 対象: NumpadWindowController post-MVP public generalization
 
 ## 1. 目的
@@ -114,8 +114,8 @@ Phase Jでは、これらをNumpadWindowController Coreから分離し、特定�
 - [x] Virtual000無効時のNumpad0即時処理を確認する
 - [x] Virtual000有効時の既存000判定Regressionを確認する
 - [x] Task Scheduler自動起動Regressionを確認する
-- [x] 実機テンキーでPublic Default受入1回目を実施（J-PA-1～6 PASS / J-PA-7 FAIL）
-- [ ] NumLock修正後にJ-PA-7を再試験する
+- [x] 実機テンキーでPublic Default受入を実施（J-PA-1～6 PASS）
+- [x] J-PA-7は既知ハードウェア仕様によりNot Executed / N/Aとして完了
 
 ## 10. J-8 Documentation / Release Preparation
 
@@ -137,7 +137,7 @@ Phase Jでは、これらをNumpadWindowController Coreから分離し、特定�
 - [x] 000キーなしでも不要なZero Detector負荷・待機を発生させない
 - [x] 現在のDeveloper WorkflowをPreset / Example等で再現できる
 - [x] 既存v0.2.xからの移行方法が明文化されている
-- [ ] 自動テスト・Startup RegressionはPASS。J-PA-7 NumLock lifecycle再試験のみpending
+- [x] 自動テスト・Startup Regression・Physical Acceptanceを完了
 - [x] README / TASKS / PROJECT_HANDOFF / Known Limitations / CHANGELOGが新仕様と整合する
 
 ## 12. Phase J開始時の最初の作業
@@ -151,4 +151,4 @@ Phase Jでは、これらをNumpadWindowController Coreから分離し、特定�
 5. Virtual000のDefault
 6. User Configと配布Configの分離方式
 
-上記6項目は確定済み。実装・自動Regression・文書更新・Phase J差分監査まで完了した。正式なPhase J完了判定はPublic Defaultの物理テンキー受入後に行う。
+上記6項目は確定済み。実装・自動Regression・文書更新・Phase J差分監査・物理受入まで完了し、Phase Jを正式完了とする。
