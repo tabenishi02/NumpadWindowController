@@ -1,7 +1,7 @@
 # Phase J - General-purpose Configuration / Public Default Result
 
 更新日: 2026-09-29  
-状態: **AUTOMATED PASS / Physical Acceptance Pending**  
+状態: **AUTOMATED PASS / Physical Acceptance Partial PASS / J-PA-7 Retest Pending**  
 次期Release候補: **v0.3.0**
 
 ## 1. 結果概要
@@ -10,7 +10,7 @@ Phase Jでは、v0.2.xまでユーザー本人の運用環境へ固定されて�
 
 設計・実装・Config移行・自動Regression・Startup Regression・Documentation・公開差分監査は完了している。
 
-残る完了条件はPublic Defaultを物理テンキーで操作する実機受入のみ。手順は `docs/PHASE_J_MANUAL_TEST.md` に固定した。
+物理受入1回目を実施し、J-PA-1～6はPASSした。J-PA-7 NumLock lifecycleのみ、起動前OFF → 起動後もOFFとなりFAILしたため修正済み。残る完了条件はJ-PA-7再試験のみ。手順は `docs/PHASE_J_MANUAL_TEST.md` に固定した。
 
 ---
 
@@ -81,15 +81,16 @@ Virtual000を有効化した場合だけNumpad0 / Virtual000をZero Detector経�
 
 ### Encoding
 
-ConfigVersion 2 TemplateはUTF-8へ変更した。
+Configuration INIはConfigVersionに関係なくUTF-8へ統一した。
 
-Runtimeは:
+Runtimeがサポートするのは:
 
 - UTF-8 BOMなし
 - UTF-8 BOMあり
-- UTF-16 LE BOM
 
-を読み込めるため、既存ConfigVersion 1の互換性を維持する。
+のみ。UTF-16 LE / BEはサポートしない。
+
+ConfigVersion 1 Legacy Workflowの意味論は互換維持するが、ファイル自体はUTF-8へ変換して使用する。
 
 ---
 
@@ -139,7 +140,7 @@ Runtimeは:
 - ConfigVersion 2で旧Dedicated SlotをShortcutへ変更可能
 - User Config初回生成
 - UTF-8 Configuration
-- UTF-16 LE Legacy Configuration
+- UTF-16 LE / BE Configuration rejection
 - Public Default built-in Auto Bindなし
 - Legacy Auto Bind Regression
 - Virtual000 Disabled時のNumpad0 direct hotkey
@@ -222,18 +223,25 @@ User Configをtracked fileから外したため、今後の個人Path混入リ�
 
 ---
 
-## 9. Pending Physical Acceptance
+## 9. Physical Acceptance
 
-このチャットから接続可能な実機PCがオフラインだったため、物理テンキー入力を伴う受入試験は実施できていない。
+2026-09-29に物理テンキーで1回目の受入試験を実施した。
 
-確認対象:
+結果:
 
-- [ ] Public Defaultで任意WindowをCtrl+KeyにManual Bindできる
-- [ ] Key単押しでBinding先へActivateできる
-- [ ] Ctrl+Shift+KeyでSlot Clearできる
-- [ ] Ctrl+Shift+NumpadEnterでClear Allできる
-- [ ] Virtual000 Disabled時にNumpad0が違和感なく即時反応する
-- [ ] 必要に応じてVirtual000 opt-inが物理000キーで従来どおり動作する
+- [x] J-PA-1 初回起動 / Config
+- [x] J-PA-2 Generic Manual Bind
+- [x] J-PA-3 Slot Clear
+- [x] J-PA-4 Clear All
+- [x] J-PA-5 Public Default Numpad0
+- [x] J-PA-6 Virtual000 opt-in
+- [ ] J-PA-7 NumLock lifecycle
+
+J-PA-7ではController起動前NumLock OFFの状態から起動した際、起動後もOFFのままだった。
+
+対策として `NumLock_ForceOn()` を修正し、`SetNumLockState("On")` で明示的にONへ遷移してから `AlwaysOn` を適用する順序へ変更した。
+
+J-PA-7のみ再試験が必要。
 
 ---
 
@@ -248,9 +256,9 @@ Startup Preview         PASS (24 assertions)
 Startup Integration     PASS (37 assertions)
 Documentation          PASS
 Public Delta Audit     PASS
-Physical Acceptance    PENDING
+Physical Acceptance    PARTIAL PASS (J-PA-7 retest pending)
 ```
 
 したがってPhase Jは **実装・自動検証完了** とする。
 
-ただしPhase Jの正式な最終完了判定とv0.3.0 Release Ready判定は、Public Defaultの物理テンキー受入PASS後に行う。
+ただしPhase Jの正式な最終完了判定とv0.3.0 Release Ready判定は、J-PA-7再試験PASS後に行う。
