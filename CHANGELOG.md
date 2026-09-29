@@ -4,7 +4,70 @@
 
 ## [Unreleased]
 
-現在、次Release向けの記録なし。
+Phase K「Action / Layer Architecture」を実装。
+
+### Added
+
+- ConfigVersion 3
+  - Physical Key → Global Mapping → Active Layer → Action Dispatcher
+  - RuntimeはConfigVersion 3のみをサポート
+- Action Type
+  - Window
+  - Run
+  - KeySend
+  - LayerSwitch
+  - Delay
+  - MultiAction
+  - Disabled
+- Layer
+  - DefaultLayer / LayerOrder
+  - Global Key Mapping
+  - Set / Next
+- Window Toggle
+  - Active Window再押下でMinimize
+  - Inactive / Minimized WindowはActivate / Restore + Activate
+- WindowGroup / Application Launch fallback
+  - Group一致Window 0件の場合のみLaunch
+  - Group単位LaunchPending / Timeout
+- Virtual00
+  - Virtual00 / Virtual000を同一Zero Detectorで処理
+- KeySend
+  - Ctrl / Shift / Alt / Win
+  - Function / Navigation / Volume / Media / Browser / PrintScreen系
+- MultiAction / Delay
+  - 連続Step Validation
+  - Nested MultiAction拒否
+  - 実行中再入抑止
+- `tests/PhaseK.Tests.ahk`
+- `tests/Run-PhaseKTests.ps1`
+
+### Changed
+
+- Window Runtime Bindingの正本をPhysical Key / SlotからWindow Action IDへ変更
+- Public DefaultをBase / Edit / Mediaの3 Layer構成へ更新
+- Developer Workflow ExampleをConfigVersion 3へ移行
+- Auto Bindを `None / FirstMatch / ReverseList / PrimaryThreePane` Strategyとして再定義
+- 未Mapping KeyはNative Inputを通す方式へ変更
+- README / Known LimitationsをConfigVersion 3中心へ更新
+- Controller CIをPhase K Regressionへ更新
+
+### Removed
+
+- ConfigVersion 1 / 2 Runtime互換読込
+- ConfigVersion 1 / 2専用Validation / Regression
+- 旧 `tests/PhaseF.Tests.ahk` / `Run-PhaseFTests.ps1`
+
+### Compatibility
+
+- v0.3.0以前のUser Configは手動でConfigVersion 3へ移行が必要
+- Startup Task方式は変更なし
+- Phase A～J文書・Release Tagは過去仕様の履歴として保持
+
+### Verification
+
+- GitHub Actions Windows + AutoHotkey v2.0.28: 実行中
+- Startup Preview / Task Scheduler Integration Regression: Phase K CIで再実行
+- Physical Acceptance: Automated Regression完了後に実施
 
 ## v0.3.0 - 2026-09-29
 
