@@ -1,8 +1,8 @@
 # Public Release Audit
 
-更新日: 2026-09-28  
-対象: NumpadWindowController v0.1.0 initial audit + v0.2.0 delta audit  
-状態: **Public repository / v0.2.0 delta audit complete**
+更新日: 2026-09-29  
+対象: NumpadWindowController v0.1.0 initial audit + v0.2.0 / Phase J delta audit  
+状態: **Public repository / Phase J delta audit complete**
 
 ## 1. 監査範囲
 
@@ -153,3 +153,38 @@ Release Notesにはログオン時自動起動機能、検証結果、通常権�
 固定Version番号は、各Releaseの履歴・監査・Changelogなど、過去の事実を記録する目的でのみ使用する。
 
 この方針により、Release公開後に「最新Release番号だけを更新するためのPatch Release」が連鎖することを避ける。
+
+
+---
+
+## 10. Phase J / ConfigVersion 2差分監査
+
+2026-09-29に一般公開向けConfiguration変更を再監査した。
+
+対象:
+
+- `NumpadWindowController.ahk`
+- `KeyBindings.default.ini`
+- `examples/KeyBindings.example.ini`
+- `examples/KeyBindings.developer-workflow.ini`
+- `tests/PhaseF.Tests.ahk`
+- `.github/workflows/phase-j-tests.yml`
+- `docs/CONFIG_MIGRATION_V2.md`
+- Phase Jで更新したREADME / Known Limitations / Contributing
+
+確認した代表的パターン:
+
+- 実ユーザー固有の `C:\Users\...` Path
+- GitHub Personal Access Token形式
+- OpenAI-style secret key形式
+- password / token / api_key形式の代入
+
+結果:
+
+**公開を妨げるCredential / Secret / 個人Pathは検出なし。**
+
+`CONTRIBUTING.md` 内の `C:\Users\...` は一般的な説明用Path表記であり、実ユーザー名を含まない。
+
+Phase JではtrackedなユーザーConfigを廃止し、`KeyBindings.ini` を `.gitignore` 対象へ変更した。配布Default / Example / Legacy PresetにはCredentialや個人固有Shortcut Pathを含めない。
+
+GitHub Actions workflowは公開Chocolatey packageからAutoHotkey v2を導入してRegression Testを実行するだけで、Repository Secretを使用しない。
