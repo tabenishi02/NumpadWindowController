@@ -65,9 +65,11 @@ Phase K「Action / Layer Architecture」を実装。
 
 ### Verification
 
-- GitHub Actions Windows + AutoHotkey v2.0.28: 実行中
-- Startup Preview / Task Scheduler Integration Regression: Phase K CIで再実行
-- Physical Acceptance: Automated Regression完了後に実施
+- GitHub Actions Windows + AutoHotkey v2.0.28: **123 assertions PASS**
+- Startup Preview Regression: **24 assertions PASS**
+- Startup Task Scheduler Integration Regression: **37 assertions PASS**
+- Phase K変更13ファイルのCredential / Secret / 個人User Path監査: **検出なし**
+- Physical Acceptance: **未実施**
 
 ## v0.3.0 - 2026-09-29
 
