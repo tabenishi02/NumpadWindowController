@@ -59,8 +59,13 @@ App_OnExit(*) {
 }
 
 NumLock_ForceOn() {
+    ; Explicitly switch ON first, then lock the state.
+    ; Some environments do not transition an existing OFF state when
+    ; AlwaysOn is applied directly.
+    SetNumLockState("On")
+    Sleep(30)
     SetNumLockState("AlwaysOn")
-    Sleep(10)
+    Sleep(30)
     if !GetKeyState("NumLock", "T")
         throw Error("Failed to force NumLock ON.")
 }
@@ -114,11 +119,13 @@ Config_ReadText(path) {
     try raw := FileRead(path, "RAW")
     catch
         Config_Error(path, "<file>", "Encoding", "", "Cannot read configuration file.")
-    if raw.Size >= 2 && NumGet(raw, 0, "UShort") = 0xFEFF {
-        if Mod(raw.Size, 2)
-            Config_Error(path, "<file>", "Encoding", "", "Invalid UTF-16 LE byte length.")
-        return raw.Size > 2 ? StrGet(raw.Ptr + 2, (raw.Size - 2) // 2, "UTF-16") : ""
+
+    if raw.Size >= 2 {
+        bom16 := NumGet(raw, 0, "UShort")
+        if bom16 = 0xFEFF || bom16 = 0xFFFE
+            Config_Error(path, "<file>", "Encoding", "", "UTF-8 is required. UTF-16 configuration files are not supported.")
     }
+
     offset := raw.Size >= 3
         && NumGet(raw, 0, "UChar") = 0xEF
         && NumGet(raw, 1, "UChar") = 0xBB
