@@ -2,7 +2,7 @@
 
 更新日: 2026-09-29  
 対象: NumpadWindowController  
-状態: **Phase J実装・自動検証完了 / 物理受入 J-PA-7再試験pending**
+状態: **Phase J完了 / v0.3.0 Release Ready判定前**
 
 ## 現在地点
 
@@ -10,7 +10,7 @@ Phase A～IのMVP工程とv0.2.xのRelease作業は完了している。
 
 Phase J - General-purpose Configuration / Public Defaultは、設計・実装・Migration・文書更新・自動Regression・公開差分監査まで完了した。
 
-物理受入1回目では J-PA-1～6 がPASSし、J-PA-7 NumLock lifecycleのみFAILした。OFF状態から起動した際にNumLockがONへ遷移しなかったため、`NumLock_ForceOn()` を「Onへ明示遷移 → AlwaysOn」の順へ修正した。現在の残作業は **J-PA-7の再試験**。PASS後にPhase Jを正式Closeし、v0.3.0 Release判定へ進む。
+物理受入ではJ-PA-1～6がPASSした。J-PA-7はPhase F R-8/R-14と照合し、対象テンキーの物理NumLockがテンキー内部の入力切替でWindowsへNumLock Eventを送らない既知ハードウェア仕様のためNot Executed / N/Aとした。Phase Jは正式完了し、次はv0.3.0 Release Ready判定へ進む。
 
 現在のVersion / Release関係:
 
@@ -123,7 +123,6 @@ Phase J CI:
 - Windows GitHub Actions runner
 - AutoHotkey v2.0.28
 - Controller Regression: **168 assertions PASS**
-- NumLock OFF→ON Regression: PASS
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
 - ConfigVersion 2 Public Default: PASS
@@ -144,23 +143,11 @@ Phase J差分の公開監査:
 - 実ユーザー固有Path: 検出なし
 - User ConfigはGit管理対象外へ変更済み
 
-## Pending
+## 次の作業
 
-物理受入1回目:
-
-- [x] J-PA-1 初回起動 / Config
-- [x] J-PA-2 Generic Manual Bind
-- [x] J-PA-3 Slot Clear
-- [x] J-PA-4 Clear All
-- [x] J-PA-5 Public Default Numpad0
-- [x] J-PA-6 Virtual000 opt-in
-- [ ] J-PA-7 NumLock lifecycle — 初回FAIL、修正済み、再試験待ち
-
-Phase J正式Close前に必要:
-
-- [ ] J-PA-7を再試験してPASS
-- [ ] Phase Jを正式Close
-- [ ] v0.3.0 Release判定
+- [ ] v0.3.0 Release Ready判定
+- [ ] Release前最終監査
+- [ ] v0.3.0 Tag / GitHub Release作成
 
 ## 次に読む資料
 
