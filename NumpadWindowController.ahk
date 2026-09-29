@@ -536,7 +536,8 @@ Zero_Feed(state, kind, tick, modifier := "Normal") {
 
 Input_StartZeroDetector() {
     global App
-    if App.Keys["Numpad0"].InputStrategy != "ZeroDetector"
+    if App.Keys["Numpad0"].Mode = "Disabled"
+        || App.Keys["Numpad0"].InputStrategy != "ZeroDetector"
         return
     App.Hook := InputHook("V")
     App.Hook.KeyOpt("{All}", "N")
