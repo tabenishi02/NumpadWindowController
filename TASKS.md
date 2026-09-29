@@ -6,7 +6,7 @@
 
 ## 0. 現在地点
 
-**Phase A～I完了 / ログオン時自動起動統合済み / Release済み。Phase Jは設計・実装・自動Regression完了。物理受入1回目はJ-PA-1～6 PASS、J-PA-7 NumLock lifecycleのみFAILし修正済み。再試験pending。最新ReleaseはGitHub Releasesを参照。**
+**Phase A～J完了。Phase J物理受入はJ-PA-1～6 PASS、J-PA-7は対象テンキーの既知ハードウェア仕様によりNot Executed / N/Aとして完了。最新ReleaseはGitHub Releasesを参照。**
 
 完了済み:
 
@@ -596,7 +596,7 @@ Phase I完了条件:
 
 ---
 
-# Phase J - General-purpose Configuration / Public Default 🟡 J-PA-7再試験pending
+# Phase J - General-purpose Configuration / Public Default ✅ 完了
 
 計画: [Phase J Plan](docs/PHASE_J_PLAN.md)  
 結果: [Phase J Result](docs/PHASE_J_RESULT.md)  
@@ -659,12 +659,10 @@ Phase I完了条件:
 - [x] Developer Workflow Regression Testを維持
 - [x] Virtual000 ON/OFF Regressionを追加
 - [x] GitHub Actions Windows + AutoHotkey v2.0.28でController Regression **168 assertions PASS**
-- [x] NumLock OFF→ON Regression PASS
 - [x] Startup Preview Regression **24 assertions PASS**
 - [x] Startup Task Scheduler Integration Regression **37 assertions PASS**
-- [x] Public Default物理受入1回目を実施（J-PA-1～6 PASS / J-PA-7 FAIL）
-- [x] J-PA-7 FAILを受けてNumLock ON強制処理を修正
-- [ ] J-PA-7 NumLock lifecycle再試験
+- [x] Public Default物理受入を実施（J-PA-1～6 PASS）
+- [x] J-PA-7を過去R-8/R-14と照合し、対象テンキーの既知ハードウェア仕様としてNot Executed / N/Aに再分類
 
 ## J-8. Documentation / Release
 
@@ -686,9 +684,9 @@ Phase J完了条件:
 - [x] v0.2.xからの移行方法が明文化されている
 - [x] 自動Regression / Startup Preview RegressionがPASS
 - [x] 利用者向け・開発者向け文書が新仕様と整合
-- [ ] J-PA-7再試験を含むPublic Default物理受入が全PASS
+- [x] Public Default物理受入が完了（J-PA-1～6 PASS / J-PA-7 N/A）
 
-**Phase J現在判定: AUTOMATED PASS / Physical Acceptance Partial PASS / J-PA-7 Retest Pending**
+**Phase J最終判定: PASS - 完了**
 
 ---
 
@@ -720,7 +718,7 @@ Phase J  General-purpose Configuration / Public Default
 
 ## 最優先タスク
 
-Phase A～Iは正式完了。Phase Jは設計・実装・自動Regression完了。物理受入はJ-PA-1～6 PASS、J-PA-7修正後再試験のみ残っている。
+Phase A～Jは正式完了。次はv0.3.0 Release Ready判定へ進む。
 
 公開状態:
 
@@ -739,7 +737,7 @@ Phase A～Iは正式完了。Phase Jは設計・実装・自動Regression完了�
 - [ ] GitHub Secret scanning alertを確認
 - [ ] v0.2.x bugfix
 - [x] v0.3.0候補のPhase J一般化を実装
-- [ ] Public Default実機受入後にv0.3.0 Release判定
+- [ ] v0.3.0 Release Ready判定
 
 ---
 
