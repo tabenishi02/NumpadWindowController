@@ -171,6 +171,10 @@ Test_Config() {
     Test_Assert(FileExist(generated), "Create user config from public default")
     generatedConfig := Config_Load(generated, Config_Metadata(), TestRoot)
     Test_Assert(generatedConfig.Version = 2, "Generated user config loads as version 2")
+    existingText := FileRead(generated, "UTF-8")
+    Config_EnsureUserConfig(generated, TestRoot "\examples\KeyBindings.example.ini")
+    Test_Assert(FileRead(generated, "UTF-8") = existingText,
+        "Existing user config is never overwritten by default generation")
 
     utf16 := TestTemp "\legacy-utf16.ini"
     FileAppend(legacyText, utf16, "UTF-16")
