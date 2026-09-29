@@ -10,7 +10,7 @@ Phase A～Jは完了済み。v0.3.0は2026-09-29にGitHub Release済み。
 
 Phase K - Action / Layer Architectureは、設計・実装・ConfigVersion 3移行・Automated Regression・利用者向け文書更新まで完了した。
 
-K-PA-1～11の初回Physical AcceptanceはPASS済み。ActivateThenToggle RuntimeとATT-01～12 Automated Regressionも実装・PASS済み。現在の残作業は **Window系再試験（K-PA-4 / 5 / 6 / 9）とK-PA-12**、その結果を反映したRelease Ready判定。Phase Kの次Release予定は **v0.4.0** と確定した。
+K-PA-1～11の初回Physical AcceptanceはPASS済み。ActivateThenToggle RuntimeとATT-01～12 Automated Regressionも実装・PASS済み。K-PA-4 / 5 / 6 / 9再試験はPASS済み。K-PA-12 1回目は未起動ApplicationのLaunch設定不足でFAILしたが、LaunchTarget追加とLaunchPending continuationを修正済み。現在の残作業は **K-PA-12修正後再試験** と、その結果を反映したRelease Ready判定。Phase Kの次Release予定は **v0.4.0** と確定した。
 
 現在のVersion / Release関係:
 
@@ -328,7 +328,7 @@ GitHub Actions Windows + AutoHotkey v2.0.28。
 
 PASS済み:
 
-- Phase K Controller Regression: **168 assertions**
+- Phase K Controller Regression: **183 assertions**
 - Startup Preview Regression: **24 assertions**
 - Startup Task Scheduler Integration Regression: **37 assertions**
 
@@ -424,3 +424,19 @@ Behavior:
 `ActivateThenToggle`
 
 K-PA-1～11初回試験はPASS済み。ActivateThenToggle RuntimeとATT-01～12は実装・Automated Regression PASS済み。次はK-PA-4 / 5 / 6 / 9再試験とK-PA-12を実施する。
+
+
+### K-PA-12 1回目 FAIL / 修正済み
+
+症状: Explorer / ChatGPT Desktop / PowerShell 7が未起動のとき `No window found`。
+
+原因: Physical Acceptance ConfigにLaunchTargetがなく、ActivateThenToggleのLaunchPending後continuationも未実装だった。
+
+修正済み:
+
+- Explorer: explorer.exe
+- ChatGPT Desktop: AppsFolder
+- PowerShell 7: pwsh.exe
+- Window生成後の自動Bind → Activate → Toggle phase移行
+
+次: K-PA-12修正後再試験。
