@@ -149,7 +149,7 @@ Behavior=ActivateThenToggle
 - Activate phaseから開始する。
 - 同じ有効Bindingを保持したAuto Bind Allでは不要にphaseをリセットしない。
 
-### ATT-10 Launch only
+### ATT-10 Launch / LaunchPending continuation
 
 前提:
 
@@ -159,9 +159,12 @@ Behavior=ActivateThenToggle
 
 期待:
 
-- ApplicationをLaunchする。
+- WindowGroupに有効なLaunchTargetが存在する。
+- 1回目のKey入力でApplicationをLaunchする。
 - Launch成功だけではToggle phaseへ遷移しない。
-- LaunchPending中もActivate phaseを維持する。
+- LaunchPending中はActivate phaseを維持する。
+- Window生成検出後、元のActivateThenToggle Actionを自動BindしてActivateまで続行する。
+- Activation成功後にToggle phaseへ遷移する。
 
 ### ATT-11 Launch後最初のActivation
 
@@ -216,9 +219,9 @@ Behavior=ActivateThenToggle
 
 対象:
 
-- Explorer / Numpad1
-- ChatGPT Desktop / Numpad2
-- PowerShell 7 / Numpad3
+- Explorer / Numpad1 / LaunchTarget=explorer.exe
+- ChatGPT Desktop / Numpad2 / AppsFolder経由
+- PowerShell 7 / Numpad3 / LaunchTarget=pwsh.exe
 
 Test Config:
 
@@ -236,8 +239,8 @@ Runtime実装完了後、暫定的な `ActivateThenToggle → Toggle` 正規化�
 
 結果:
 
-- Local Windows / AutoHotkey v2.0.26: **168 assertions PASS**
-- GitHub Actions / AutoHotkey v2.0.28: **168 assertions PASS**
+- Local Windows / AutoHotkey v2.0.26: **183 assertions PASS**
+- GitHub Actions / AutoHotkey v2.0.28: **183 assertions PASS**
 - Startup Preview: **24 assertions PASS**
 - Startup Task Scheduler Integration: **37 assertions PASS**
 
