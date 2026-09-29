@@ -1,12 +1,14 @@
 # PROJECT_HANDOFF
 
-更新日: 2026-09-28  
+更新日: 2026-09-29  
 対象: NumpadWindowController  
-状態: **Release済み / ログオン時自動起動統合済み**
+状態: **Release済み / ログオン時自動起動統合済み / Phase J新設**
 
 ## 現在地点
 
 Phase A～IのMVP工程は完了している。
+
+次工程として **Phase J - General-purpose Configuration / Public Default** を新設した。Phase Jは未着手であり、現行Release v0.2.xの挙動は変更していない。計画は `docs/PHASE_J_PLAN.md` を正本とする。
 
 現在のVersion / Release関係:
 
@@ -32,6 +34,7 @@ Phase A～IのMVP工程は完了している。
 - `docs/STARTUP_TASK_TEST.md`: 自動起動試験結果
 - `docs/MVP_DESIGN.md`: 現行v0.2.0設計
 - `docs/KNOWN_LIMITATIONS.md`: 現行制限
+- `docs/PHASE_J_PLAN.md`: 一般公開向けConfiguration / Default一般化の次期Phase計画
 - `CHANGELOG.md`: Version差分
 - `README.md`: 利用者向け導入・操作・自動起動手順
 
@@ -171,6 +174,7 @@ Controller:
 1. `docs/MVP_DESIGN.md`
 2. `docs/DESIGN_DRAFT.md`
 3. Phase A～E仕様書
+4. `docs/PHASE_J_PLAN.md`
 
 検証履歴:
 
@@ -184,10 +188,16 @@ Controller:
 
 v0.2.xのRelease作業は完了済み。最新ReleaseはGitHub Releasesを参照する。
 
-今後の候補:
+次の正式開発工程:
+
+- **Phase J - General-purpose Configuration / Public Default**
+- 最初に J-1 Public Default仕様とJ-2 Configuration一般化を設計する
+- Dedicated Slot固定、Auto Bind固定Group、User Config分離、Virtual000 Default、Config Migrationを先に確定する
+- 設計確定後に実装・Regression・実機受入へ進む
+
+並行して必要に応じて実施:
 
 - v0.2.x bugfix
-- v0.3.0以降の機能追加
 - Private vulnerability reporting設定の確認
 - GitHub Secret scanning alertの継続確認
 
