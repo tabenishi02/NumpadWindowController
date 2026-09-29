@@ -368,9 +368,11 @@ Startup Task:
 .\tests\StartupTask.Tests.ps1 -Integration
 ```
 
-GitHub ActionsのWindows runnerでもController Regressionを実行します。
+GitHub ActionsのWindows runnerでもRegressionを実行しています。
 
-Phase JではPublic ConfigVersion 2とLegacy ConfigVersion 1の両方をRegression対象にしています。
+- Controller Regression: **166 assertions PASS**（AutoHotkey v2.0.28）
+- Startup Preview Regression: **24 assertions PASS**
+- Public ConfigVersion 2 / Legacy ConfigVersion 1 / Virtual000 ON-OFF: **PASS**
 
 ---
 
@@ -404,6 +406,7 @@ Legacy Developer Workflow固有のChrome / VS Code Auto Bind制限も同文書�
 - [MVP Design](docs/MVP_DESIGN.md)
 - [Known Limitations](docs/KNOWN_LIMITATIONS.md)
 - [Phase J Plan](docs/PHASE_J_PLAN.md)
+- [Phase J Result](docs/PHASE_J_RESULT.md)
 - [ConfigVersion 2 Migration Guide](docs/CONFIG_MIGRATION_V2.md)
 - [Public Release Audit](docs/PUBLIC_RELEASE_AUDIT.md)
 - [ログオン時自動起動テスト](docs/STARTUP_TASK_TEST.md)
