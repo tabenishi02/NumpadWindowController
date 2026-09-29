@@ -1,7 +1,7 @@
 # Phase J - General-purpose Configuration / Public Default
 
 更新日: 2026-09-29
-状態: **Implemented / Automated verification PASS / Physical acceptance pending**
+状態: **Implemented / Automated verification PASS / Physical acceptance partial PASS / J-PA-7 retest pending**
 対象: NumpadWindowController post-MVP public generalization
 
 ## 1. 目的
@@ -64,7 +64,7 @@ Phase Jでは、これらをNumpadWindowController Coreから分離し、特定�
 - [x] Numpad1 / Numpad3専用のRequired Allowed条件を一般Configから分離する
 - [x] Auto Bind設定をConfigへ持たせるかPreset層へ分離するか決定する
 - [x] ConfigVersion更新要否とConfigVersion=1からのMigration方針を決定する
-- [x] UTF-16 LE BOM固定を維持するか、UTF-8対応を追加するか判断する
+- [x] Configuration INIをUTF-8前提へ統一し、UTF-16サポートを廃止する
 
 ## 5. J-3 Auto Bind / Preset分離
 
@@ -114,7 +114,8 @@ Phase Jでは、これらをNumpadWindowController Coreから分離し、特定�
 - [x] Virtual000無効時のNumpad0即時処理を確認する
 - [x] Virtual000有効時の既存000判定Regressionを確認する
 - [x] Task Scheduler自動起動Regressionを確認する
-- [ ] 実機テンキーでPublic Default受入試験を実施する（Physical acceptance pending）
+- [x] 実機テンキーでPublic Default受入1回目を実施（J-PA-1～6 PASS / J-PA-7 FAIL）
+- [ ] NumLock修正後にJ-PA-7を再試験する
 
 ## 10. J-8 Documentation / Release Preparation
 
@@ -136,7 +137,7 @@ Phase Jでは、これらをNumpadWindowController Coreから分離し、特定�
 - [x] 000キーなしでも不要なZero Detector負荷・待機を発生させない
 - [x] 現在のDeveloper WorkflowをPreset / Example等で再現できる
 - [x] 既存v0.2.xからの移行方法が明文化されている
-- [ ] 自動テスト・Startup RegressionはPASS。Public Default実機受入のみpending
+- [ ] 自動テスト・Startup RegressionはPASS。J-PA-7 NumLock lifecycle再試験のみpending
 - [x] README / TASKS / PROJECT_HANDOFF / Known Limitations / CHANGELOGが新仕様と整合する
 
 ## 12. Phase J開始時の最初の作業
