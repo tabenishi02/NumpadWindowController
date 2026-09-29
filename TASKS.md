@@ -8,6 +8,8 @@
 
 **Phase A～J完了。Phase J物理受入はJ-PA-1～6 PASS、J-PA-7は対象テンキーの既知ハードウェア仕様によりNot Executed / N/Aとして完了。最新ReleaseはGitHub Releasesを参照。**
 
+> Phase A～Iの各項目はv0.1/v0.2系を作った時点の履歴であり、Chrome固定割り当て・ConfigVersion 1・UTF-16等の記述は現行v0.3.0仕様を示さない。現行仕様はPhase J、README、`docs/KNOWN_LIMITATIONS.md` を正とする。
+
 完了済み:
 
 - [x] プロジェクト名決定
@@ -737,7 +739,8 @@ Phase A～Jは正式完了。次はv0.3.0 Release Ready判定へ進む。
 - [ ] GitHub Secret scanning alertを確認
 - [ ] v0.2.x bugfix
 - [x] v0.3.0候補のPhase J一般化を実装
-- [ ] v0.3.0 Release Ready判定
+- [x] v0.3.0 Release Ready判定: PASS
+- [ ] v0.3.0 Tag / GitHub Releaseを作成
 
 ---
 
@@ -755,7 +758,7 @@ Phase A～Jは正式完了。次はv0.3.0 Release Ready判定へ進む。
 - [x] `CONTRIBUTING.md` を追加
 - [x] `docs/PUBLIC_RELEASE_AUDIT.md` を追加
 - [x] `.gitignore` を公開運用向けに強化
-- [x] `.gitattributes` でUTF-16 Configの正規化を抑止
+- [x] `.gitattributes` / `.editorconfig` を当時の公開Config運用へ整備（Phase JでUTF-8運用へ更新済み）
 - [x] READMEをMIT / Privacy / Security / Contributing対応へ更新
 - [x] 現行ドキュメントのLICENSE / private運用表記を同期
 
