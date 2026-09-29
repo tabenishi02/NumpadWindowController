@@ -32,6 +32,6 @@ When reporting privately, include:
 
 ## Scope Notes
 
-NumpadWindowController is a local AutoHotkey utility. The v0.1.0 runtime does not include telemetry or network communication.
+NumpadWindowController is a local AutoHotkey utility. The current runtime does not include telemetry or network communication.
 
 Debug logs can contain window titles, process names, HWND values, and other local runtime information. Review and redact logs before sharing them publicly.
