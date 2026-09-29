@@ -360,6 +360,15 @@ Test_Input() {
     Test_Assert(Input_ModifierKind(1, 1, 0) = "CtrlShift", "Ctrl Shift modifier")
     Test_Assert(Input_ModifierKind(1, 0, 1) = "CtrlAlt", "Ctrl Alt modifier")
     Test_Assert(Input_ModifierKind(0, 1, 0) = "Unsupported", "Shift-only controller modifier unsupported")
+
+    Test_Assert(Input_ZeroPassThroughSpec("Numpad0", "Normal") = "{Numpad0 1}",
+        "Zero pass-through replays one zero")
+    Test_Assert(Input_ZeroPassThroughSpec("Virtual00", "Ctrl") = "^{Numpad0 2}",
+        "Virtual00 pass-through replays two Ctrl+zeros")
+    Test_Assert(Input_ZeroPassThroughSpec("Virtual000", "CtrlShift") = "^+{Numpad0 3}",
+        "Virtual000 pass-through replays three Ctrl+Shift+zeros")
+    Test_Assert(Input_ZeroPassThroughSpec("Virtual000", "Unsupported") = "{Numpad0 3}",
+        "Unsupported modifier fallback still replays suppressed zeros")
 }
 
 Test_RecordStep(log, actionId, fromMulti := false) {
