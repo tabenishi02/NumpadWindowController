@@ -181,7 +181,7 @@ GitHub Actions Windows runner + AutoHotkey v2.0.28で実施。
 
 対象commit:
 
-`9572c374c9de9090e77053054334674d60178a8b`
+`19ab53569d6fe87015deaffb04af4a830906fb91`
 
 結果:
 
@@ -231,7 +231,7 @@ Phase K Runtimeから以下を削除した。
 
 Automated RegressionはPASS済み。K-PA-1～11の初回物理受入もすべてPASSした。
 
-その後、追加仕様として `Behavior=ActivateThenToggle` をPhase Kへ加える方針となったため、Phase K全体のPhysical Acceptanceは再びPendingとして扱う。既存K-PA-1～11のPASS記録は保持し、新Behavior実装後にWindow系再試験とK-PA-12を追加実施する。
+その後、追加仕様として `Behavior=ActivateThenToggle` をPhase Kへ加えた。既存K-PA-1～11のPASS記録は保持し、K-PA-4 / 5 / 6 / 9の追加後再試験もPASS済み。K-PA-12のみ1回目FAIL後の修正済み再試験待ち。
 
 手順:
 
@@ -316,4 +316,4 @@ Phase K完了判定は物理受入後にTASKS / PROJECT_HANDOFFへ最終反映�
 
 **Implementation Complete / Automated Regression PASS / Physical Acceptance Pending**
 
-実装上のPhase K残作業はActivateThenToggle追加後のWindow系再試験（K-PA-4 / 5 / 6 / 9）、K-PA-12、結果反映とRelease Ready判定のみ。次Release予定は **v0.4.0**。
+実装上のPhase K残作業はK-PA-12修正後再試験、結果反映とRelease Ready判定のみ。次Release予定は **v0.4.0**。
