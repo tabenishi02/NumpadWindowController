@@ -10,7 +10,7 @@ Phase A～Jは完了済み。v0.3.0は2026-09-29にGitHub Release済み。
 
 Phase K - Action / Layer Architectureは、設計・実装・ConfigVersion 3移行・Automated Regression・利用者向け文書更新まで完了した。
 
-現在の残作業は **Phase K Physical Acceptance** と、その結果を反映したRelease Preparation。
+現在の残作業は **Phase K Physical Acceptance** と、その結果を反映したRelease Ready判定。Phase Kの次Release予定は **v0.4.0** と確定した。
 
 現在のVersion / Release関係:
 
@@ -20,6 +20,7 @@ Phase K - Action / Layer Architectureは、設計・実装・ConfigVersion 3移�
 - `v0.2.0`: ログオン時自動起動追加
 - `v0.2.1`: Release後ドキュメント同期
 - `v0.3.0`: Phase J Public Default / Configuration一般化
+- `v0.4.0`: **Phase K Action / Layer Architecture（予定、Physical Acceptance待ち）**
 - Phase K: 次Release向けUnreleased
 
 License: MIT
@@ -386,9 +387,8 @@ Virtual00のみN/A。
 1. `docs/PHASE_K_MANUAL_TEST.md` に従い実機受入を実施
 2. 結果を `docs/PHASE_K_RESULT.md` へ反映
 3. `TASKS.md` のPhysical Acceptance完了条件を更新
-4. Release Versionを決定
-5. Release Ready監査
-6. Tag / GitHub Release
+4. v0.4.0 Release Ready監査
+5. Tag / GitHub Release
 
 ---
 
