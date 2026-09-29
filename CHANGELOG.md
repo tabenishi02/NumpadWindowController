@@ -43,6 +43,7 @@
 - GitHub Actions Windows runner
 - AutoHotkey v2.0.28
 - Controller Regression: **166 assertions PASS**
+- Startup Preview Regression: **24 assertions PASS**
 - Public ConfigVersion 2 / Legacy ConfigVersion 1 / Virtual000 ON-OFF Regression: PASS
 - Phase J差分のSecret / 個人Path監査: 公開阻害要因なし
 
