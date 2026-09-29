@@ -242,7 +242,7 @@ Chrome / VS Code / Explorer / ChatGPT / PowerShell 7について確認する。
 
 ActivateThenToggle追加後の再試験:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -303,7 +303,7 @@ Ctrl + NumpadEnter
 
 ActivateThenToggle追加後の再試験:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -363,7 +363,7 @@ Notepadを再度すべて閉じる。
 
 ActivateThenToggle追加後の再試験:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -518,7 +518,7 @@ Ctrl + NumpadEnter
 
 ActivateThenToggle追加後の再試験:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
@@ -658,9 +658,9 @@ Activation成功後に同じKeyを再度押す。
 結果:
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
-備考:
+備考:Explorer、ChatGPT Desktop、PowerShell 7の3つとも、起動していない状態でキーを押しても「No window found:xxx」となってしまう。
 
 ---
 
