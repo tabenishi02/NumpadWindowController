@@ -2,203 +2,164 @@
 
 更新日: 2026-09-29  
 対象: NumpadWindowController  
-状態: **Release済み / ログオン時自動起動統合済み / Phase J新設**
+状態: **Phase J実装・自動検証完了 / Public Default実機受入pending**
 
 ## 現在地点
 
-Phase A～IのMVP工程は完了している。
+Phase A～IのMVP工程とv0.2.xのRelease作業は完了している。
 
-次工程として **Phase J - General-purpose Configuration / Public Default** を新設した。Phase Jは未着手であり、現行Release v0.2.xの挙動は変更していない。計画は `docs/PHASE_J_PLAN.md` を正本とする。
+Phase J - General-purpose Configuration / Public Defaultは、設計・実装・Migration・文書更新・自動Regression・公開差分監査まで完了した。
+
+現在の残作業は **Public Defaultを物理テンキーで受入確認すること**。これがPASSした後にPhase Jを正式Closeし、v0.3.0 Release判定へ進む。
 
 現在のVersion / Release関係:
 
 - Repository: **Public**
-- 最新Release: **GitHub Releasesを参照**
+- 最新安定Release: GitHub Releasesを参照
 - `v0.1.0`: 初回MVP Release
 - `v0.2.0`: ログオン時自動起動追加
 - `v0.2.1`: Release後ドキュメント同期
+- 次期Release候補: **v0.3.0**
 - License: MIT
 
-`v0.1.0` は自動起動機能追加前の初回MVP Release。`v0.2.0` でWindows Task Schedulerによるログオン時自動起動を追加し、`v0.2.1` でRelease後のドキュメント同期を行った。今後の最新Release判定はGitHub Releasesを参照する。
+## Phase Jの主要成果物
 
-## 主要成果物
+- `NumpadWindowController.ahk`: ConfigVersion 1 / 2両対応Core
+- `KeyBindings.default.ini`: ConfigVersion 2 Public Default
+- `KeyBindings.ini`: ローカルUser Config。Git管理対象外
+- `examples/KeyBindings.example.ini`: ConfigVersion 2一般例
+- `examples/KeyBindings.developer-workflow.ini`: v0.2.x相当のLegacy Developer Workflow
+- `docs/PHASE_J_PLAN.md`: Phase J計画・進捗
+- `docs/PHASE_J_RESULT.md`: Phase J実装・検証結果
+- `docs/CONFIG_MIGRATION_V2.md`: ConfigVersion 1 → 2移行Guide
+- `.github/workflows/phase-j-tests.yml`: Windows + AutoHotkey CI
 
-- `NumpadWindowController.ahk`: AutoHotkey v2本体
-- `KeyBindings.ini`: 標準Config / UTF-16 LE BOM
-- `examples/KeyBindings.example.ini`: 配布用Config例
-- `scripts/install-startup-task.ps1`: ログオン時自動起動Taskの登録・更新
-- `scripts/uninstall-startup-task.ps1`: 自動起動Taskの解除
-- `tests/PhaseF.Tests.ahk`: Controller自動テスト
-- `tests/Run-PhaseFTests.ps1`: Controllerテスト実行入口
-- `tests/StartupTask.Tests.ps1`: Task Scheduler自動起動テスト
-- `docs/STARTUP_TASK_TEST.md`: 自動起動試験結果
-- `docs/MVP_DESIGN.md`: 現行v0.2.0設計
-- `docs/KNOWN_LIMITATIONS.md`: 現行制限
-- `docs/PHASE_J_PLAN.md`: 一般公開向けConfiguration / Default一般化の次期Phase計画
-- `CHANGELOG.md`: Version差分
-- `README.md`: 利用者向け導入・操作・自動起動手順
+## ConfigVersion 2 Public Core
 
-## Controller Core
+Public Defaultでは1～9を含む通常Slotを特定アプリへ固定しない。
 
-既定Slot:
+- Window / Shortcut / Disabledを選択可能
+- Window ModeではAllowed条件を空欄にして任意WindowをManual Bind可能
+- built-in Auto BindはOFF
+- BackspaceはDisabled
+- Virtual000はDisabled
+- Numpad0は通常Hotkeyとして即時処理
+- 特定のChrome / VS Code / ChatGPT / PowerShell環境を要求しない
 
-- 7 / 8 / 9 = Chrome
-- 4 / 5 / 6 = VS Code
-- 1 = Explorer
-- 2 = ChatGPT Desktop
-- 3 = PowerShell 7用Windows Terminal
+User Configがない初回起動では:
 
-操作:
+```text
+KeyBindings.default.ini
+        ↓ copy
+KeyBindings.ini
+```
+
+を自動生成する。既存User Configは上書きしない。
+
+## Legacy Developer Workflow
+
+従来の個人用WorkflowはConfigVersion 1として互換維持する。
+
+```text
+7 / 8 / 9 = Chrome
+4 / 5 / 6 = VS Code
+1 = Explorer
+2 = ChatGPT Desktop
+3 = PowerShell 7用Windows Terminal
+```
+
+使用する場合:
+
+```powershell
+Copy-Item .\examples\KeyBindings.developer-workflow.ini .\KeyBindings.ini -Force
+```
+
+旧Chrome座標Auto Bind、VS Code逆順Auto Bind、Lazy Auto Bind、Virtual000もこのProfileでRegression対象として維持している。
+
+## 0 / 000
+
+ConfigVersion 2 Public DefaultではVirtual000をDisabledとし、Zero Detectorを起動しない。
+
+このため通常Numpad0に従来の最大約80ms判定待ちは発生しない。
+
+Virtual000をWindow / Shortcutへ変更するとopt-inでZero Detectorへ切り替わり、従来どおり80ms以内の `D-U-D-U-D-U` をVirtual000として扱う。
+
+## Configuration Encoding
+
+ConfigVersion 2 TemplateはUTF-8。
+
+Runtimeは互換性のため:
+
+- UTF-8 BOMなし
+- UTF-8 BOMあり
+- UTF-16 LE BOM
+
+を読み込める。
+
+## 操作
 
 | 操作 | 動作 |
 |---|---|
 | Key | Window Activate / Shortcut |
 | Ctrl + Key | Manual Bind |
 | Ctrl + Shift + Key | Slot Clear |
-| Ctrl + Alt + Key | Group / Slot Auto Bind |
+| Ctrl + Alt + Key | Auto Bind対応ProfileのみAuto Bind |
 | Ctrl + NumpadEnter | Auto Bind All |
 | Ctrl + Shift + NumpadEnter | Clear All |
 
-任意Slotは一般Window Auto Bindを行わずManual専用。Backspaceは標準Disabled。
+## 自動起動
 
-Auto Bindは有効なManual / Auto Bindingを維持し、無効BindingだけNoneへ落として専用Slotの欠損を補修する。
-
-## 0 / 000 / NumLock
-
-物理000はNumpad0 `SC052` のD-U×3として届く。
-
-最初のDownから80ms以内の `D-U-D-U-D-U` を `Virtual000` とする。
-
-対象実機の物理NumLockはAHK InputHook / Raw Input双方でEventなし。Controller Actionには使用しない。
-
-Windows側NumLockは:
-
-1. Config Validation後に起動前状態保存
-2. 実行中ON固定
-3. 正常終了時に復元
-
-強制終了時の復元は保証しない。
-
-## ログオン時自動起動
-
-正式方式はWindows Task Scheduler。
-
-登録:
+Windows Task Scheduler方式はPhase Jでも変更していない。
 
 ```powershell
 .\scripts\install-startup-task.ps1
 ```
 
-明示的なAutoHotkey v2 Path:
-
-```powershell
-.\scripts\install-startup-task.ps1 -AutoHotkeyPath 'C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe'
-```
-
-任意Delay:
-
-```powershell
-.\scripts\install-startup-task.ps1 -DelaySeconds 30
-```
-
-解除:
-
-```powershell
-.\scripts\uninstall-startup-task.ps1
-```
-
-Task仕様:
-
-- Task Name: `NumpadWindowController-Logon`
-- Current user Logon Trigger
-- InteractiveToken
-- Least privilege / 通常権限
-- Working Directory = Repository Root
-- MultipleInstances = `IgnoreNew`
-- ExecutionTimeLimit = unlimited
-- 本体側は `#SingleInstance Force`
-
-RepositoryまたはAutoHotkeyのPathを変更した場合は再登録する。
-
-通常権限のControllerは、管理者権限ApplicationをWindowsの権限分離により操作できない場合がある。
+TaskはCurrent user / InteractiveToken / LeastPrivilegeで起動する。
 
 ## 検証状況
 
-Controller:
+Phase J CI:
 
-- Phase F: 完了
+- Windows GitHub Actions runner
+- AutoHotkey v2.0.28
+- Controller Regression: **166 assertions PASS**
+- Startup Preview Regression: **24 assertions PASS**
+- ConfigVersion 2 Public Default: PASS
+- ConfigVersion 1 Legacy Workflow: PASS
+- Virtual000 ON / OFF Regression: PASS
+- Config生成 / UTF-8 / UTF-16互換: PASS
+
+既存v0.2系検証履歴:
+
 - Phase G: 65 / 65 PASS
 - Phase H: 16 / 16 PASS
-- 未解決FAIL / BLOCKEDなし
+- Startup Integration: 37 assertions PASS
+- 実ログオン / Task Scheduler運用試験: PASS
 
-自動起動:
+Phase J差分の公開監査:
 
-- Preview / Path / Arguments: 24 assertions PASS
-- Task Scheduler Integration: 37 assertions PASS
-- Phase F Regression after startup addition: 134 assertions PASS
-- Production Task登録 / 更新 / 定義照合: PASS
-- Task Schedulerからの起動: PASS
-- 実ログオン起動: PASS
-- 自動起動後の既存機能 / Virtual000 / NumLock: PASS
-- 手動再起動・1インスタンス維持: PASS
-- Task無効化 / 削除後の非起動: PASS
+- Credential / Secret: 検出なし
+- 実ユーザー固有Path: 検出なし
+- User ConfigはGit管理対象外へ変更済み
 
-## Known Limitations
+## Pending
 
-正本: `docs/KNOWN_LIMITATIONS.md`
+Phase J正式Close前に必要:
 
-主な制限:
-
-- Chrome新規Auto BindはPrimary Monitor基準
-- Minimized / Maximized Chromeは新規座標分類しない
-- VS Code真のOpen順非保証
-- 4つ目以降のChrome / VS Code非Auto Bind
-- 任意Slot Manual専用
-- HWND非永続
-- Config Hot Reloadなし
-- Backspaceを通常Keyboardと区別できない
-- Keyboard Device単位識別なし
-- Task Schedulerは現在ユーザー・通常権限で起動
-- Repository / AutoHotkey Path変更時はTask再登録が必要
+- [ ] Public Defaultで物理テンキーからManual Bind / Activate / Clearを確認
+- [ ] Virtual000 Disabled状態でNumpad0が違和感なく即時動作することを確認
+- [ ] 必要に応じてVirtual000 opt-in実機Regressionを確認
+- [ ] 上記PASS後、Phase Jを正式Close
+- [ ] v0.3.0 Release判定
 
 ## 次に読む資料
 
-利用者向け:
-
 1. `README.md`
-2. `docs/STARTUP_TASK_TEST.md`
-3. `docs/KNOWN_LIMITATIONS.md`
-
-設計:
-
-1. `docs/MVP_DESIGN.md`
-2. `docs/DESIGN_DRAFT.md`
-3. Phase A～E仕様書
-4. `docs/PHASE_J_PLAN.md`
-
-検証履歴:
-
-1. `docs/PHASE_F_RESULT.md`
-2. `docs/PHASE_G_RESULT.md`
-3. `docs/PHASE_H_RESULT.md`
-4. `docs/PHASE_I_RESULT.md`
-5. `docs/STARTUP_TASK_TEST.md`
-
-## 次の作業
-
-v0.2.xのRelease作業は完了済み。最新ReleaseはGitHub Releasesを参照する。
-
-次の正式開発工程:
-
-- **Phase J - General-purpose Configuration / Public Default**
-- 最初に J-1 Public Default仕様とJ-2 Configuration一般化を設計する
-- Dedicated Slot固定、Auto Bind固定Group、User Config分離、Virtual000 Default、Config Migrationを先に確定する
-- 設計確定後に実装・Regression・実機受入へ進む
-
-並行して必要に応じて実施:
-
-- v0.2.x bugfix
-- Private vulnerability reporting設定の確認
-- GitHub Secret scanning alertの継続確認
+2. `docs/PHASE_J_RESULT.md`
+3. `docs/CONFIG_MIGRATION_V2.md`
+4. `docs/KNOWN_LIMITATIONS.md`
+5. `docs/PUBLIC_RELEASE_AUDIT.md`
+6. `CHANGELOG.md`
 
 公開済みTagを後から移動して内容を書き換える運用は採用しない。
