@@ -59,13 +59,8 @@ App_OnExit(*) {
 }
 
 NumLock_ForceOn() {
-    ; Explicitly switch ON first, then lock the state.
-    ; Some environments do not transition an existing OFF state when
-    ; AlwaysOn is applied directly.
-    SetNumLockState("On")
-    Sleep(30)
     SetNumLockState("AlwaysOn")
-    Sleep(30)
+    Sleep(10)
     if !GetKeyState("NumLock", "T")
         throw Error("Failed to force NumLock ON.")
 }
