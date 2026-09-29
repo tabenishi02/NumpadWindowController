@@ -6,7 +6,7 @@
 
 ## 0. 現在地点
 
-**Phase A～J完了。Phase J物理受入はJ-PA-1～6 PASS、J-PA-7は対象テンキーの既知ハードウェア仕様によりNot Executed / N/Aとして完了。最新ReleaseはGitHub Releasesを参照。**
+**Phase A～J完了。Phase K - Action / Layer Architectureの設計を確定し、実装タスクを追加済み。Phase K実装は未着手。最新ReleaseはGitHub Releasesを参照。**
 
 > Phase A～Iの各項目はv0.1/v0.2系を作った時点の履歴であり、Chrome固定割り当て・ConfigVersion 1・UTF-16等の記述は現行v0.3.0仕様を示さない。現行仕様はPhase J、README、`docs/KNOWN_LIMITATIONS.md` を正とする。
 
@@ -692,6 +692,187 @@ Phase J完了条件:
 
 ---
 
+
+# Phase K - Action / Layer Architecture 🚧 設計完了・実装未着手
+
+設計: [Phase K Action / Layer Architecture Design](docs/PHASE_K_DESIGN.md)
+
+目的:
+
+Physical Key → Active Layer → Actionの構造へ移行し、NumpadWindowControllerをWindow切替中心のControllerから、Window / Keyboard Shortcut / Media / Layer / Macroを扱える左手デバイス向けControllerへ拡張する。
+
+ConfigVersion 1 / 2との後方互換は維持しない。Phase K RuntimeはConfigVersion 3のみをサポートし、旧ConfigはGit履歴・Release Tag・過去Phase文書から参照する。
+
+## K-1. ConfigVersion 3 / Action Model
+
+- [x] ConfigVersion 3のみをRuntimeサポート対象とする方針を確定
+- [x] ConfigVersion 1 / 2互換読込・自動Migrationを実装しない方針を確定
+- [x] Physical Key → Logical Key → Global Mapping → Active Layer → Action Dispatcherの構造を確定
+- [x] Action Typeを Window / Run / KeySend / LayerSwitch / Delay / MultiAction / Disabled とする
+- [x] Window Runtime BindingをPhysical KeyではなくWindow Action IDへ関連付ける方針を確定
+- [ ] ConfigVersion 3 Parser / Validatorを実装
+- [ ] ConfigVersion 1 / 2 Compatibility CodeをRuntimeから削除
+- [ ] ConfigVersion 1 / 2専用Regressionを削除
+- [ ] KeyBindings.default.iniをConfigVersion 3へ全面更新
+- [ ] examples/*.iniをConfigVersion 3へ全面更新
+
+## K-2. Layer
+
+- [x] Active Layerは常に1つとする
+- [x] DefaultLayer / LayerOrderをConfigへ持たせる
+- [x] Global Key MappingをLayer Mappingより優先する
+- [x] LayerSwitchはSet / Nextを初期対応とする
+- [x] Layer Stack / Momentary / One-shotはPhase K対象外とする
+- [ ] Layer Resolverを実装
+- [ ] LayerSwitch Actionを実装
+- [ ] Layer切替ToolTipを実装
+- [ ] 全Layerから安全に切替可能なConfig Validation / Exampleを整備
+- [ ] Layer Regression Testを追加
+
+## K-3. Window Action再構成
+
+- [x] Window BehaviorをToggle / Activateに分ける
+- [x] 通常WindowキーはToggle、Multi Action内Window移動はActivateを基本とする
+- [x] Ctrl + Key Manual Bind / Ctrl + Shift + Key Clear / Ctrl + Alt + Key Auto BindをWindow Action上へ再定義
+- [x] Ctrl + NumpadEnter Auto Bind All / Ctrl + Shift + NumpadEnter Clear AllをLayer非依存Global Commandとして維持
+- [x] Auto Bind StrategyをConfigVersion 3上で再定義する方針を確定
+- [ ] Runtime Slot StateをWindow Action ID基準へ移行
+- [ ] Manual Bind / Clear / Auto BindをAction Modelへ移植
+- [ ] None / FirstMatch / ReverseList / PrimaryThreePane Strategyを実装・整理
+- [ ] 現行Developer Workflow相当をConfigVersion 3 Exampleで再構成
+- [ ] 既存Window機能Regressionを新Action Modelへ移行
+
+## K-4. Window Toggle
+
+- [x] Binding先WindowがActiveなら同じキー押下でMinimizeする仕様を確定
+- [x] Binding先WindowがInactiveならRestore必要時にRestoreしてActivateする仕様を確定
+- [x] Toggle判定はDouble Tapではなく押下時点のActive状態だけを見る
+- [x] Behavior=ActivateではActive WindowをMinimizeしない
+- [ ] WinActive / WinMinimizeを使ったToggleを実装
+- [ ] Chrome / VS Code / Explorer / ChatGPT / Windows Terminalで実機確認
+- [ ] Toggle Regression Testを追加
+
+## K-5. Application Launch Fallback
+
+- [x] 対象Application Windowが0件の場合のみLaunchする仕様を確定
+- [x] 同一ApplicationのWindowが1件以上存在する場合は新規LaunchせずNotFoundとする仕様を確定
+- [x] Launch判定をBindingではなくWindow Groupの実Window存在判定で行う
+- [x] Window GroupのMatch条件とWindow ActionのAllowed条件を分離する
+- [x] 起動直後に同期的な長時間WinWaitを行わない
+- [x] Group単位LaunchPendingで多重Runを防ぐ
+- [ ] WindowGroup Configを実装
+- [ ] LaunchTarget / Arguments / WorkingDirectory Validationを実装
+- [ ] Launch fallbackを実装
+- [ ] LaunchPending / Timeout解除を実装
+- [ ] Window 0件 / 1件以上 / Pending中 / Timeout後のRegression Testを追加
+
+## K-6. Virtual00
+
+- [x] Numpad0高速2回入力型の00キーをVirtual00として扱う仕様を確定
+- [x] Numpad0 / Virtual00 / Virtual000を同一Detectorで扱う方針を確定
+- [x] EnableVirtual00 / EnableVirtual000をHardware/Input CapabilityとしてGeneral設定へ分離
+- [x] 物理00と人間の極端に高速な0二連打は完全識別不能な既知制限とする
+- [x] HID独立Keypad 00 / 000 Usage直接入力はPhase K保証対象外
+- [x] 00実機がないためPhysical AcceptanceをNot Executed / N/Aとする
+- [ ] Logical Key MetadataへVirtual00を追加
+- [ ] Zero Detectorを0 / 00 / 000対応へ一般化
+- [ ] Virtual00 / Virtual000 ON-OFF組合せRegressionを追加
+- [ ] Modifier / Interrupt / Timeout / Repeat Regressionを追加
+
+## K-7. KeySend
+
+- [x] AutoHotkey記号ではなくCtrl+C等の人間可読Config表現を採用
+- [x] Ctrl / Shift / Alt / Winを初期Modifierとする
+- [x] 通常キー・Function Key・Navigation Key・Media/System Keyを初期対象とする
+- [x] 未知Key / 不正Combinationを起動時Validation Errorとする
+- [ ] KeySend Parserを実装
+- [ ] AutoHotkey Send表現への安全な変換を実装
+- [ ] Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+Z / Ctrl+S等のRegressionを追加
+- [ ] 管理者権限ApplicationへのSend制限をKnown Limitationsへ記載
+
+## K-8. Media / System
+
+- [x] Media/System専用Action Typeを作らずKeySendを再利用する
+- [x] Volume / Media / Browser / PrintScreen系を初期対象とする
+- [x] Shutdown等の破壊的System Actionを初期標準Actionに含めない
+- [ ] Volume Up / Down / Muteを実装・確認
+- [ ] Play/Pause / Next / Prev / Stopを実装・確認
+- [ ] Browser Back / Forward / Refreshを実装・確認
+- [ ] PrintScreen / Win+Shift+S等を実装・確認
+- [ ] Media/System実機Regressionを追加
+
+## K-9. Multi Action / Delay
+
+- [x] MultiActionはAction ID参照をStep1..Nで順次実行する
+- [x] DelayもActionとして定義する
+- [x] Step番号は1から連続とする
+- [x] Nested MultiActionをPhase K初期実装では禁止
+- [x] 存在しないAction参照 / CycleをValidationで拒否する
+- [x] 同一MultiAction実行中の再入を抑止する
+- [x] Delay中にController全体をCriticalでブロックしない
+- [ ] Delay Actionを実装
+- [ ] MultiAction Executorを実装
+- [ ] MultiAction Validationを実装
+- [ ] 再入抑止を実装
+- [ ] KeySend → Delay → WindowActivate → KeySend等の統合Regressionを追加
+
+## K-10. Out of Scope / Future Work
+
+Phase Kでは実装せず、将来候補としてのみ維持する。
+
+- [x] Tap / Hold / Double Tap
+- [x] Tap Dance
+- [x] マウスClick / Wheel / Cursor操作
+- [x] Keyboard Device単位識別
+- [x] AutoHotInterception等のDriver依存Backend
+
+## K-11. Test / Physical Acceptance
+
+- [ ] ConfigVersion 3正常・異常系Regressionを追加
+- [ ] ConfigVersion 1 / 2拒否Testを追加
+- [ ] Action / Layer参照Validation Testを追加
+- [ ] Virtual00 Logic Testを追加
+- [ ] Window Toggle Testを追加
+- [ ] Launch Fallback / LaunchPending Testを追加
+- [ ] KeySend / Media Testを追加
+- [ ] MultiAction Testを追加
+- [ ] Startup Task Regressionを再実行
+- [ ] GitHub Actions Windows RegressionをPASSさせる
+- [ ] 物理テンキー受入試験を実施
+- [ ] Virtual00のみ実機なしのためN/Aとして記録
+- [ ] Phase K Result文書を作成
+
+## K-12. Documentation / Release Preparation
+
+- [ ] READMEをConfigVersion 3 / Layer / Action中心へ更新
+- [ ] PROJECT_HANDOFFをPhase Kへ同期
+- [ ] KNOWN_LIMITATIONSをPhase K仕様へ同期
+- [ ] CHANGELOGへPhase K変更を追加
+- [ ] 旧ConfigVersion 1 / 2が現行対応のように見える記述を現行文書から削除
+- [ ] Phase A～J文書は過去履歴として原則維持
+- [ ] Public Default / Exampleの秘密情報・個人Path監査
+- [ ] 次Release Versionを決定
+- [ ] Release Ready判定
+
+Phase K完了条件:
+
+- [ ] ConfigVersion 3のみをRuntimeが受け付ける
+- [ ] Physical Key → Layer → Action Dispatcherが正本になる
+- [ ] Virtual00 Logic Test PASS
+- [ ] KeySend / Media/System PASS
+- [ ] Layer PASS
+- [ ] Multi Action PASS
+- [ ] Window Toggle PASS
+- [ ] Launch fallback / LaunchPending PASS
+- [ ] 既存Window Binding / Auto Bind機能を新Action Modelで再構成
+- [ ] Controller / Startup Regression PASS
+- [ ] Virtual00以外のPhase K物理受入 PASS
+- [ ] Documentation整合 PASS
+
+**Phase K現在判定: Design Complete / Implementation Not Started**
+
+---
+
 # 推奨する実行順
 
 大きな依存関係は次の通り。
@@ -716,11 +897,13 @@ Phase H  実機受入試験
 Phase I  初期版完成処理
    ↓
 Phase J  General-purpose Configuration / Public Default
+   ↓
+Phase K  Action / Layer Architecture
 ```
 
 ## 最優先タスク
 
-Phase A～Jは正式完了。v0.3.0 Release Ready判定はPASS。次はTag / GitHub Release作成。
+Phase A～Jは正式完了。Phase Kは設計完了・実装未着手。v0.3.0 Release作業とPhase K実装はそれぞれTASKS記載の状態を正とする。
 
 公開状態:
 
