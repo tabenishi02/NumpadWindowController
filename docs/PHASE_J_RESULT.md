@@ -10,7 +10,7 @@ Phase Jでは、v0.2.xまでユーザー本人の運用環境へ固定されて�
 
 設計・実装・Config移行・自動Regression・Startup Regression・Documentation・公開差分監査は完了している。
 
-残る完了条件はPublic Defaultを物理テンキーで操作する実機受入のみ。
+残る完了条件はPublic Defaultを物理テンキーで操作する実機受入のみ。手順は `docs/PHASE_J_MANUAL_TEST.md` に固定した。
 
 ---
 
