@@ -16,14 +16,17 @@
   - 初回起動時にローカル `KeyBindings.ini` を自動生成
 - `examples/KeyBindings.developer-workflow.ini`
   - v0.2.xまでのChrome / VS Code / Explorer / ChatGPT / PowerShell構成をLegacy Presetとして保存
-- UTF-8 Configuration読込
+- UTF-8 Configuration
   - UTF-8 BOMあり / なし
-  - 既存UTF-16 LE BOMも継続対応
+  - 配布INIをUTF-8 BOMなしへ統一
 - ConfigVersion 2 Migration Guide
 - GitHub Actions Windows Regression Test
 
 ### Changed
 
+- Configuration INIをConfigVersionに関係なくUTF-8前提へ統一
+- UTF-16 LE / BE Configurationの読込サポートを廃止
+- NumLock OFFからの起動時に明示的にONへ遷移してからAlwaysOnを適用
 - Built-in key metadataから個人用Dedicated用途を分離
 - ConfigVersion 2では旧Dedicated Slot 1～9のWindow Mode強制を廃止
 - ConfigVersion 2ではChrome / VS Code Group整合Validationを適用しない
@@ -48,10 +51,12 @@
 - Public ConfigVersion 2 / Legacy ConfigVersion 1 / Virtual000 ON-OFF Regression: PASS
 - Phase J差分のSecret / 個人Path監査: 公開阻害要因なし
 
-### Pending Manual Acceptance
+### Manual Acceptance
 
-- 一般的な物理テンキーによるPublic Default実機受入
-- Virtual000無効時の物理Numpad0即時操作感確認
+- J-PA-1～6: PASS
+- J-PA-7 NumLock lifecycle: 1回目FAIL
+- NumLock force-on処理を修正済み
+- J-PA-7再試験: PENDING
 
 ## v0.2.0 - 2026-09-28
 
