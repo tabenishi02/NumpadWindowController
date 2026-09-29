@@ -116,6 +116,20 @@ Test_Config() {
     Test_Assert(result.Keys["Numpad7"].Mode = "Shortcut",
         "ConfigVersion 2 allows former dedicated slot as Shortcut")
 
+    optIn := Config_Parse(text, "test.ini")
+    optIn["Key-Virtual000"]["Mode"] := "Window"
+    optInResult := Config_Validate(optIn, "test.ini", Config_Metadata(), TestRoot)
+    Test_Assert(optInResult.Keys["Numpad0"].InputStrategy = "ZeroDetector"
+        && optInResult.Keys["Virtual000"].InputStrategy = "ZeroDetector",
+        "ConfigVersion 2 Virtual000 opt-in enables Zero Detector")
+
+    optIn["Key-Numpad0"]["Mode"] := "Disabled"
+    optIn["Key-Numpad0"].Delete("AllowedProcess")
+    optIn["Key-Numpad0"].Delete("AllowedClass")
+    optIn["Key-Numpad0"].Delete("AllowedTitleContains")
+    Test_Throws(() => Config_Validate(optIn, "test.ini", Config_Metadata(), TestRoot),
+        "Virtual000 cannot remain enabled when Numpad0 is Disabled")
+
     legacyText := FileRead(TestRoot "\examples\KeyBindings.developer-workflow.ini", "UTF-8")
     Test_Throws(Test_ValidateText.Bind(StrReplace(StrReplace(legacyText, "`r"),
         "[Key-Numpad7]`nMode=Window", "[Key-Numpad7]`nMode=Disabled")),
