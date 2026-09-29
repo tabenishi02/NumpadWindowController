@@ -15,10 +15,12 @@ The current main branch targets v0.3.0:
 Read:
 
 - `README.md`
-- `docs/MVP_DESIGN.md`
 - `docs/KNOWN_LIMITATIONS.md`
+- `docs/PHASE_J_RESULT.md`
 
-For configuration changes, also read `docs/PHASE_D_SPEC.md`.
+For configuration changes, also read `docs/CONFIG_MIGRATION_V2.md` and `KeyBindings.default.ini`.
+
+`docs/MVP_DESIGN.md` and Phase A～I specifications are retained as v0.1/v0.2 historical design records; do not treat their ConfigVersion 1 / UTF-16 / fixed application mapping as the current v0.3.0 public default.
 
 ## Tests
 
