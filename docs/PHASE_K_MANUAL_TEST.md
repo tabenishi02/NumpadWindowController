@@ -301,6 +301,11 @@ Ctrl + NumpadEnter
 - [x] PASS
 - [ ] FAIL
 
+ActivateThenToggle追加後の再試験:
+
+- [ ] PASS
+- [ ] FAIL
+
 備考:
 
 ---
@@ -354,6 +359,11 @@ Notepadを再度すべて閉じる。
 結果:
 
 - [x] PASS
+- [ ] FAIL
+
+ActivateThenToggle追加後の再試験:
+
+- [ ] PASS
 - [ ] FAIL
 
 備考:
@@ -504,6 +514,11 @@ Ctrl + NumpadEnter
 結果:
 
 - [x] PASS
+- [ ] FAIL
+
+ActivateThenToggle追加後の再試験:
+
+- [ ] PASS
 - [ ] FAIL
 
 備考:
