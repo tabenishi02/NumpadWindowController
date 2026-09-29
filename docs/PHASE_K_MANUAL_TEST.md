@@ -655,12 +655,50 @@ Activation成功後に同じKeyを再度押す。
 - Runtime phaseは永続化されない。
 - 再起動後はActivate phaseから開始する。
 
-結果:
+## F. 未起動状態からのLaunch
+
+Explorer / ChatGPT Desktop / PowerShell 7をそれぞれWindowが存在しない状態にする。
+
+1. 対象Keyを1回押す。
+2. Application Windowが生成されるまで待つ。
+
+期待:
+
+- 1回のKey入力でApplicationをLaunchする。
+- LaunchPending中はControllerを長時間同期Blockしない。
+- Window生成を検出すると自動Bindする。
+- 同じ元のActionとしてActivateを続行する。
+- Activation成功後にToggle phaseへ移行する。
+- 次回Key押下ではActive WindowをMinimizeする。
+
+### 1回目結果
 
 - [ ] PASS
 - [x] FAIL
 
-備考:Explorer、ChatGPT Desktop、PowerShell 7の3つとも、起動していない状態でキーを押しても「No window found:xxx」となってしまう。
+備考:
+
+Explorer、ChatGPT Desktop、PowerShell 7の3つとも、未起動状態でKeyを押すと `No window found: ...` となった。
+
+原因:
+
+- Physical Acceptance Configの3つのWindowGroupに `LaunchTarget` が設定されていなかった。
+- RuntimeのActivateThenToggleはBinding後の状態遷移を実装していたが、未起動Applicationを生成する設定が欠落していた。
+
+修正:
+
+- Explorer: `explorer.exe`
+- ChatGPT Desktop: `explorer.exe shell:AppsFolder\\<ChatGPT AppID>`
+- PowerShell 7: `pwsh.exe`
+- ActivateThenToggleではLaunchPendingがWindow生成を検出後、自動Bind → Activateを続行し、成功後にToggle phaseへ移行する。
+
+### 修正後再試験
+
+- [ ] PASS
+- [ ] FAIL
+
+備考:
+
 
 ---
 
@@ -690,7 +728,7 @@ Physical AcceptanceのPASS条件には含めない。
 | K-PA-9 Auto Bind Strategy | [x] PASS / [ ] FAIL |
 | K-PA-10 Native Pass-through | [x] PASS / [ ] FAIL |
 | K-PA-11 NumLock lifecycle | [x] PASS / [ ] FAIL |
-| K-PA-12 ActivateThenToggle | [ ] PASS / [ ] FAIL |
+| K-PA-12 ActivateThenToggle | 1回目 FAIL / 修正後再試験待ち |
 | Virtual00 physical test | N/A |
 
 Phase K Physical Acceptance PASS条件:
