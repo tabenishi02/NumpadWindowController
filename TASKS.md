@@ -731,7 +731,7 @@ ConfigVersion 1 / 2との後方互換は維持しない。Phase K RuntimeはConf
 
 ## K-3. Window Action再構成
 
-- [x] Window BehaviorをToggle / Activateに分ける
+- [x] Window BehaviorをToggle / Activate / ActivateThenToggleに整理
 - [x] 通常WindowキーはToggle、Multi Action内Window移動はActivateを基本とする
 - [x] Ctrl + Key Manual Bind / Ctrl + Shift + Key Clear / Ctrl + Alt + Key Auto BindをWindow Action上へ再定義
 - [x] Ctrl + NumpadEnter Auto Bind All / Ctrl + Shift + NumpadEnter Clear AllをLayer非依存Global Commandとして維持
@@ -842,8 +842,8 @@ Phase Kでは実装せず、将来候補としてのみ維持する。
   - [x] K-PA-1～11 初回試験 PASS
   - [x] ActivateThenToggle Test Specを追加
   - [x] Physical Acceptance ConfigのExplorer / ChatGPT / PowerShell 7をActivateThenToggleへ変更
-  - [ ] ActivateThenToggle Runtimeを実装
-  - [ ] ATT-01～12 Automated Regressionを通常CIへ統合
+  - [x] ActivateThenToggle Runtimeを実装
+  - [x] ATT-01～12 Automated Regressionを通常CIへ統合
   - [ ] K-PA-4 / 5 / 6 / 9を新Behavior実装後に再試験
   - [ ] K-PA-12 ActivateThenToggle Physical Acceptance PASS
 - [x] Virtual00のみ実機なしのためN/Aとして記録
