@@ -1,5 +1,7 @@
 # Numpad Window Controller - Phase C Specification
 
+> **履歴文書:** 本書のAuto Bind固定Groupはv0.2.xのDeveloper Workflow仕様です。v0.3.0 Public Defaultではbuilt-in Auto Bindを使用せず、旧挙動はLegacy Presetでのみ維持します。
+
 更新日: 2026-09-24  
 対象: MVP / v0.1.0  
 状態: Implemented / Verified  
