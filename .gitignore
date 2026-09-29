@@ -22,6 +22,7 @@ secrets/
 *.p12
 KeyBindings.local.ini
 KeyBindings.private.ini
+KeyBindings.ini
 
 # Editor / OS metadata
 .vscode/
