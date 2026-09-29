@@ -176,10 +176,10 @@ GitHub Actions Windows runner + AutoHotkey v2.0.28で実施。
 
 結果:
 
-- Phase K Controller Regression: **135 assertions PASS**
+- Phase K Controller Regression: **138 assertions PASS**
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
-- Local Windows re-verification (AutoHotkey v2.0.26): **135 assertions PASS** / Startup Preview **24 assertions PASS**
+- Local Windows re-verification (AutoHotkey v2.0.26): **138 assertions PASS** / Startup Preview **24 assertions PASS**
 
 確認内容には以下を含む。
 
@@ -220,7 +220,9 @@ Phase K Runtimeから以下を削除した。
 
 ## 8. Physical Acceptance
 
-Automated RegressionはPASSしたが、物理テンキーを使うPhase K受入は未実施。
+Automated RegressionはPASS済み。K-PA-1～11の初回物理受入もすべてPASSした。
+
+その後、追加仕様として `Behavior=ActivateThenToggle` をPhase Kへ加える方針となったため、Phase K全体のPhysical Acceptanceは再びPendingとして扱う。既存K-PA-1～11のPASS記録は保持し、新Behavior実装後にWindow系再試験とK-PA-12を追加実施する。
 
 手順:
 
@@ -231,6 +233,20 @@ Automated RegressionはPASSしたが、物理テンキーを使うPhase K受入�
 専用Config自体もPhase K Controller RegressionでConfigVersion 3として読み込み検証する。
 
 Virtual00は00キー搭載実機を所有していないためPhysical AcceptanceはNot Executed / N/Aとする。
+
+### 8.1 ActivateThenToggle
+
+追加Test Spec:
+
+`../tests/PHASE_K_ACTIVATE_THEN_TOGGLE_TEST_SPEC.md`
+
+Physical Acceptance Config:
+
+- Explorer / Numpad1 = `ActivateThenToggle`
+- ChatGPT Desktop / Numpad2 = `ActivateThenToggle`
+- PowerShell 7 / Numpad3 = `ActivateThenToggle`
+
+現時点ではRuntime未実装。通常Regressionを意図的に赤くしないため、物理試験Fixtureの構造検証時のみ `ActivateThenToggle` を `Toggle` へ一時正規化している。Runtime実装時にこの一時処理を削除し、ATT-01～12を通常Regressionへ統合する。
 
 ---
 
