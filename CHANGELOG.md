@@ -7,6 +7,7 @@
 ### Added
 
 - Added Window `Behavior=ActivateThenToggle` and its ATT-01～12 regression coverage.
+- Fixed ActivateThenToggle launch fallback for Explorer, ChatGPT Desktop, and PowerShell 7; LaunchPending now continues the original action after the launched window appears.
 - Phase K physical acceptance fixture assigns ActivateThenToggle to Explorer, ChatGPT Desktop, and PowerShell 7 for follow-up acceptance testing.
 
 
@@ -71,7 +72,7 @@ Phase K「Action / Layer Architecture」を実装。
 
 ### Verification
 
-- GitHub Actions Windows + AutoHotkey v2.0.28: **168 assertions PASS**
+- GitHub Actions Windows + AutoHotkey v2.0.28: **183 assertions PASS**
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
 - Phase K変更13ファイルのCredential / Secret / 個人User Path監査: **検出なし**
