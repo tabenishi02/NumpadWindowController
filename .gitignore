@@ -23,6 +23,7 @@ secrets/
 KeyBindings.local.ini
 KeyBindings.private.ini
 KeyBindings.ini
+KeyBindings.*backup*.ini
 
 # Editor / OS metadata
 .vscode/
