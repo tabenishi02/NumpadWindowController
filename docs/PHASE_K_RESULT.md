@@ -66,13 +66,22 @@ Runtime ConfigurationはConfigVersion 3のみをサポートする。ConfigVersi
 - Window Behavior:
   - Toggle
   - Activate
+  - ActivateThenToggle
 
-### Window Toggle
+### Window Behavior
 
-- Active → Minimize
-- Inactive → Activate
-- Minimized → Restore + Activate
-- Behavior=ActivateではActiveでもMinimizeしない
+- Toggle:
+  - Active → Minimize
+  - Inactive → Activate
+  - Minimized → Restore + Activate
+- Activate:
+  - ActiveでもMinimizeしない
+- ActivateThenToggle:
+  - 新規BindingではActivate phase
+  - 最初のActivation成功後にToggle phase
+  - Clear / Manual Rebind / 新規Auto Bind / Controller再起動でActivate phaseへ戻る
+  - 同じ有効Bindingを維持するAuto Bindではphaseを保持
+  - Launch成功だけではToggle phaseへ移行しない
 
 ### Launch fallback
 
@@ -176,10 +185,10 @@ GitHub Actions Windows runner + AutoHotkey v2.0.28で実施。
 
 結果:
 
-- Phase K Controller Regression: **138 assertions PASS**
+- Phase K Controller Regression: **168 assertions PASS**
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
-- Local Windows re-verification (AutoHotkey v2.0.26): **138 assertions PASS** / Startup Preview **24 assertions PASS**
+- Local Windows re-verification (AutoHotkey v2.0.26): **168 assertions PASS** / Startup Preview **24 assertions PASS**
 
 確認内容には以下を含む。
 
@@ -246,7 +255,7 @@ Physical Acceptance Config:
 - ChatGPT Desktop / Numpad2 = `ActivateThenToggle`
 - PowerShell 7 / Numpad3 = `ActivateThenToggle`
 
-現時点ではRuntime未実装。通常Regressionを意図的に赤くしないため、物理試験Fixtureの構造検証時のみ `ActivateThenToggle` を `Toggle` へ一時正規化している。Runtime実装時にこの一時処理を削除し、ATT-01～12を通常Regressionへ統合する。
+Runtime実装済み。物理試験Fixtureは `ActivateThenToggle` をそのままConfigVersion 3として読み込み、ATT-01～12を通常Regressionへ統合済み。
 
 ---
 
@@ -285,4 +294,4 @@ Phase K完了判定は物理受入後にTASKS / PROJECT_HANDOFFへ最終反映�
 
 **Implementation Complete / Automated Regression PASS / Physical Acceptance Pending**
 
-実装上のPhase K残作業は物理受入結果の反映とRelease Ready判定のみ。次Release予定は **v0.4.0**。
+実装上のPhase K残作業はActivateThenToggle追加後のWindow系再試験（K-PA-4 / 5 / 6 / 9）、K-PA-12、結果反映とRelease Ready判定のみ。次Release予定は **v0.4.0**。
