@@ -328,7 +328,7 @@ GitHub Actions Windows + AutoHotkey v2.0.28。
 
 PASS済み:
 
-- Phase K Controller Regression: **123 assertions**
+- Phase K Controller Regression: **127 assertions**
 - Startup Preview Regression: **24 assertions**
 - Startup Task Scheduler Integration Regression: **37 assertions**
 
