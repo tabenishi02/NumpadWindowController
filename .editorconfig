@@ -1,0 +1,4 @@
+root = true
+
+[*.ini]
+charset = utf-8
