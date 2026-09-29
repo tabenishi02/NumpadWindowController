@@ -334,7 +334,7 @@ PASS済み:
 
 対象commit:
 
-`9572c374c9de9090e77053054334674d60178a8b`
+`19ab53569d6fe87015deaffb04af4a830906fb91`
 
 主な確認対象:
 
@@ -423,7 +423,7 @@ Behavior:
 
 `ActivateThenToggle`
 
-K-PA-1～11初回試験はPASS済み。ActivateThenToggle RuntimeとATT-01～12は実装・Automated Regression PASS済み。次はK-PA-4 / 5 / 6 / 9再試験とK-PA-12を実施する。
+K-PA-1～11初回試験はPASS済み。ActivateThenToggle RuntimeとATT-01～12は実装・Automated Regression PASS済み。K-PA-4 / 5 / 6 / 9追加後再試験もPASS済み。次はK-PA-12修正後再試験を実施する。
 
 
 ### K-PA-12 1回目 FAIL / 修正済み
