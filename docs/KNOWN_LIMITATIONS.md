@@ -56,11 +56,13 @@ BackspaceをWindow / Shortcutへ変更すると通常Keyboard側BackspaceもCont
 
 ## 6. 物理NumLockをController Actionとして利用しない
 
-対象実機では物理NumLockをAutoHotkey InputHook / Windows Raw Inputで安定取得できなかった。
+対象実機では物理NumLockをAutoHotkey InputHook / Windows Raw Inputで取得できなかった。
+
+このNumLockキーはテンキー内部の入力切替として機能するが、WindowsへNumLock Keyboard Eventを送信しない。したがって、テンキー側の入力モードとWindows側NumLock状態は独立している。
 
 NumLock自体へController Actionを割り当てない。
 
-実行中のWindows側NumLock状態はON固定し、正常終了時に起動前状態へ戻す。
+実行中のWindows側NumLock状態はON固定し、正常終了時に起動前状態へ戻す。Windows側lifecycleはPhase F R-14で確認済み。
 
 ---
 
