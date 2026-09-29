@@ -845,7 +845,10 @@ Phase Kでは実装せず、将来候補としてのみ維持する。
   - [x] ActivateThenToggle Runtimeを実装
   - [x] ATT-01～12 Automated Regressionを通常CIへ統合
   - [ ] K-PA-4 / 5 / 6 / 9を新Behavior実装後に再試験
-  - [ ] K-PA-12 ActivateThenToggle Physical Acceptance PASS
+  - [x] K-PA-12 1回目 FAIL原因を特定（LaunchTarget未設定 / Launch後continuation不足）
+  - [x] Explorer / ChatGPT / PowerShell 7のLaunch fallbackを修正
+  - [x] LaunchPending後のActivateThenToggle自動Bind / Activate continuationを実装
+  - [ ] K-PA-12 ActivateThenToggle 修正後Physical Acceptance PASS
 - [x] Virtual00のみ実機なしのためN/Aとして記録
 - [x] Phase K Result文書を作成
 
