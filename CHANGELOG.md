@@ -38,6 +38,13 @@ Phase J「General-purpose Configuration / Public Default」を反映した一般
 - Virtual000無効時はZero Detectorを起動せず、Numpad0を通常Hotkeyとして即時処理
 - Public README / Known Limitationsを一般用途中心へ再構成
 
+### Migration Notes
+
+- v0.2.xの既存Git cloneでは `KeyBindings.ini` がtracked fileだったため、現在の設定を残す場合は **git pull前にバックアップ**する
+- v0.2.x以前のUTF-16 LE `KeyBindings.ini` は、v0.3.0で使用する前にUTF-8へ変換する
+- 旧Chrome / VS Code / Explorer / ChatGPT / PowerShell構成を継続する場合は `examples/KeyBindings.developer-workflow.ini` を `KeyBindings.ini` へコピーする
+- 詳細は `docs/CONFIG_MIGRATION_V2.md` を参照
+
 ### Compatibility
 
 - ConfigVersion 1をLegacy Developer Workflowとして引き続きサポート
