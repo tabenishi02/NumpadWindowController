@@ -17,6 +17,7 @@ Windows 11 + AutoHotkey v2で、一般的なテンキーを **Window切替 / Key
   - Auto Bind
   - Toggle（Activeなら最小化、InactiveならActivate）
   - Activate（Activeでも最小化しない）
+  - ActivateThenToggle（新しいBindingでは最初のActivation成功までActivate、その後Toggle）
 - Run Action
 - KeySend
   - Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+Z / Ctrl+S
@@ -174,6 +175,19 @@ Window Actionを解決するKeyでは:
 ### Activate
 
 `Behavior=Activate` は対象WindowがActiveでもMinimizeしません。MultiAction内のWindow移動などに向きます。
+
+### ActivateThenToggle
+
+`Behavior=ActivateThenToggle` は、新しいBindingに対する最初の操作を `Activate` として扱い、そのActivationが成功した後は同じBindingを `Toggle` として扱います。
+
+```text
+New Binding
+→ Activate phase
+→ first successful activation
+→ Toggle phase
+```
+
+Binding Clear、新しいManual Bind、新しいAuto Bind、Controller再起動ではActivate phaseへ戻ります。同じ有効Bindingを維持したAuto Bind AllではToggle phaseを保持します。ApplicationのLaunch成功だけではToggle phaseへ移行せず、対象WindowのActivation成功時に移行します。
 
 ### Global Command
 
