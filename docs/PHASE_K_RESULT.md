@@ -181,7 +181,7 @@ GitHub Actions Windows runner + AutoHotkey v2.0.28で実施。
 
 対象commit:
 
-`076b5cdf05b4777df7800ce9f6f38cae27968126`
+`9572c374c9de9090e77053054334674d60178a8b`
 
 結果:
 
