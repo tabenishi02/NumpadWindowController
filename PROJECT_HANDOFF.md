@@ -10,7 +10,7 @@ Phase A～Jは完了済み。v0.3.0は2026-09-29にGitHub Release済み。
 
 Phase K - Action / Layer Architectureは、設計・実装・ConfigVersion 3移行・Automated Regression・利用者向け文書更新まで完了した。
 
-現在の残作業は **Phase K Physical Acceptance** と、その結果を反映したRelease Ready判定。Phase Kの次Release予定は **v0.4.0** と確定した。
+K-PA-1～11の初回Physical AcceptanceはPASS済み。現在の残作業は **ActivateThenToggle Runtime実装・追加Regression・Window系再試験/K-PA-12** と、その結果を反映したRelease Ready判定。Phase Kの次Release予定は **v0.4.0** と確定した。
 
 現在のVersion / Release関係:
 
@@ -328,7 +328,7 @@ GitHub Actions Windows + AutoHotkey v2.0.28。
 
 PASS済み:
 
-- Phase K Controller Regression: **135 assertions**
+- Phase K Controller Regression: **138 assertions**
 - Startup Preview Regression: **24 assertions**
 - Startup Task Scheduler Integration Regression: **37 assertions**
 
@@ -403,3 +403,24 @@ Virtual00のみN/A。
 7. `TASKS.md`
 
 公開済みTagを後から移動して内容を書き換える運用は採用しない。
+
+
+---
+
+## ActivateThenToggle追加仕様
+
+追加Test Spec:
+
+`tests/PHASE_K_ACTIVATE_THEN_TOGGLE_TEST_SPEC.md`
+
+物理試験ConfigではWindow Layerの次を新Behavior対象とする。
+
+- Numpad1 / Explorer
+- Numpad2 / ChatGPT Desktop
+- Numpad3 / PowerShell 7
+
+Behavior:
+
+`ActivateThenToggle`
+
+K-PA-1～11初回試験はPASS済み。Runtime実装後にATT-01～12、K-PA-4 / 5 / 6 / 9再試験、K-PA-12を実施する。
