@@ -1,7 +1,7 @@
 # Phase J - Public Default Physical Acceptance Test
 
 更新日: 2026-09-29  
-状態: **First run complete / J-PA-7 retest pending**  
+状態: **Complete / J-PA-7 Not Executed (hardware N/A)**  
 対象: ConfigVersion 2 Public Default
 
 ## 1. 目的
@@ -149,16 +149,21 @@ Controllerを再起動。
 
 ## 9. J-PA-7 NumLock lifecycle
 
-手順:
+### 判定
 
-1. Controller起動前のNumLock状態を記録。
-2. Controller起動中にNumLockがONであることを確認。
-3. Trayから正常終了。
+**Not Executed / N/A（対象テンキーの既知ハードウェア仕様）**
 
-期待:
+Phase F R-8 PoCで、この外付けテンキーの物理NumLockはAutoHotkey InputHook / Windows Raw Inputの双方へNumLock Keyboard Eventを送信しないことを確認済み。
 
-- 実行中NumLock ON。
-- 正常終了後、起動前状態へ復元する。
+物理NumLockキー自体はテンキー内部の入力切替として機能するため、テンキー側の入力モードとWindows側NumLock状態は独立している。
+
+したがって、外付けテンキーのNumLockキーを使ってWindows側NumLock lifecycleを確認する試験は成立しない。
+
+Windows側NumLock lifecycleについてはPhase F R-14で、通常Keyboard側NumLock / osk.exeを使用して以下を実機PASS済み。
+
+- 起動前OFF → 実行中ON → 終了後OFF
+- 起動前ON → 実行中ON → 終了後ON
+- 実行中にWindows側NumLockを操作してもON固定
 
 ---
 
@@ -171,13 +176,13 @@ Controllerを再起動。
 - [x] J-PA-3 PASS
 - [x] J-PA-4 PASS
 - [x] J-PA-5 PASS
-- [ ] J-PA-7 RETEST PENDING — 1回目NG: Controller起動前NumLock OFFで起動後もNumLock OFF。`NumLock_ForceOn()` 修正後に再試験する
+- [x] J-PA-7 NOT EXECUTED / N/A — 対象テンキーのNumLockは内部入力切替で、Windows NumLock Eventを送らない既知仕様。Windows側lifecycleはPhase F R-14でPASS済み
 
 000キー搭載機のみ:
 
 - [x] J-PA-6 PASS または対象外としてSKIP記録
 
-必須項目がすべてPASSした時点でPhase Jを正式Closeし、v0.3.0 Release Ready判定を行う。
+J-PA-1～6 PASS、J-PA-7は既知ハードウェア仕様によりNot Executed / N/Aとし、Phase Jの物理受入を完了とする。
 
 ### 10.1 1回目の試験結果
 
@@ -185,11 +190,11 @@ Controllerを再起動。
 
 - J-PA-1～5: PASS
 - J-PA-6: PASS
-- J-PA-7: FAIL
-  - Controller起動前: NumLock OFF
-  - Controller起動後: NumLock OFFのまま
-  - 対応: `SetNumLockState("On")` の後に `SetNumLockState("AlwaysOn")` を適用するよう実装修正
-  - 次回: J-PA-7のみ再試験
+- J-PA-7: 当初FAIL記録
+  - 外付けテンキーNumLockで「OFF」を作って確認したため、Windows側NumLock stateを試験できていなかった
+  - Phase F R-8 / R-14の既存結果と照合し、対象テンキーの内部入力切替による既知ハードウェア仕様と確定
+  - J-PA-7はNot Executed / N/Aへ再分類
+  - 一時的に追加したNumLock workaroundは不要と判断してrevert済み
 
 ## 11. 試験後の復元
 
