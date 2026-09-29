@@ -456,8 +456,11 @@ Config_ValidateAction(id, fields, path, baseDir, groups, layerNames) {
             behavior := "Toggle"
         else if StrLower(behavior) = "activate"
             behavior := "Activate"
+        else if StrLower(behavior) = "activatethentoggle"
+            behavior := "ActivateThenToggle"
         else
-            Config_Error(path, section, "Behavior", behavior, "Expected Toggle or Activate.")
+            Config_Error(path, section, "Behavior", behavior,
+                "Expected Toggle, Activate or ActivateThenToggle.")
 
         strategy := fields.Get("AutoBindStrategy", "None")
         strategies := Config_Map()
@@ -706,7 +709,7 @@ Runtime_Init(config) {
 }
 
 Runtime_Empty() {
-    return {Hwnd: 0, BindingSource: "None"}
+    return {Hwnd: 0, BindingSource: "None", ToggleArmed: false}
 }
 
 Runtime_Copy(state) {
@@ -725,7 +728,9 @@ Runtime_Validate(state, config) {
     for id, slot in state {
         if !config.Actions.Has(id) || config.Actions[id].Type != "Window"
             throw Error("Unexpected Window runtime state: " id)
-        if (slot.BindingSource = "None" && slot.Hwnd != 0)
+        if !slot.HasProp("ToggleArmed")
+            || (slot.ToggleArmed != true && slot.ToggleArmed != false)
+            || (slot.BindingSource = "None" && slot.Hwnd != 0)
             || (slot.BindingSource != "None" && slot.BindingSource != "Auto" && slot.BindingSource != "Manual")
             || (slot.Hwnd = 0 && slot.BindingSource != "None")
             throw Error("Invalid binding state: " id)
@@ -1192,7 +1197,7 @@ Binding_Assign(state, config, actionId, candidate) {
     for oldId, slot in working
         if slot.Hwnd = candidate.Hwnd
             working[oldId] := Runtime_Empty()
-    working[actionId] := {Hwnd: candidate.Hwnd, BindingSource: "Manual"}
+    working[actionId] := {Hwnd: candidate.Hwnd, BindingSource: "Manual", ToggleArmed: false}
     Runtime_Validate(working, config)
     return working
 }
@@ -1290,7 +1295,7 @@ AutoBind_Calculate(config, state, candidates, area, filterGroup := "", filterAct
 
         best := AutoBind_SelectCandidate(action, candidates, used, area)
         if IsObject(best) {
-            working[id] := {Hwnd: best.Hwnd, BindingSource: "Auto"}
+            working[id] := {Hwnd: best.Hwnd, BindingSource: "Auto", ToggleArmed: false}
             used[best.Hwnd] := true
         }
     }
@@ -1347,7 +1352,19 @@ AutoBind_PrimaryThreePaneScore(p, area, order) {
     return Abs(x - 0.3) + Abs(y) + Abs(w - 0.7) + Abs(h - 1)
 }
 
-; === Window action / Toggle ===
+; === Window action / Behavior ===
+
+Window_EffectiveBehavior(behavior, toggleArmed) {
+    if behavior = "ActivateThenToggle"
+        return toggleArmed ? "Toggle" : "Activate"
+    return behavior
+}
+
+Window_ToggleArmedAfterActivation(behavior, current, activationSucceeded) {
+    if behavior = "ActivateThenToggle" && activationSucceeded
+        return true
+    return current
+}
 
 Window_BehaviorDecision(behavior, isActive, minMax) {
     if behavior = "Toggle" && isActive
@@ -1383,7 +1400,8 @@ Action_Window(actionId) {
     hwnd := slot.Hwnd
     try {
         spec := "ahk_id " hwnd
-        decision := Window_BehaviorDecision(action.Behavior, !!WinActive(spec), WinGetMinMax(spec))
+        effectiveBehavior := Window_EffectiveBehavior(action.Behavior, slot.ToggleArmed)
+        decision := Window_BehaviorDecision(effectiveBehavior, !!WinActive(spec), WinGetMinMax(spec))
         if decision = "Minimize" {
             WinMinimize(spec)
             return
@@ -1391,8 +1409,20 @@ Action_Window(actionId) {
         if decision = "RestoreActivate"
             WinRestore(spec)
         WinActivate(spec)
-        if !WinWaitActive(spec, , 0.5)
+        activationSucceeded := !!WinWaitActive(spec, , 0.5)
+        if !activationSucceeded
             throw Error("Foreground activation failed.")
+
+        armed := Window_ToggleArmedAfterActivation(
+            action.Behavior, slot.ToggleArmed, activationSucceeded)
+        if armed != slot.ToggleArmed {
+            working := Runtime_Copy(App.WindowState)
+            if working.Has(actionId) && working[actionId].Hwnd = hwnd {
+                working[actionId].ToggleArmed := armed
+                Runtime_Commit(working)
+                Debug_Log("ActivateThenToggle armed: " actionId)
+            }
+        }
     } catch as err {
         if !Window_IsExistingBindingValid(hwnd, action) && App.WindowState[actionId].Hwnd = hwnd
             Binding_Clear(actionId, false)
