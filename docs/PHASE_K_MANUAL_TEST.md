@@ -1,343 +1,639 @@
 # Phase K - Physical Acceptance Test
 
-更新日: 2026-09-29  
+更新日: 2026-09-30  
 対象: Phase K / ConfigVersion 3  
 状態: **Ready for Manual Test**
 
 ## 1. 目的
 
-Automated Regressionで検証済みのPhase K機能を、実際のテンキー・Desktop Sessionで確認する。
+Phase Kで実装したAction / Layer Architectureを、実際のテンキーとDesktop Sessionで確認する。
 
-Virtual00は00キー搭載実機がないためPhysical Acceptance対象外とし、Logic RegressionのみでN/Aとする。
+この試験では専用Config:
+
+`examples/KeyBindings.phase-k-test.ini`
+
+を使用する。従来のようにPublic Default / Example / Developer Workflowを試験途中で切り替えず、原則として**1つのINIだけでK-PA-1～11を実施する**。
+
+Virtual00は00キー実機を所有していないためPhysical Acceptance対象外とし、Logic Regression PASS / Physical Acceptance N/Aとする。
 
 ---
 
-## 2. 事前準備
+## 2. テストConfigのLayer
 
-1. 最新のPhase K実装を取得する。
-2. 実行中のNumpadWindowControllerを終了する。
-3. 現在のUser Configをバックアップする。
+`NumpadAdd` は全Layer共通のLayer Next。
+
+| Layer | 主用途 |
+|---|---|
+| Window | Developer Workflow相当、Window Toggle、Manual Bind |
+| Edit | Copy / Paste / Cut / Undo / Redo等 |
+| Media | Volume / Media / Browser / Screenshot |
+| Tools | Run / Launch fallback / MultiAction / Virtual000 |
+
+Layer順:
+
+```text
+Window → Edit → Media → Tools → Window
+```
+
+---
+
+## 3. 事前準備
+
+### 3.1 Phase Kブランチを取得
+
+対象Branch:
+
+```text
+phase-k-action-layer-architecture
+```
+
+最新状態へ更新する。
+
+```powershell
+git switch phase-k-action-layer-architecture
+git pull
+```
+
+### 3.2 Controllerを終了
+
+実行中のNumpadWindowControllerを終了する。
+
+### 3.3 現在のUser Configをバックアップ
 
 ```powershell
 Copy-Item .\KeyBindings.ini .\KeyBindings.before-phase-k-test.ini -ErrorAction SilentlyContinue
 ```
 
-4. AutoHotkey v2で `NumpadWindowController.ahk` を起動する。
-
-Configを切り替えた場合はControllerを再起動する。
-
----
-
-## K-PA-1 Public Default / Layer
-
-`KeyBindings.default.ini` をUser Configへコピーする。
+### 3.4 Physical Acceptance Configを適用
 
 ```powershell
-Copy-Item .\KeyBindings.default.ini .\KeyBindings.ini -Force
+Copy-Item .\examples\KeyBindings.phase-k-test.ini .\KeyBindings.ini -Force
 ```
 
-Controllerを再起動。
+### 3.5 Controllerを起動
 
-確認:
-
-1. 起動時にConfiguration Errorが出ない。
-2. 起動時LayerはBase。
-3. `NumpadAdd` を押す。
-4. ToolTipが `Layer: Edit` になる。
-5. 再度押すとMedia。
-6. 再度押すとBase。
+`NumpadWindowController.ahk` をAutoHotkey v2で起動する。
 
 期待:
 
-- Base → Edit → Media → Baseで循環する。
-- Layer切替後もNumpadAddで必ず次Layerへ移動できる。
-
-結果:
-
-- [ ] PASS
-- [ ] FAIL
+- Configuration Errorが出ない
+- 起動時Layerは `Window`
+- Windows側NumLockがONになる
 
 ---
 
-## K-PA-2 KeySend
+# K-PA-1 Layer
 
-Edit Layerへ移動する。
-
-任意のText EditorをActiveにして確認する。
-
-1. Textを入力する。
-2. `Numpad8` → Copy
-3. Cursorを移動する。
-4. `Numpad9` → Paste
-5. `Numpad7` → Undo
-6. `Numpad3` → Redo
+1. 起動直後のLayerが `Window` であることを確認。
+2. `NumpadAdd` を押す。
+3. ToolTipが `Layer: Edit` になることを確認。
+4. 再度押して `Media`。
+5. 再度押して `Tools`。
+6. 再度押して `Window`。
 
 期待:
 
-- Ctrl+C / Ctrl+V / Ctrl+Z / Ctrl+Y相当が動作する。
-- Controller Key自体の文字入力は発生しない。
-
-結果:
-
-- [ ] PASS
-- [ ] FAIL
-
----
-
-## K-PA-3 Media / System
-
-Media Layerへ移動する。
-
-確認:
-
-- `Numpad4`: Volume Down
-- `Numpad5`: Mute
-- `Numpad6`: Volume Up
-- `Numpad7`: Previous
-- `Numpad8`: Play/Pause
-- `Numpad9`: Next
-- `Numpad1`: Browser Back
-- `Numpad2`: Browser Refresh
-- `Numpad3`: Browser Forward
-- `Numpad0`: Win+Shift+S
-
-期待:
-
-- 対応するMedia / Browser / System Shortcutが発火する。
-- Application側が未対応のMedia KeyはController不具合扱いにしない。
-
-結果:
-
-- [ ] PASS
-- [ ] FAIL
-
----
-
-## K-PA-4 Window Toggle
-
-Base Layerへ戻る。
-
-1. 任意WindowをActiveにする。
-2. `Ctrl + Numpad2` でManual Bind。
-3. 別WindowをActiveにする。
-4. `Numpad2`。
-
-期待: Binding WindowがActivate。
-
-5. Binding WindowがActiveの状態でもう一度 `Numpad2`。
-
-期待: Binding WindowがMinimize。
-
-6. もう一度 `Numpad2`。
-
-期待: Restore + Activate。
-
-結果:
-
-- [ ] PASS
-- [ ] FAIL
-
----
-
-## K-PA-5 Manual Bind / Clear / Global Command
-
-Base Layerで確認する。
-
-1. `Ctrl + Numpad7` でWindow AをBind。
-2. `Ctrl + Shift + Numpad7`。
-3. `Numpad7`。
-
-期待: BindingがClearされておりWindow Aへ移動しない。
-
-4. 複数Window ActionへBind。
-5. `Ctrl + Shift + NumpadEnter`。
-6. 各Window Keyを押す。
-
-期待: 全Window BindingがClear。
-
-結果:
-
-- [ ] PASS
-- [ ] FAIL
-
----
-
-## K-PA-6 Launch fallback / LaunchPending
-
-Example Configへ切り替える。
-
-```powershell
-Copy-Item .\examples\KeyBindings.example.ini .\KeyBindings.ini -Force
+```text
+Window → Edit → Media → Tools → Window
 ```
 
-Controllerを再起動。
+- どのLayerからでも `NumpadAdd` が機能する。
+- Layer切替後に操作不能にならない。
+
+結果:
+
+- [ ] PASS
+- [ ] FAIL
+
+備考:
+
+---
+
+# K-PA-2 KeySend
+
+`Edit` Layerへ移動する。
+
+Text EditorをActiveにし、適当な文章を入力する。
+
+| Key | Action |
+|---|---|
+| Numpad7 | Undo |
+| Numpad8 | Copy |
+| Numpad9 | Paste |
+| Numpad4 | Cut |
+| Numpad5 | Select All |
+| Numpad6 | Save |
+| Numpad1 | Find |
+| Numpad2 | Win+Shift+S |
+| Numpad3 | Redo |
+
+最低確認:
+
+1. Textを選択。
+2. `Numpad8` でCopy。
+3. Cursorを移動。
+4. `Numpad9` でPaste。
+5. `Numpad7` でUndo。
+6. `Numpad3` でRedo。
+7. `Numpad4` / `Numpad5` / `Numpad6` / `Numpad1` も確認。
+
+期待:
+
+- 対応するKeyboard Shortcutとして動作する。
+- テンキー本来の数字入力等は発生しない。
+- Controllerが停止しない。
+
+結果:
+
+- [ ] PASS
+- [ ] FAIL
+
+備考:
+
+---
+
+# K-PA-3 Media / System
+
+`Media` Layerへ移動する。
+
+| Key | Action |
+|---|---|
+| Numpad4 | Volume Down |
+| Numpad5 | Volume Mute |
+| Numpad6 | Volume Up |
+| Numpad7 | Previous Track |
+| Numpad8 | Play / Pause |
+| Numpad9 | Next Track |
+| Numpad1 | Browser Back |
+| Numpad2 | Browser Refresh |
+| Numpad3 | Browser Forward |
+| Numpad0 | Win+Shift+S |
+
+期待:
+
+- Volume系はWindows側で反映される。
+- Browser系は対応Browserで動作する。
+- Win+Shift+SでScreenshot UIが起動する。
+- Media Key非対応Applicationで反応しない場合、それ自体はController FAILとしない。
+
+結果:
+
+- [ ] PASS
+- [ ] FAIL
+
+備考:
+
+---
+
+# K-PA-4 Window Toggle / 実Application
+
+`Window` Layerへ戻る。
+
+事前に可能な範囲で以下を起動する。
+
+- Chrome: 3 Window
+- VS Code: 1～3 Window
+- Explorer
+- ChatGPT Desktop
+- Windows Terminal上のPowerShell 7
+
+Window Layer割当:
+
+| Key | Window |
+|---|---|
+| 7 / 8 / 9 | Chrome 1 / 2 / 3 |
+| 4 / 5 / 6 | VS Code 1 / 2 / 3 |
+| 1 | Explorer |
+| 2 | ChatGPT Desktop |
+| 3 | PowerShell 7 |
+
+最初に:
+
+```text
+Ctrl + NumpadEnter
+```
+
+でAuto Bind Allを実行する。
+
+各対象について次を確認する。
+
+1. 別WindowをActiveにする。
+2. 対象Keyを押す。
+3. 対象WindowがActivateされる。
+4. 対象WindowがActiveの状態でもう一度同じKeyを押す。
+5. 対象WindowがMinimizeされる。
+6. もう一度同じKeyを押す。
+7. Restore + Activateされる。
+
+期待:
+
+```text
+Inactive  → Activate
+Active    → Minimize
+Minimized → Restore + Activate
+```
+
+Chrome / VS Code / Explorer / ChatGPT / PowerShell 7について確認する。
+
+結果:
+
+- [ ] PASS
+- [ ] FAIL
+
+備考:
+
+---
+
+# K-PA-5 Manual Bind / Clear / Global Command
+
+`Window` Layerで実施する。
+
+Manual用Key:
+
+| Key | Action |
+|---|---|
+| NumpadDiv | Manual Window 1 |
+| NumpadMult | Manual Window 2 |
+| NumpadSub | Manual Window 3 |
+| NumpadDot | Manual Window Dot |
+
+## 個別Bind / Clear
+
+1. Window AをActiveにする。
+2. `Ctrl + NumpadDiv` でBind。
+3. 別Windowへ移動。
+4. `NumpadDiv` でWindow Aへ戻れることを確認。
+5. `Ctrl + Shift + NumpadDiv` でClear。
+6. 再度 `NumpadDiv` を押す。
+
+期待:
+
+- Clear後はWindow Aへ移動しない。
+
+## Clear All
+
+複数Manual Window ActionをBindする。
+
+```text
+Ctrl + Shift + NumpadEnter
+```
+
+を実行する。
+
+期待:
+
+- 全Window BindingがClearされる。
+- Config自体は変更されない。
+
+Developer Workflowを再構築する場合:
+
+```text
+Ctrl + NumpadEnter
+```
+
+結果:
+
+- [ ] PASS
+- [ ] FAIL
+
+備考:
+
+---
+
+# K-PA-6 Launch fallback / LaunchPending
+
+`Tools` Layerへ移動する。
+
+Tools Layer:
+
+| Key | Action |
+|---|---|
+| NumpadDiv | Run Notepad |
+| NumpadMult | Notepad Window Action |
+| Numpad9 | Copy to Notepad MultiAction |
 
 すべてのNotepad Windowを閉じる。
+
+## Launch fallback
 
 1. `NumpadMult` を1回押す。
 
 期待:
 
-- NotepadがLaunchする。
-- Controllerは長時間固まらない。
+- Notepadが起動する。
+- Controllerは長時間停止しない。
+- 最初の入力で同期的にWindow生成待ちを続けない。
 
-2. Window生成直前にNumpadMultを数回押す。
+## LaunchPending
+
+Notepadを再度すべて閉じる。
+
+1. `NumpadMult` を短時間に複数回押す。
 
 期待:
 
-- LaunchPendingによりNotepadの多重Runが発生しない。
+- Notepadが大量に多重起動しない。
+- Group単位LaunchPendingが重複Runを抑止する。
 
-3. Notepad Windowが存在する状態でBindingをClearし、再度NumpadMult。
+## Existing Window
+
+1. Notepadを1つ起動した状態にする。
+2. `Ctrl + Shift + NumpadMult` でNotepad ActionのBindingをClear。
+3. `NumpadMult` を押す。
 
 期待:
 
-- Group一致Windowが存在するため追加NotepadをLaunchしない。
-- 次回AutoBindで既存Notepadを利用できる。
+- 既存Notepadを候補として利用する。
+- Notepad Windowが存在する場合、新規Notepadを追加Launchしない。
 
 結果:
 
 - [ ] PASS
 - [ ] FAIL
 
----
-
-## K-PA-7 MultiAction / Delay
-
-Example Configのまま確認する。
-
-Text Editorで任意Textを選択し、ClipboardへCopy可能な状態にする。
-
-`Numpad9` = `CopyToNotepad` を実行。
-
-期待順:
-
-1. Copy
-2. 100ms Delay
-3. Notepad Activate
-4. Paste
-
-期待:
-
-- Step順に実行される。
-- 同じKeyを短時間連打しても同一MultiActionが重複実行されにくい。
-- Delay中にController全体が永久に固まらない。
-
-結果:
-
-- [ ] PASS
-- [ ] FAIL
+備考:
 
 ---
 
-## K-PA-8 Virtual000 Regression
+# K-PA-7 MultiAction / Delay
 
-Developer Workflowへ切り替える。
+`Tools` Layerのまま実施する。
 
-```powershell
-Copy-Item .\examples\KeyBindings.developer-workflow.ini .\KeyBindings.ini -Force
+Notepadを1つ起動しておく。
+
+別のText Editorで任意Textを選択する。
+
+`Numpad9` を押す。
+
+設定されている順序:
+
+```text
+Copy
+ ↓
+Delay 100 ms
+ ↓
+Notepad Activate
+ ↓
+Paste
 ```
 
-Controllerを再起動。
-
-所有している000キーで確認する。
-
 期待:
 
-- 000キー1回でVirtual000 Actionが1回発火。
-- Numpad0単押しはNumpad0 Actionとして動作。
-- Ctrlを保持した000入力でも誤Interruptしない。
-- 通常の他Key入力でZero Detectorが異常状態に残らない。
+- 選択TextがClipboardへCopyされる。
+- 約100msのDelay後にNotepadへ移動する。
+- NotepadへPasteされる。
+- Step順序が崩れない。
+- 同じKeyを短時間連打しても同一MultiActionの再入が抑止される。
+- Delay後もControllerが操作可能。
 
 結果:
 
 - [ ] PASS
 - [ ] FAIL
 
+備考:
+
 ---
 
-## K-PA-9 Developer Workflow / Auto Bind
+# K-PA-8 Virtual000 / Numpad0分離
 
-Developer Workflowのまま確認する。
+`Tools` Layerで実施する。
 
-- Chrome 7 / 8 / 9
-- VS Code 4 / 5 / 6
-- Explorer 1
-- ChatGPT 2
-- PowerShell 7 Terminal 3
+このTest Configでは:
+
+```ini
+EnableVirtual00=Off
+EnableVirtual000=On
+```
+
+としている。
+
+Mapping:
+
+```text
+Numpad0    → ZeroWindow
+Virtual000 → TripleZeroWindow
+```
+
+## Single Zero
+
+1. Window AをActive。
+2. `Ctrl + Numpad0` でZeroWindowへBind。
+3. 別Windowへ移動。
+4. `Numpad0` を1回押す。
 
 期待:
 
-- Chrome PrimaryThreePaneが従来配置で割り当てられる。
-- VS CodeはReverseListで最大3Windowを割り当てる。
-- Explorer / ChatGPT / PowerShell条件が動作する。
-- `Ctrl + NumpadEnter` でAuto Bind All。
-- Manual Bindingは有効な限り維持される。
+- Window Aへ移動する。
+
+## Physical 000
+
+1. Window BをActive。
+2. `Ctrl` を保持しながら物理 `000` キーを1回押し、TripleZeroWindowへBind。
+3. 別Windowへ移動。
+4. 物理 `000` キーを1回押す。
+
+期待:
+
+- Window Bへ移動する。
+- 000入力がNumpad0 ×3として3回Action実行されない。
+- Ctrl保持中の000入力が誤Interruptされない。
+
+追加確認:
+
+- 通常Keyを押した後もZero Detectorが異常状態に残らない。
+- Numpad0単押しは引き続きZeroWindowとして動作する。
 
 結果:
 
 - [ ] PASS
 - [ ] FAIL
 
+備考:
+
 ---
 
-## K-PA-10 Native Pass-through / Backspace
+# K-PA-9 Auto Bind Strategy
 
-Public Defaultへ戻す。
+`Window` Layerへ戻る。
 
-Backspaceが未Mappingであることを確認する。
+```text
+Ctrl + Shift + NumpadEnter
+Ctrl + NumpadEnter
+```
 
-1. Text Editorで通常Keyboard Backspaceを押す。
+の順で、全Binding Clear → Auto Bind Allを行う。
+
+確認:
+
+### Chrome
+
+- Primary Monitor上で従来の3-pane配置にする。
+- 7 / 8 / 9が対応位置へ割り当てられる。
+
+期待:
+
+- `PrimaryThreePane` Strategyが動作。
+
+### VS Code
+
+- 複数Windowを起動。
+- 4 / 5 / 6を確認。
+
+期待:
+
+- `ReverseList` Strategyで最大3 Windowを割り当てる。
+- 真の起動順ではなくAuto Bind時点のWinGetList逆順である。
+
+### FirstMatch
+
+- Explorer = 1
+- ChatGPT = 2
+- PowerShell 7 = 3
+
+期待:
+
+- 各Allowed条件に一致するWindowへBindされる。
+- Manual Binding済みActionは有効な限りAuto Bind Allで上書きされない。
+
+結果:
+
+- [ ] PASS
+- [ ] FAIL
+
+備考:
+
+---
+
+# K-PA-10 Native Pass-through / Backspace
+
+BackspaceはTest ConfigのどのLayerにもMappingしていない。
+
+Text Editorで確認する。
+
+1. 通常Keyboard Backspaceを押す。
 2. テンキーBackspaceを押す。
+3. Layerを変更して同じ確認を行う。
 
 期待:
 
-- Controller Actionではなく通常Backspaceとして動作。
-- 起動時Backspace Warningが出ない。
+- いずれもController Actionではなく通常Backspaceとして動作する。
+- 起動時にBackspace Warningが出ない。
 
 結果:
 
 - [ ] PASS
 - [ ] FAIL
 
+備考:
+
 ---
 
-## K-PA-11 NumLock lifecycle
+# K-PA-11 NumLock lifecycle
 
-既知仕様の範囲で確認する。
+Controller起動前のWindows側NumLock状態を記録する。
 
-- Controller実行中Windows側NumLockがON。
-- Controller正常終了後に起動前状態へ復元。
-- テンキー物理NumLockはテンキー内部入力切替として利用可能。
+### 実行中
+
+期待:
+
+- Controller実行中はWindows側NumLockがON。
+
+### 正常終了
+
+Controllerを正常終了する。
+
+期待:
+
+- Windows側NumLockが起動前状態へ復元される。
+
+### 物理NumLock
+
+対象テンキーの物理NumLockを操作する。
+
+期待:
+
+- テンキー内部の入力切替として使用可能。
+- WindowsへNumLock Eventを送らない対象実機の既知仕様と矛盾しない。
 
 結果:
 
 - [ ] PASS
 - [ ] FAIL
 
----
-
-## Virtual00
-
-00キー実機なし。
-
-- Logic Regression: PASS
-- Physical Acceptance: **Not Executed / N/A**
+備考:
 
 ---
 
-## 最終記録
+# Virtual00
 
-- [ ] K-PA-1 PASS
-- [ ] K-PA-2 PASS
-- [ ] K-PA-3 PASS
-- [ ] K-PA-4 PASS
-- [ ] K-PA-5 PASS
-- [ ] K-PA-6 PASS
-- [ ] K-PA-7 PASS
-- [ ] K-PA-8 PASS
-- [ ] K-PA-9 PASS
-- [ ] K-PA-10 PASS
-- [ ] K-PA-11 PASS
-- [x] Virtual00 Physical Acceptance = N/A
+00キー搭載テンキーを所有していないため:
 
-全項目完了後、`docs/PHASE_K_RESULT.md` と `TASKS.md` をPhysical Acceptance PASSへ更新する。
+- [x] Logic Regression = PASS
+- [x] Physical Acceptance = Not Executed / N/A
+
+Physical AcceptanceのPASS条件には含めない。
+
+---
+
+# 4. 最終記録
+
+| Test | Result |
+|---|---|
+| K-PA-1 Layer | [ ] PASS / [ ] FAIL |
+| K-PA-2 KeySend | [ ] PASS / [ ] FAIL |
+| K-PA-3 Media / System | [ ] PASS / [ ] FAIL |
+| K-PA-4 Window Toggle | [ ] PASS / [ ] FAIL |
+| K-PA-5 Manual Bind / Clear | [ ] PASS / [ ] FAIL |
+| K-PA-6 Launch fallback | [ ] PASS / [ ] FAIL |
+| K-PA-7 MultiAction / Delay | [ ] PASS / [ ] FAIL |
+| K-PA-8 Virtual000 | [ ] PASS / [ ] FAIL |
+| K-PA-9 Auto Bind Strategy | [ ] PASS / [ ] FAIL |
+| K-PA-10 Native Pass-through | [ ] PASS / [ ] FAIL |
+| K-PA-11 NumLock lifecycle | [ ] PASS / [ ] FAIL |
+| Virtual00 physical test | N/A |
+
+Phase K Physical Acceptance PASS条件:
+
+- K-PA-1～11がすべてPASS
+- Virtual00はN/A
+- 新しいFAIL / BLOCKEDがない、または既知制限として整理済み
+- Phase K Result / TASKS / PROJECT_HANDOFFへ結果を反映済み
+
+---
+
+# 5. テスト後のUser Config復元
+
+Controllerを終了してから実施する。
+
+バックアップが存在する場合:
+
+```powershell
+Copy-Item .\KeyBindings.before-phase-k-test.ini .\KeyBindings.ini -Force
+```
+
+バックアップが存在しなかった場合は、Test Configを削除し、次回起動時にDefaultを再生成させてもよい。
+
+```powershell
+Remove-Item .\KeyBindings.ini -ErrorAction SilentlyContinue
+```
+
+その後Controllerを再起動する。
+
+---
+
+# 6. FAIL時に記録する情報
+
+FAILが発生した場合は最低限次を記録する。
+
+- Test ID
+- 使用Layer
+- 押したKey / Modifier
+- 期待結果
+- 実際の結果
+- 対象Application
+- 再現回数
+- Controller再起動後も再現するか
+- 必要ならDebug Log
+
+Phase K完了前にFAIL原因を実装不具合 / Test手順不備 / Known Limitationへ分類する。
