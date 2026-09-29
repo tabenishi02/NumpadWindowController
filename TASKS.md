@@ -6,7 +6,7 @@
 
 ## 0. 現在地点
 
-**Phase A～I完了 / ログオン時自動起動統合済み / Release済み。Phase J - General-purpose Configuration / Public Defaultは設計・実装・自動Regressionまで完了し、Public Defaultの物理テンキー実機受入のみpending。最新ReleaseはGitHub Releasesを参照。**
+**Phase A～I完了 / ログオン時自動起動統合済み / Release済み。Phase Jは設計・実装・自動Regression完了。物理受入1回目はJ-PA-1～6 PASS、J-PA-7 NumLock lifecycleのみFAILし修正済み。再試験pending。最新ReleaseはGitHub Releasesを参照。**
 
 完了済み:
 
@@ -596,7 +596,7 @@ Phase I完了条件:
 
 ---
 
-# Phase J - General-purpose Configuration / Public Default 🟡 自動検証完了 / 実機受入pending
+# Phase J - General-purpose Configuration / Public Default 🟡 J-PA-7再試験pending
 
 計画: [Phase J Plan](docs/PHASE_J_PLAN.md)  
 結果: [Phase J Result](docs/PHASE_J_RESULT.md)  
@@ -619,7 +619,7 @@ Phase I完了条件:
 - [x] ConfigVersion 2ではDedicated Slot 1～9の固定制約を廃止
 - [x] Public Defaultのbuilt-in Auto Bindを無効化
 - [x] ConfigVersion 1をLegacy互換、ConfigVersion 2を一般向けとして採用
-- [x] ConfigVersion 2 TemplateをUTF-8化し、UTF-16 LE BOM読込互換を維持
+- [x] Configuration INIをUTF-8前提へ統一し、UTF-16 LE / BEサポートを廃止
 
 ## J-3. Auto Bind / Preset分離
 
@@ -661,7 +661,9 @@ Phase I完了条件:
 - [x] GitHub Actions Windows + AutoHotkey v2.0.28でController Regression **167 assertions PASS**
 - [x] Startup Preview Regression **24 assertions PASS**
 - [x] Startup Task Scheduler Integration Regression **37 assertions PASS**
-- [ ] Public Defaultの物理テンキー実機受入試験を実施
+- [x] Public Default物理受入1回目を実施（J-PA-1～6 PASS / J-PA-7 FAIL）
+- [x] J-PA-7 FAILを受けてNumLock ON強制処理を修正
+- [ ] J-PA-7 NumLock lifecycle再試験
 
 ## J-8. Documentation / Release
 
@@ -683,9 +685,9 @@ Phase J完了条件:
 - [x] v0.2.xからの移行方法が明文化されている
 - [x] 自動Regression / Startup Preview RegressionがPASS
 - [x] 利用者向け・開発者向け文書が新仕様と整合
-- [ ] Public Defaultの物理テンキー実機受入がPASS
+- [ ] J-PA-7再試験を含むPublic Default物理受入が全PASS
 
-**Phase J現在判定: AUTOMATED PASS / Physical Acceptance Pending**
+**Phase J現在判定: AUTOMATED PASS / Physical Acceptance Partial PASS / J-PA-7 Retest Pending**
 
 ---
 
@@ -717,7 +719,7 @@ Phase J  General-purpose Configuration / Public Default
 
 ## 最優先タスク
 
-Phase A～Iは正式完了。Phase Jは設計・実装・自動Regressionまで完了し、Public Defaultの物理テンキー実機受入のみ残っている。
+Phase A～Iは正式完了。Phase Jは設計・実装・自動Regression完了。物理受入はJ-PA-1～6 PASS、J-PA-7修正後再試験のみ残っている。
 
 公開状態:
 
