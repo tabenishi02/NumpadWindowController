@@ -47,7 +47,7 @@ Changes that affect input handling, Auto Bind, NumLock lifecycle, Shortcut execu
 
 ## Configuration Encoding
 
-`KeyBindings.ini` and the distributed example configuration use UTF-16 LE with BOM.
+`KeyBindings.ini` is a local user file and is not tracked. Distributed ConfigVersion 2 templates use UTF-8; the runtime also accepts legacy UTF-16 LE BOM ConfigVersion 1 files.
 
 Do not convert these files to UTF-8 or remove the BOM.
 
@@ -64,7 +64,7 @@ Before committing, verify that changes do not contain:
 
 Use generic examples such as `C:\Scripts\Example.ps1` in documentation.
 
-If you temporarily put personal paths in the tracked `KeyBindings.ini`, restore the public-safe version before committing.
+Do not force-add the ignored local `KeyBindings.ini`. Public examples belong under `examples/`, and personal paths or credentials must not be committed.
 
 ## Pull Requests
 
