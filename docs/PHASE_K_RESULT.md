@@ -176,9 +176,10 @@ GitHub Actions Windows runner + AutoHotkey v2.0.28で実施。
 
 結果:
 
-- Phase K Controller Regression: **123 assertions PASS**
+- Phase K Controller Regression: **127 assertions PASS**
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
+- Local Windows re-verification (AutoHotkey v2.0.26): **127 assertions PASS** / Startup Preview **24 assertions PASS**
 
 確認内容には以下を含む。
 
