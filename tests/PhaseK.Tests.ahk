@@ -132,7 +132,7 @@ Test_Config() {
         "ActivateThenToggle Explorer has launch fallback")
     Test_Assert(physical.WindowGroups["ChatGPT"].LaunchTarget != "",
         "ActivateThenToggle ChatGPT has launch fallback")
-    Test_Assert(InStr(physical.WindowGroups["ChatGPT"].LaunchArguments, "shell:AppsFolder\\"),
+    Test_Assert(InStr(physical.WindowGroups["ChatGPT"].LaunchArguments, "shell:AppsFolder\"),
         "ActivateThenToggle ChatGPT uses AppsFolder launch")
     Test_Assert(physical.WindowGroups["PowerShell"].LaunchTarget != "",
         "ActivateThenToggle PowerShell 7 has launch fallback")
