@@ -79,14 +79,26 @@ Public DefaultではVirtual000をDisabledにする。
 
 ### Encoding
 
-ConfigVersion 2の配布TemplateはUTF-8を使用する。
+Configuration INIはConfigVersionに関係なく **UTF-8** を使用する。
 
-本体は互換性のため次を読み込める。
+本体がサポートするのは:
 
-- UTF-8（BOMあり / なし）
-- UTF-16 LE BOM
+- UTF-8 BOMなし
+- UTF-8 BOMあり
 
-既存ConfigVersion 1をUTF-16 LE BOMのまま利用してもよい。
+のみ。UTF-16 LE / BEはサポートしない。
+
+v0.2.x以前の `KeyBindings.ini` がUTF-16 LEの場合は、Phase J版を起動する前にUTF-8へ変換する。
+
+PowerShellでUTF-8 BOMなしへ変換する例:
+
+```powershell
+$path = (Resolve-Path .\KeyBindings.ini).Path
+$text = Get-Content -LiteralPath $path -Raw
+[IO.File]::WriteAllText($path, $text, [Text.UTF8Encoding]::new($false))
+```
+
+変換後も `ConfigVersion=1` のLegacy Developer Workflow自体は引き続き利用できる。
 
 ## v0.2.xの既存Git cloneを更新する前の注意
 
@@ -101,6 +113,8 @@ Copy-Item .\KeyBindings.ini .\KeyBindings.pre-v0.3.backup.ini
 git pull
 Copy-Item .\KeyBindings.pre-v0.3.backup.ini .\KeyBindings.ini -Force
 ```
+
+バックアップ元がv0.2.xのUTF-16 LEファイルだった場合は、復元後に上記Encoding手順でUTF-8へ変換する。
 
 旧標準Developer Workflowをそのまま使うだけでよい場合は、pull後に次でも復元できる。
 
