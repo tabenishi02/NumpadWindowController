@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  phase-f-regression:
+  controller-regression:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -18,9 +18,9 @@ jobs:
         shell: powershell
         run: choco install autohotkey --version=2.0.28 -y --no-progress
 
-      - name: Run controller tests
+      - name: Run Phase K controller regression
         shell: powershell
-        run: .\tests\Run-PhaseFTests.ps1
+        run: .\tests\Run-PhaseKTests.ps1
 
       - name: Run startup preview tests
         shell: powershell
