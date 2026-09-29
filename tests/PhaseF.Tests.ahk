@@ -178,8 +178,8 @@ Test_Config() {
 
     utf16 := TestTemp "\legacy-utf16.ini"
     FileAppend(legacyText, utf16, "UTF-16")
-    Test_Assert(Config_Load(utf16, Config_Metadata(), TestRoot).Version = 1,
-        "UTF-16 legacy configuration remains supported")
+    Test_Throws(() => Config_Load(utf16, Config_Metadata(), TestRoot),
+        "Reject UTF-16 configuration because UTF-8 is required")
     Test_Throws(() => Config_Load(TestTemp "\missing.ini", Config_Metadata(), TestRoot), "Reject missing file")
     Test_Assert(Config_Absolute("scripts\test.cmd", TestRoot) = TestRoot "\scripts\test.cmd",
         "Relative paths use script directory")
