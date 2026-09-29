@@ -18,6 +18,7 @@ try {
     Test_MultiAction()
     Test_Launch()
     Test_WindowBehavior()
+    Test_ActivateThenToggle()
     Test_Probe()
     FileAppend("PASS " TestCount " assertions (AHK " A_AhkVersion ")`n", "*")
 } catch as err {
@@ -62,15 +63,7 @@ Test_LoadExample() {
 
 Test_LoadPhysicalAcceptance() {
     global TestRoot
-    path := TestRoot "\examples\KeyBindings.phase-k-test.ini"
-    text := FileRead(path, "UTF-8")
-
-    ; ActivateThenToggle is intentionally present in the physical acceptance fixture
-    ; before the runtime implementation lands. Normalize only that new Behavior
-    ; so the existing Phase K regression can continue validating the rest of the
-    ; fixture structure without turning the main suite red during TDD.
-    compatibleText := StrReplace(text, "Behavior=ActivateThenToggle", "Behavior=Toggle")
-    return Config_Validate(Config_Parse(compatibleText, path), path, Config_Metadata(), TestRoot)
+    return Config_Load(TestRoot "\examples\KeyBindings.phase-k-test.ini", Config_Metadata(), TestRoot)
 }
 
 Test_ValidateText(text) {
@@ -119,6 +112,12 @@ Test_Config() {
 
     physical := Test_LoadPhysicalAcceptance()
     Test_Assert(physical.Version = 3, "Physical acceptance config uses ConfigVersion 3")
+    Test_Assert(physical.Actions["Explorer"].Behavior = "ActivateThenToggle",
+        "ATT-01 Explorer ActivateThenToggle accepted")
+    Test_Assert(physical.Actions["ChatGPT"].Behavior = "ActivateThenToggle",
+        "ATT-01 ChatGPT ActivateThenToggle accepted")
+    Test_Assert(physical.Actions["PowerShell7"].Behavior = "ActivateThenToggle",
+        "ATT-01 PowerShell 7 ActivateThenToggle accepted")
     Test_Assert(physical.LayerOrder.Length = 4, "Physical acceptance config has four test layers")
     Test_Assert(physical.DefaultLayer = "Window", "Physical acceptance default layer is Window")
     Test_Assert(!physical.EnableVirtual00 && physical.EnableVirtual000,
@@ -131,6 +130,15 @@ Test_Config() {
         "Physical acceptance config covers launch fallback")
     Test_Assert(!Config_KeyIsControllerMapped(physical, "Backspace"),
         "Physical acceptance config keeps Backspace native")
+
+    lowerBehaviorText := StrReplace(physicalText,
+        "Behavior=ActivateThenToggle", "Behavior=activatethentoggle", , , 1)
+    lowerBehaviorConfig := Test_ValidateText(lowerBehaviorText)
+    Test_Assert(lowerBehaviorConfig.Actions["Explorer"].Behavior = "ActivateThenToggle",
+        "ATT-01 ActivateThenToggle is case-normalized")
+    Test_Throws(Test_ValidateText.Bind(StrReplace(physicalText,
+        "Behavior=ActivateThenToggle", "Behavior=UnknownBehavior", , , 1)),
+        "ATT-01 unknown Window behavior rejected")
 
     text := FileRead(TestRoot "\KeyBindings.default.ini", "UTF-8")
     Test_Throws(Test_ValidateText.Bind(StrReplace(text, "ConfigVersion=3", "ConfigVersion=2")),
@@ -232,7 +240,7 @@ Test_Binding() {
         "One HWND moves between Window Actions")
 
     invalid := Runtime_Copy(moved)
-    invalid["Window7"] := {Hwnd: 101, BindingSource: "Auto"}
+    invalid["Window7"] := {Hwnd: 101, BindingSource: "Auto", ToggleArmed: false}
     Test_Throws(() => Runtime_Validate(invalid, App.Config), "Duplicate HWND rejected")
 
     Runtime_Commit(moved)
@@ -473,6 +481,121 @@ Test_WindowBehavior() {
         "Activate behavior never minimizes active window")
     Test_Assert(Window_BehaviorDecision("Activate", false, -1) = "RestoreActivate",
         "Activate behavior restores minimized window")
+}
+
+Test_AlwaysValid(hwnd, action) {
+    return true
+}
+
+Test_NeverValid(hwnd, action) {
+    return false
+}
+
+Test_ActivateThenToggle() {
+    global App, TestRoot
+
+    App := App_Create()
+    App.Config := Test_LoadPhysicalAcceptance()
+    App.Metadata := Config_Metadata()
+    App.ActiveLayer := "Window"
+    App.WindowState := Runtime_Init(App.Config)
+
+    action := App.Config.Actions["Explorer"]
+    Test_Assert(action.Behavior = "ActivateThenToggle", "ATT-01 behavior loaded")
+    Test_Assert(!App.WindowState["Explorer"].ToggleArmed,
+        "ATT-12 controller startup begins in Activate phase")
+
+    Test_Assert(Window_EffectiveBehavior(action.Behavior, false) = "Activate",
+        "ATT-02 initial phase uses Activate behavior")
+    Test_Assert(Window_BehaviorDecision(
+        Window_EffectiveBehavior(action.Behavior, false), true, 0) = "Activate",
+        "ATT-02 initially active window does not minimize")
+    Test_Assert(Window_BehaviorDecision(
+        Window_EffectiveBehavior(action.Behavior, false), false, 0) = "Activate",
+        "ATT-03 initially inactive window activates")
+    Test_Assert(Window_BehaviorDecision(
+        Window_EffectiveBehavior(action.Behavior, false), false, -1) = "RestoreActivate",
+        "ATT-04 initially minimized window restores and activates")
+
+    armed := Window_ToggleArmedAfterActivation(action.Behavior, false, true)
+    Test_Assert(armed, "ATT-02/03/04 successful activation arms Toggle phase")
+    Test_Assert(Window_EffectiveBehavior(action.Behavior, armed) = "Toggle",
+        "ATT-05 armed phase uses Toggle behavior")
+    Test_Assert(Window_BehaviorDecision(
+        Window_EffectiveBehavior(action.Behavior, armed), true, 0) = "Minimize",
+        "ATT-05 armed active window minimizes")
+    Test_Assert(Window_BehaviorDecision(
+        Window_EffectiveBehavior(action.Behavior, armed), false, 0) = "Activate",
+        "ATT-06 armed inactive window activates")
+    Test_Assert(Window_BehaviorDecision(
+        Window_EffectiveBehavior(action.Behavior, armed), false, -1) = "RestoreActivate",
+        "ATT-06 armed minimized window restores and activates")
+    Test_Assert(!Window_ToggleArmedAfterActivation(action.Behavior, false, false),
+        "ATT-11 failed activation does not arm Toggle phase")
+    Test_Assert(Window_ToggleArmedAfterActivation(action.Behavior, true, false),
+        "ATT-06 armed phase remains armed without a new activation")
+
+    firstCandidate := Test_Candidate(301, "explorer.exe", "CabinetWClass")
+    bound := Binding_Assign(App.WindowState, App.Config, "Explorer", firstCandidate)
+    Test_Assert(bound["Explorer"].Hwnd = 301 && !bound["Explorer"].ToggleArmed,
+        "ATT-08 manual binding starts in Activate phase")
+    bound["Explorer"].ToggleArmed := true
+
+    secondCandidate := Test_Candidate(302, "explorer.exe", "CabinetWClass")
+    rebound := Binding_Assign(bound, App.Config, "Explorer", secondCandidate)
+    Test_Assert(rebound["Explorer"].Hwnd = 302 && !rebound["Explorer"].ToggleArmed,
+        "ATT-08 manual rebind resets Activate phase")
+
+    App.WindowState := rebound
+    App.WindowState["Explorer"].ToggleArmed := true
+    Binding_Clear("Explorer", false)
+    Test_Assert(!App.WindowState["Explorer"].Hwnd && !App.WindowState["Explorer"].ToggleArmed,
+        "ATT-07 binding clear resets Activate phase")
+
+    area := {X: 0, Y: 0, W: 1000, H: 1000, Left: 0, Top: 0, Right: 1000, Bottom: 1000}
+    candidates := [Test_Candidate(401, "explorer.exe", "CabinetWClass")]
+    autoState := AutoBind_Calculate(App.Config, Runtime_Init(App.Config), candidates, area)
+    Test_Assert(autoState["Explorer"].Hwnd = 401 && !autoState["Explorer"].ToggleArmed,
+        "ATT-09 new Auto Bind starts in Activate phase")
+
+    autoState["Explorer"].ToggleArmed := true
+    preserved := AutoBind_Calculate(App.Config, autoState, candidates, area, , ,
+        Test_AlwaysValid)
+    Test_Assert(preserved["Explorer"].Hwnd = 401 && preserved["Explorer"].ToggleArmed,
+        "ATT-09 valid existing Auto Bind preserves Toggle phase")
+
+    replacementCandidates := [Test_Candidate(402, "explorer.exe", "CabinetWClass")]
+    replaced := AutoBind_Calculate(App.Config, autoState, replacementCandidates, area, , ,
+        Test_NeverValid)
+    Test_Assert(replaced["Explorer"].Hwnd = 402 && !replaced["Explorer"].ToggleArmed,
+        "ATT-09 invalid binding replaced in Activate phase")
+
+    exampleText := FileRead(TestRoot "\examples\KeyBindings.example.ini", "UTF-8")
+    launchText := StrReplace(exampleText, "Behavior=Activate",
+        "Behavior=ActivateThenToggle", , , 1)
+    App.Config := Test_ValidateText(launchText)
+    App.WindowState := Runtime_Init(App.Config)
+    Test_Assert(App.Config.Actions["NotepadActivate"].Behavior = "ActivateThenToggle",
+        "ATT-10 launch fixture uses ActivateThenToggle")
+    Test_Assert(Launch_Decide("NotepadActivate", [], 1000) = "Ready",
+        "ATT-10 launch is ready with no matching window")
+    Test_Assert(!App.WindowState["NotepadActivate"].ToggleArmed,
+        "ATT-10 launch decision alone does not arm Toggle phase")
+
+    App.LaunchPending["Notepad"] := {Expires: 2000, Pid: 123}
+    Test_Assert(Launch_Decide("NotepadActivate", [], 1500) = "Pending"
+        && !App.WindowState["NotepadActivate"].ToggleArmed,
+        "ATT-10 LaunchPending keeps Activate phase")
+    App.LaunchPending.Delete("Notepad")
+
+    App.WindowState["NotepadActivate"].ToggleArmed :=
+        Window_ToggleArmedAfterActivation("ActivateThenToggle", false, true)
+    Test_Assert(App.WindowState["NotepadActivate"].ToggleArmed,
+        "ATT-11 first successful post-launch activation arms Toggle phase")
+
+    restarted := Runtime_Init(App.Config)
+    Test_Assert(!restarted["NotepadActivate"].ToggleArmed,
+        "ATT-12 controller restart does not persist Toggle phase")
 }
 
 Test_Probe() {
