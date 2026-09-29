@@ -1,0 +1,23 @@
+name: AutoHotkey Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  phase-f-regression:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install AutoHotkey v2
+        shell: powershell
+        run: choco install autohotkey --version=2.0.28 -y --no-progress
+
+      - name: Run controller tests
+        shell: powershell
+        run: .\tests\Run-PhaseFTests.ps1
