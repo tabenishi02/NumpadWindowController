@@ -1,5 +1,7 @@
 # Numpad Window Controller - Phase D Configuration Specification
 
+> **履歴文書:** 本書はConfigVersion 1 / v0.2.x時点のConfiguration仕様です。v0.3.0ではConfigVersion 2、UTF-8、User Config分離へ移行しています。現行仕様はREADMEと`CONFIG_MIGRATION_V2.md`を参照してください。
+
 更新日: 2026-09-24  
 対象: MVP / v0.1.0  
 状態: Implemented / Verified  
