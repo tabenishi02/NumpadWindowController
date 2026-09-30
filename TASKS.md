@@ -848,7 +848,10 @@ Phase Kでは実装せず、将来候補としてのみ維持する。
   - [x] K-PA-12 1回目 FAIL原因を特定（LaunchTarget未設定 / Launch後continuation不足）
   - [x] Explorer / ChatGPT / PowerShell 7のLaunch fallbackを修正
   - [x] LaunchPending後のActivateThenToggle自動Bind / Activate continuationを実装
-  - [ ] K-PA-12 ActivateThenToggle 修正後Physical Acceptance PASS
+  - [x] K-PA-12 2回目: Explorer / ChatGPT PASS、PowerShell 7 FAIL（複数Window生成）
+  - [x] PowerShell 7 Launchを pwsh.exe 直起動から wt.exe -w new へ変更
+  - [x] PowerShell 7単一Window起動条件をRegressionへ追加
+  - [ ] K-PA-12 ActivateThenToggle 3回目Physical Acceptance PASS
 - [x] Virtual00のみ実機なしのためN/Aとして記録
 - [x] Phase K Result文書を作成
 
