@@ -4,7 +4,81 @@
 
 ## [Unreleased]
 
-現在、次Release向けの記録なし。
+### Added
+
+- Added Window `Behavior=ActivateThenToggle` and its ATT-01～12 regression coverage.
+- Fixed ActivateThenToggle launch fallback for Explorer, ChatGPT Desktop, and PowerShell 7; LaunchPending now continues the original action after the launched window appears.
+- Changed PowerShell 7 launch from direct `pwsh.exe` to `wt.exe -w new ...` so one Windows Terminal window is created explicitly.
+- Phase K physical acceptance fixture assigns ActivateThenToggle to Explorer, ChatGPT Desktop, and PowerShell 7 for follow-up acceptance testing.
+
+
+Phase K「Action / Layer Architecture」を実装。
+
+### Added
+
+- ConfigVersion 3
+  - Physical Key → Global Mapping → Active Layer → Action Dispatcher
+  - RuntimeはConfigVersion 3のみをサポート
+- Action Type
+  - Window
+  - Run
+  - KeySend
+  - LayerSwitch
+  - Delay
+  - MultiAction
+  - Disabled
+- Layer
+  - DefaultLayer / LayerOrder
+  - Global Key Mapping
+  - Set / Next
+- Window Toggle
+  - Active Window再押下でMinimize
+  - Inactive / Minimized WindowはActivate / Restore + Activate
+- WindowGroup / Application Launch fallback
+  - Group一致Window 0件の場合のみLaunch
+  - Group単位LaunchPending / Timeout
+- Virtual00
+  - Virtual00 / Virtual000を同一Zero Detectorで処理
+- KeySend
+  - Ctrl / Shift / Alt / Win
+  - Function / Navigation / Volume / Media / Browser / PrintScreen系
+- MultiAction / Delay
+  - 連続Step Validation
+  - Nested MultiAction拒否
+  - 実行中再入抑止
+- `tests/PhaseK.Tests.ahk`
+- `tests/Run-PhaseKTests.ps1`
+
+### Changed
+
+- Window Runtime Bindingの正本をPhysical Key / SlotからWindow Action IDへ変更
+- Public DefaultをBase / Edit / Mediaの3 Layer構成へ更新
+- Developer Workflow ExampleをConfigVersion 3へ移行
+- Auto Bindを `None / FirstMatch / ReverseList / PrimaryThreePane` Strategyとして再定義
+- 未Mapping KeyはNative Inputを通す方式へ変更
+- README / Known LimitationsをConfigVersion 3中心へ更新
+- Controller CIをPhase K Regressionへ更新
+
+### Removed
+
+- ConfigVersion 1 / 2 Runtime互換読込
+- ConfigVersion 1 / 2専用Validation / Regression
+- 旧 `tests/PhaseF.Tests.ahk` / `Run-PhaseFTests.ps1`
+
+### Compatibility
+
+- v0.3.0以前のUser Configは手動でConfigVersion 3へ移行が必要
+- Startup Task方式は変更なし
+- Phase A～J文書・Release Tagは過去仕様の履歴として保持
+
+### Verification
+
+- GitHub Actions Windows + AutoHotkey v2.0.28: **187 assertions PASS**
+- Startup Preview Regression: **24 assertions PASS**
+- Startup Task Scheduler Integration Regression: **37 assertions PASS**
+- Phase K Release Ready再監査（現行差分16ファイル）: **PASS** - 実Credential / 実ユーザーPath検出なし
+- Physical Acceptance: **PASS** - K-PA-1～12 complete; Virtual00 physical test N/A
+- ActivateThenToggle K-PA-12 third attempt: **PASS**
 
 ## v0.3.0 - 2026-09-29
 
