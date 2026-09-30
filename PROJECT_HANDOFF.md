@@ -2,7 +2,7 @@
 
 更新日: 2026-09-29  
 対象: NumpadWindowController  
-状態: **Phase K Implementation Complete / Automated Regression PASS / Physical Acceptance Pending**
+状態: **Phase K Complete / v0.4.0 Release Ready**
 
 ## 現在地点
 
@@ -10,7 +10,7 @@ Phase A～Jは完了済み。v0.3.0は2026-09-29にGitHub Release済み。
 
 Phase K - Action / Layer Architectureは、設計・実装・ConfigVersion 3移行・Automated Regression・利用者向け文書更新まで完了した。
 
-K-PA-1～11の初回Physical AcceptanceはPASS済み。ActivateThenToggle RuntimeとATT-01～12 Automated Regressionも実装・PASS済み。K-PA-4 / 5 / 6 / 9再試験はPASS済み。K-PA-12 1回目はLaunch設定不足、2回目はPowerShell 7の複数Window生成でFAIL。Explorer / ChatGPTは2回目PASS。PowerShell 7を `wt.exe -w new` に変更し単一Window生成をProbe済み。現在の残作業は **K-PA-12 3回目再試験** と、その結果を反映したRelease Ready判定。Phase Kの次Release予定は **v0.4.0** と確定した。
+K-PA-1～11、ActivateThenToggle追加後のK-PA-4 / 5 / 6 / 9再試験、K-PA-12 3回目までPhysical AcceptanceはすべてPASS。Virtual00のみ実機なしN/A。Phase Kは実装・Regression・Physical Acceptance・文書整合まで完了し、**v0.4.0 Release Ready**。
 
 現在のVersion / Release関係:
 
@@ -20,7 +20,7 @@ K-PA-1～11の初回Physical AcceptanceはPASS済み。ActivateThenToggle Runtim
 - `v0.2.0`: ログオン時自動起動追加
 - `v0.2.1`: Release後ドキュメント同期
 - `v0.3.0`: Phase J Public Default / Configuration一般化
-- `v0.4.0`: **Phase K Action / Layer Architecture（予定、Physical Acceptance待ち）**
+- `v0.4.0`: **Phase K Action / Layer Architecture（Release Ready / 未Release）**
 - Phase K: 次Release向けUnreleased
 
 License: MIT
@@ -358,7 +358,7 @@ PASS済み:
 
 ## Physical Acceptance
 
-未実施。
+**PASS - 完了。**
 
 手順:
 
@@ -384,11 +384,11 @@ Virtual00のみN/A。
 
 ## 次の作業
 
-1. `docs/PHASE_K_MANUAL_TEST.md` に従い、`examples/KeyBindings.phase-k-test.ini` を使って実機受入を実施
-2. 結果を `docs/PHASE_K_RESULT.md` へ反映
-3. `TASKS.md` のPhysical Acceptance完了条件を更新
-4. v0.4.0 Release Ready監査
-5. Tag / GitHub Release
+1. PR #1をmainへmerge
+2. mainの最終CI / 文書整合を確認
+3. v0.4.0 Tag / GitHub Releaseを作成
+
+Phase K自体の残タスクはない。
 
 ---
 
@@ -423,7 +423,7 @@ Behavior:
 
 `ActivateThenToggle`
 
-K-PA-1～11初回試験はPASS済み。ActivateThenToggle RuntimeとATT-01～12は実装・Automated Regression PASS済み。K-PA-4 / 5 / 6 / 9追加後再試験もPASS済み。次はK-PA-12修正後再試験を実施する。
+K-PA-1～11、K-PA-4 / 5 / 6 / 9追加後再試験、K-PA-12 3回目までPASS。ActivateThenToggle Physical Acceptanceは完了。
 
 
 ### K-PA-12 1回目 FAIL / 修正済み
@@ -453,4 +453,4 @@ K-PA-1～11初回試験はPASS済み。ActivateThenToggle RuntimeとATT-01～12�
 - 同等コマンドの実機Probeで新規Top-level Window 1個を確認
 - Regressionへ起動Command条件を追加
 
-次: K-PA-12 3回目再試験。
+3回目: **PASS**。PowerShell 7は単一Windows Terminal Windowの起動・Activate・Toggleを確認。
