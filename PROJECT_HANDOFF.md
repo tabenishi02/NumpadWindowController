@@ -334,7 +334,7 @@ PASS済み:
 
 対象commit:
 
-`19ab53569d6fe87015deaffb04af4a830906fb91`
+`61f45ca3af5dbd05565a07b74ec5a18b64131231`
 
 主な確認対象:
 
