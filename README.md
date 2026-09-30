@@ -189,7 +189,16 @@ New Binding
 
 Binding Clear、新しいManual Bind、新しいAuto Bind、Controller再起動ではActivate phaseへ戻ります。同じ有効Bindingを維持したAuto Bind AllではToggle phaseを保持します。
 
-`Behavior` 自体はApplicationの起動先を定義しません。対象Windowが0件の状態から起動したい場合は、参照する `WindowGroup` に `LaunchTarget` を設定する必要があります。`ActivateThenToggle` でLaunch fallbackが発生した場合は、Window生成をLaunchPendingで検出し、自動Bind → Activateを続行し、Activation成功後にToggle phaseへ移行します。
+`Behavior` 自体はApplicationの起動先を定義しません。対象Windowが0件の状態から起動したい場合は、参照する `WindowGroup` に `LaunchTarget` を設定する必要があります。
+
+Windows TerminalでPowerShell 7を1 Windowとして起動する場合は、`pwsh.exe` 直起動ではなく次のようにWindows Terminalを明示的に起動できます。
+
+```ini
+LaunchTarget=wt.exe
+LaunchArguments=-w new new-tab --title "PowerShell 7" pwsh.exe -NoExit
+```
+
+`-w new` により新規Windows Terminal Windowを明示し、`--title` をWindowGroupのTitle条件と一致させます。`ActivateThenToggle` でLaunch fallbackが発生した場合は、Window生成をLaunchPendingで検出し、自動Bind → Activateを続行し、Activation成功後にToggle phaseへ移行します。
 
 ### Global Command
 
