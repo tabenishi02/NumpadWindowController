@@ -2,7 +2,7 @@
 
 更新日: 2026-09-30  
 対象: Phase K / ConfigVersion 3  
-状態: **Ready for Manual Test**
+状態: **PASS - Physical Acceptance Complete**
 
 ## 1. 目的
 
@@ -777,17 +777,19 @@ Physical AcceptanceのPASS条件には含めない。
 | K-PA-9 Auto Bind Strategy | [x] PASS / [ ] FAIL |
 | K-PA-10 Native Pass-through | [x] PASS / [ ] FAIL |
 | K-PA-11 NumLock lifecycle | [x] PASS / [ ] FAIL |
-| K-PA-12 ActivateThenToggle | 1回目 FAIL / 2回目 FAIL / 3回目再試験待ち |
+| K-PA-12 ActivateThenToggle | [x] PASS（3回目） / 1・2回目FAILは履歴保持 |
 | Virtual00 physical test | N/A |
 
 Phase K Physical Acceptance PASS条件:
 
-- 既存K-PA-1～11の初回試験結果を保持
-- ActivateThenToggle実装後、K-PA-4 / K-PA-5 / K-PA-6 / K-PA-9を再確認
-- K-PA-12がPASS
-- Virtual00はN/A
-- 新しいFAIL / BLOCKEDがない、または既知制限として整理済み
-- Phase K Result / TASKS / PROJECT_HANDOFFへ結果を反映済み
+- [x] K-PA-1～11の初回試験結果を保持
+- [x] ActivateThenToggle実装後、K-PA-4 / K-PA-5 / K-PA-6 / K-PA-9を再確認
+- [x] K-PA-12 3回目 PASS
+- [x] Virtual00は実機なしのためN/A
+- [x] 新しいFAIL / BLOCKEDなし
+- [x] Phase K Result / TASKS / PROJECT_HANDOFFへ結果を反映
+
+**Phase K Physical Acceptance最終判定: PASS**
 
 ---
 
