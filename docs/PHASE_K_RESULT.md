@@ -1,7 +1,7 @@
 # Phase K - Action / Layer Architecture Result
 
 更新日: 2026-09-29  
-状態: **Implementation Complete / Automated Regression PASS / Physical Acceptance Pending**
+状態: **Phase K Complete / Automated Regression PASS / Physical Acceptance PASS / Release Ready**
 
 ## 1. 概要
 
@@ -231,7 +231,7 @@ Phase K Runtimeから以下を削除した。
 
 Automated RegressionはPASS済み。K-PA-1～11の初回物理受入もすべてPASSした。
 
-その後、追加仕様として `Behavior=ActivateThenToggle` をPhase Kへ加えた。既存K-PA-1～11のPASS記録は保持し、K-PA-4 / 5 / 6 / 9の追加後再試験もPASS済み。K-PA-12は1回目FAIL（Launch設定不足）、2回目FAIL（PowerShell 7で複数Window生成）まで確認し、2回目の原因修正後3回目再試験待ち。
+その後、追加仕様として `Behavior=ActivateThenToggle` をPhase Kへ加えた。既存K-PA-1～11のPASS記録は保持し、K-PA-4 / 5 / 6 / 9の追加後再試験もPASS済み。K-PA-12は1回目FAIL（Launch設定不足）、2回目FAIL（PowerShell 7で複数Window生成）を経て修正し、3回目試験でPASS。Phase K Physical Acceptanceは完了した。
 
 手順:
 
@@ -290,7 +290,19 @@ K-PA-12 1回目はFAIL。
 - ユーザー環境で同等起動をProbeし、新規Top-level Windowが1個のみ生成されることを確認
 - RegressionへWindows Terminal単一Window起動Config条件を追加
 
-現在はK-PA-12 3回目再試験待ち。
+K-PA-12 3回目はPASS。Explorer / ChatGPT Desktop / PowerShell 7の未起動状態からのLaunch、Activate、以降Toggleまで実機確認完了。
+
+### 8.2 Physical Acceptance最終結果
+
+- K-PA-1～11: PASS
+- K-PA-4 / 5 / 6 / 9 ActivateThenToggle追加後再試験: PASS
+- K-PA-12:
+  - 1回目: FAIL / LaunchTarget不足
+  - 2回目: FAIL / PowerShell 7複数Window生成
+  - 3回目: **PASS**
+- Virtual00: Logic Regression PASS / Physical Acceptance N/A
+
+**Phase K Physical Acceptance: PASS**
 
 ---
 
@@ -327,6 +339,6 @@ Phase K完了判定は物理受入後にTASKS / PROJECT_HANDOFFへ最終反映�
 
 ## 11. 現在判定
 
-**Implementation Complete / Automated Regression PASS / Physical Acceptance Pending**
+**PASS - Phase K Complete / v0.4.0 Release Ready**
 
-実装上のPhase K残作業はK-PA-12 3回目再試験、結果反映とRelease Ready判定のみ。次Release予定は **v0.4.0**。
+Phase Kの実装・自動Regression・Physical Acceptance・文書整合はすべて完了。次Release予定は **v0.4.0** で、Release Ready判定は **PASS**。
