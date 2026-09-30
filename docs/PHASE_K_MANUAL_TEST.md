@@ -695,9 +695,9 @@ Explorer、ChatGPT Desktop、PowerShell 7の3つとも、未起動状態でKey�
 ### 修正後再試験
 
 - [ ] PASS
-- [ ] FAIL
+- [x] FAIL
 
-備考:
+備考:エクスプローラー、ChatGPTデスクトップはOK。PowerShellはウィンドウが複数立ち上がる。
 
 
 ---
