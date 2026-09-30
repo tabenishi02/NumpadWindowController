@@ -221,7 +221,7 @@ Behavior=ActivateThenToggle
 
 - Explorer / Numpad1 / LaunchTarget=explorer.exe
 - ChatGPT Desktop / Numpad2 / AppsFolder経由
-- PowerShell 7 / Numpad3 / LaunchTarget=pwsh.exe
+- PowerShell 7 / Numpad3 / `wt.exe -w new new-tab --title "PowerShell 7" pwsh.exe -NoExit`
 
 Test Config:
 
@@ -239,9 +239,9 @@ Runtime実装完了後、暫定的な `ActivateThenToggle → Toggle` 正規化�
 
 結果:
 
-- Local Windows / AutoHotkey v2.0.26: **183 assertions PASS**
-- GitHub Actions / AutoHotkey v2.0.28: **183 assertions PASS**
+- Local Windows / AutoHotkey v2.0.26: **187 assertions PASS**
+- GitHub Actions / AutoHotkey v2.0.28: **187 assertions PASS**
 - Startup Preview: **24 assertions PASS**
 - Startup Task Scheduler Integration: **37 assertions PASS**
 
-残作業はK-PA-4 / 5 / 6 / 9のWindow系再試験と、K-PA-12の物理受入。
+K-PA-4 / 5 / 6 / 9は追加後再試験PASS済み。K-PA-12はPowerShell 7の単一Window起動修正後、3回目物理再試験待ち。
