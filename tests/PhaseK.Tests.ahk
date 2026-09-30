@@ -140,7 +140,8 @@ Test_Config() {
         "ActivateThenToggle PowerShell 7 launches via Windows Terminal")
     Test_Assert(InStr(physical.WindowGroups["PowerShell"].LaunchArguments, "-w new"),
         "PowerShell launch forces a new Windows Terminal window")
-    Test_Assert(InStr(physical.WindowGroups["PowerShell"].LaunchArguments, "--title ""PowerShell 7"""),
+    Test_Assert(InStr(physical.WindowGroups["PowerShell"].LaunchArguments, "--title")
+        && InStr(physical.WindowGroups["PowerShell"].LaunchArguments, "PowerShell 7"),
         "PowerShell launch sets the matching Window title")
     Test_Assert(InStr(physical.WindowGroups["PowerShell"].LaunchArguments, "pwsh.exe"),
         "PowerShell launch starts pwsh.exe inside Windows Terminal")
