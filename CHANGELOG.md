@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+現時点で未リリース変更なし。
+
+## v0.4.0 - 2026-09-30
+
+Phase K「Action / Layer Architecture」を反映したRelease。
+
 ### Added
 
 - Added Window `Behavior=ActivateThenToggle` and its ATT-01～12 regression coverage.
@@ -11,8 +17,6 @@
 - Changed PowerShell 7 launch from direct `pwsh.exe` to `wt.exe -w new ...` so one Windows Terminal window is created explicitly.
 - Phase K physical acceptance fixture assigns ActivateThenToggle to Explorer, ChatGPT Desktop, and PowerShell 7 for follow-up acceptance testing.
 
-
-Phase K「Action / Layer Architecture」を実装。
 
 ### Added
 

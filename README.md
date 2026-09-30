@@ -555,7 +555,7 @@ RepositoryはPublicです。
 - `v0.2.0`: ログオン時自動起動追加
 - `v0.2.1`: Release後ドキュメント同期
 - `v0.3.0`: Phase J Public Default / Configuration一般化
-- Phase K: ConfigVersion 3 / Action / Layer Architecture（次Release向け）
+- Phase K: ConfigVersion 3 / Action / Layer Architecture（v0.4.0でRelease）
 
 公開済みTagは後から移動しません。最新の安定ReleaseはGitHub Releasesを参照してください。
 

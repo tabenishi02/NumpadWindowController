@@ -107,7 +107,7 @@ USB HID上の独立したKeypad 00 / Keypad 000 Usageを直接送る製品はPha
 - Logic Regression: 実施
 - 物理00受入: Not Executed / N/A
 
-Virtual000は既存000キー実機で過去検証済みだが、Phase K実装後の最終物理Regressionは別途実施する。
+Virtual000はPhase KのK-PA-8で物理実機Regression PASS済み。
 
 ---
 

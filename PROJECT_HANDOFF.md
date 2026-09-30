@@ -2,15 +2,15 @@
 
 更新日: 2026-09-29  
 対象: NumpadWindowController  
-状態: **Phase K Complete / v0.4.0 Release Ready**
+状態: **Phase K Complete / v0.4.0 Released**
 
 ## 現在地点
 
-Phase A～Jは完了済み。v0.3.0は2026-09-29にGitHub Release済み。
+Phase A～Kは完了済み。v0.4.0は2026-09-30にGitHub Release済み。
 
 Phase K - Action / Layer Architectureは、設計・実装・ConfigVersion 3移行・Automated Regression・利用者向け文書更新まで完了した。
 
-K-PA-1～11、ActivateThenToggle追加後のK-PA-4 / 5 / 6 / 9再試験、K-PA-12 3回目までPhysical AcceptanceはすべてPASS。Virtual00のみ実機なしN/A。Phase Kは実装・Regression・Physical Acceptance・文書整合まで完了し、**v0.4.0 Release Ready**。
+K-PA-1～11、ActivateThenToggle追加後のK-PA-4 / 5 / 6 / 9再試験、K-PA-12 3回目までPhysical AcceptanceはすべてPASS。Virtual00のみ実機なしN/A。Phase Kは実装・Regression・Physical Acceptance・文書整合・Releaseまで完了した。
 
 現在のVersion / Release関係:
 
@@ -20,8 +20,7 @@ K-PA-1～11、ActivateThenToggle追加後のK-PA-4 / 5 / 6 / 9再試験、K-PA-1
 - `v0.2.0`: ログオン時自動起動追加
 - `v0.2.1`: Release後ドキュメント同期
 - `v0.3.0`: Phase J Public Default / Configuration一般化
-- `v0.4.0`: **Phase K Action / Layer Architecture（Release Ready / 未Release）**
-- Phase K: 次Release向けUnreleased
+- `v0.4.0`: **Phase K Action / Layer Architecture（2026-09-30 Release）**
 
 License: MIT
 
@@ -384,11 +383,9 @@ Virtual00のみN/A。
 
 ## 次の作業
 
-1. PR #1をmainへmerge
-2. mainの最終CI / 文書整合を確認
-3. v0.4.0 Tag / GitHub Releaseを作成
+Phase K / v0.4.0のRelease作業は完了。
 
-Phase K自体の残タスクはない。
+Phase K自体の残タスクはない。今後はv0.4.0で見つかった不具合へのPatch対応、または次Phaseの設計を必要に応じて行う。
 
 Release Ready再監査: PASS
 - Phase K現行差分16ファイルを再走査

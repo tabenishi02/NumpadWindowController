@@ -6,7 +6,7 @@
 
 ## 0. 現在地点
 
-**Phase A～K完了。Phase Kは設計・実装・自動Regression・Physical AcceptanceまでPASSし、v0.4.0 Release Ready。最新安定Releaseはv0.3.0。**
+**Phase A～K完了。Phase Kはv0.4.0としてGitHub Release済み。最新安定ReleaseはGitHub Releasesを参照。**
 
 > Phase A～Iの各項目はv0.1/v0.2系を作った時点の履歴であり、Chrome固定割り当て・ConfigVersion 1・UTF-16等の記述は現行v0.3.0仕様を示さない。現行仕様はPhase J、README、`docs/KNOWN_LIMITATIONS.md` を正とする。
 
@@ -882,7 +882,7 @@ Phase K完了条件:
 - [x] Virtual00以外のPhase K物理受入 PASS
 - [x] Documentation整合 PASS
 
-**Phase K最終判定: PASS - 完了 / v0.4.0 Release Ready**
+**Phase K最終判定: PASS - 完了 / v0.4.0 Release済み**
 
 ---
 
@@ -916,7 +916,7 @@ Phase K  Action / Layer Architecture
 
 ## 最優先タスク
 
-Phase A～Kは正式完了。Phase Kはv0.4.0 Release Ready。v0.3.0は公開済み。
+Phase A～Kは正式完了。Phase Kはv0.4.0として公開済み。
 
 公開状態:
 
@@ -938,6 +938,8 @@ Phase A～Kは正式完了。Phase Kはv0.4.0 Release Ready。v0.3.0は公開済
 - [x] v0.3.0向けPhase J一般化を実装
 - [x] v0.3.0 Release Ready判定: PASS
 - [x] v0.3.0 Tag / GitHub Releaseを作成
+- [x] v0.4.0 Release Ready判定: PASS
+- [x] v0.4.0 Tag / GitHub Releaseを作成
 
 ---
 

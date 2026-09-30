@@ -1,7 +1,7 @@
 # Phase K - Action / Layer Architecture Result
 
 更新日: 2026-09-29  
-状態: **Phase K Complete / Automated Regression PASS / Physical Acceptance PASS / Release Ready**
+状態: **Phase K Complete / Automated Regression PASS / Physical Acceptance PASS / v0.4.0 Released**
 
 ## 1. 概要
 
@@ -323,7 +323,7 @@ K-PA-12 3回目はPASS。Explorer / ChatGPT Desktop / PowerShell 7の未起動�
 **Release Ready Audit: PASS**
 
 
-Phase K変更ファイル13件を対象に以下を確認した。
+Phase K主要変更ファイル13件を対象に初回監査を実施し、以下を確認した。
 
 - Private key pattern
 - GitHub token pattern
@@ -348,12 +348,24 @@ Exampleに含まれる絶対PathはWindows標準 `C:\Windows\System32\notepad.ex
 - examples
 - Controller Regression
 
-Phase K完了判定は物理受入後にTASKS / PROJECT_HANDOFFへ最終反映する。
+Physical Acceptance完了後、TASKS / PROJECT_HANDOFFへの最終反映まで完了した。
 
 ---
 
 ## 11. 現在判定
 
-**PASS - Phase K Complete / v0.4.0 Release Ready**
+**PASS - Phase K Complete / v0.4.0 Released**
 
-Phase Kの実装・自動Regression・Physical Acceptance・文書整合はすべて完了。次Release予定は **v0.4.0** で、Release Ready判定は **PASS**。
+Phase Kの実装・自動Regression・Physical Acceptance・文書整合・Releaseはすべて完了。**v0.4.0** を2026-09-30にReleaseした。
+
+
+---
+
+## 11. Release
+
+- Version: **v0.4.0**
+- Release date: **2026-09-30**
+- Phase K: **Complete**
+- Automated Regression: **PASS**
+- Physical Acceptance: **PASS**
+- Release Ready Audit: **PASS**
