@@ -10,7 +10,7 @@ Phase A～Jは完了済み。v0.3.0は2026-09-29にGitHub Release済み。
 
 Phase K - Action / Layer Architectureは、設計・実装・ConfigVersion 3移行・Automated Regression・利用者向け文書更新まで完了した。
 
-K-PA-1～11の初回Physical AcceptanceはPASS済み。ActivateThenToggle RuntimeとATT-01～12 Automated Regressionも実装・PASS済み。K-PA-4 / 5 / 6 / 9再試験はPASS済み。K-PA-12 1回目は未起動ApplicationのLaunch設定不足でFAILしたが、LaunchTarget追加とLaunchPending continuationを修正済み。現在の残作業は **K-PA-12修正後再試験** と、その結果を反映したRelease Ready判定。Phase Kの次Release予定は **v0.4.0** と確定した。
+K-PA-1～11の初回Physical AcceptanceはPASS済み。ActivateThenToggle RuntimeとATT-01～12 Automated Regressionも実装・PASS済み。K-PA-4 / 5 / 6 / 9再試験はPASS済み。K-PA-12 1回目はLaunch設定不足、2回目はPowerShell 7の複数Window生成でFAIL。Explorer / ChatGPTは2回目PASS。PowerShell 7を `wt.exe -w new` に変更し単一Window生成をProbe済み。現在の残作業は **K-PA-12 3回目再試験** と、その結果を反映したRelease Ready判定。Phase Kの次Release予定は **v0.4.0** と確定した。
 
 現在のVersion / Release関係:
 
@@ -328,7 +328,7 @@ GitHub Actions Windows + AutoHotkey v2.0.28。
 
 PASS済み:
 
-- Phase K Controller Regression: **183 assertions**
+- Phase K Controller Regression: **187 assertions**
 - Startup Preview Regression: **24 assertions**
 - Startup Task Scheduler Integration Regression: **37 assertions**
 
@@ -439,4 +439,18 @@ K-PA-1～11初回試験はPASS済み。ActivateThenToggle RuntimeとATT-01～12�
 - PowerShell 7: pwsh.exe
 - Window生成後の自動Bind → Activate → Toggle phase移行
 
-次: K-PA-12修正後再試験。
+### K-PA-12 2回目 FAIL / 修正済み
+
+- Explorer: PASS
+- ChatGPT Desktop: PASS
+- PowerShell 7: FAIL（複数Window生成）
+
+原因: `pwsh.exe` 直起動ではWindows Terminal Window数を保証できなかった。
+
+修正:
+
+- PowerShell 7: `wt.exe -w new new-tab --title "PowerShell 7" pwsh.exe -NoExit`
+- 同等コマンドの実機Probeで新規Top-level Window 1個を確認
+- Regressionへ起動Command条件を追加
+
+次: K-PA-12 3回目再試験。
