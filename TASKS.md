@@ -693,7 +693,7 @@ Phase J完了条件:
 ---
 
 
-# Phase K - Action / Layer Architecture 🚧 実装・自動Regression完了 / 物理受入待ち
+# Phase K - Action / Layer Architecture ✅ 完了
 
 設計: [Phase K Action / Layer Architecture Design](docs/PHASE_K_DESIGN.md)
 
@@ -838,7 +838,7 @@ Phase Kでは実装せず、将来候補としてのみ維持する。
 - [x] MultiAction Testを追加
 - [x] Startup Task Regressionを再実行
 - [x] GitHub Actions Windows RegressionをPASSさせる
-- [ ] 物理テンキー受入試験を完了
+- [x] 物理テンキー受入試験を完了
   - [x] K-PA-1～11 初回試験 PASS
   - [x] ActivateThenToggle Test Specを追加
   - [x] Physical Acceptance ConfigのExplorer / ChatGPT / PowerShell 7をActivateThenToggleへ変更
@@ -851,7 +851,7 @@ Phase Kでは実装せず、将来候補としてのみ維持する。
   - [x] K-PA-12 2回目: Explorer / ChatGPT PASS、PowerShell 7 FAIL（複数Window生成）
   - [x] PowerShell 7 Launchを pwsh.exe 直起動から wt.exe -w new へ変更
   - [x] PowerShell 7単一Window起動条件をRegressionへ追加
-  - [ ] K-PA-12 ActivateThenToggle 3回目Physical Acceptance PASS
+  - [x] K-PA-12 ActivateThenToggle 3回目Physical Acceptance PASS
 - [x] Virtual00のみ実機なしのためN/Aとして記録
 - [x] Phase K Result文書を作成
 
@@ -865,7 +865,7 @@ Phase Kでは実装せず、将来候補としてのみ維持する。
 - [x] Phase A～J文書は過去履歴として原則維持
 - [x] Public Default / Exampleの秘密情報・個人Path監査
 - [x] 次Release Versionを **v0.4.0** に決定
-- [ ] Release Ready判定（Physical Acceptance完了後）
+- [x] Release Ready判定: **PASS**
 
 Phase K完了条件:
 
@@ -879,10 +879,10 @@ Phase K完了条件:
 - [x] Launch fallback / LaunchPending PASS
 - [x] 既存Window Binding / Auto Bind機能を新Action Modelで再構成
 - [x] Controller / Startup Regression PASS
-- [ ] Virtual00以外のPhase K物理受入 PASS
+- [x] Virtual00以外のPhase K物理受入 PASS
 - [x] Documentation整合 PASS
 
-**Phase K現在判定: Implementation Complete / Automated Regression PASS / Physical Acceptance Pending**
+**Phase K最終判定: PASS - 完了 / v0.4.0 Release Ready**
 
 ---
 
@@ -916,7 +916,7 @@ Phase K  Action / Layer Architecture
 
 ## 最優先タスク
 
-Phase A～Jは正式完了。Phase Kは設計・実装・自動Regression完了、物理テンキー受入待ち。v0.3.0は公開済み。
+Phase A～Kは正式完了。Phase Kはv0.4.0 Release Ready。v0.3.0は公開済み。
 
 公開状態:
 
