@@ -77,7 +77,8 @@ Phase K「Action / Layer Architecture」を実装。
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
 - Phase K変更13ファイルのCredential / Secret / 個人User Path監査: **検出なし**
-- Physical Acceptance: **K-PA-1～11 initial PASS / ActivateThenToggle follow-up pending**
+- Physical Acceptance: **PASS** - K-PA-1～12 complete; Virtual00 physical test N/A
+- ActivateThenToggle K-PA-12 third attempt: **PASS**
 
 ## v0.3.0 - 2026-09-29
 
