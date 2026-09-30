@@ -185,10 +185,10 @@ GitHub Actions Windows runner + AutoHotkey v2.0.28で実施。
 
 結果:
 
-- Phase K Controller Regression: **183 assertions PASS**
+- Phase K Controller Regression: **187 assertions PASS**
 - Startup Preview Regression: **24 assertions PASS**
 - Startup Task Scheduler Integration Regression: **37 assertions PASS**
-- Local Windows re-verification (AutoHotkey v2.0.26): **183 assertions PASS** / Startup Preview **24 assertions PASS**
+- Local Windows re-verification (AutoHotkey v2.0.26): **187 assertions PASS** / Startup Preview **24 assertions PASS**
 
 確認内容には以下を含む。
 
@@ -231,7 +231,7 @@ Phase K Runtimeから以下を削除した。
 
 Automated RegressionはPASS済み。K-PA-1～11の初回物理受入もすべてPASSした。
 
-その後、追加仕様として `Behavior=ActivateThenToggle` をPhase Kへ加えた。既存K-PA-1～11のPASS記録は保持し、K-PA-4 / 5 / 6 / 9の追加後再試験もPASS済み。K-PA-12のみ1回目FAIL後の修正済み再試験待ち。
+その後、追加仕様として `Behavior=ActivateThenToggle` をPhase Kへ加えた。既存K-PA-1～11のPASS記録は保持し、K-PA-4 / 5 / 6 / 9の追加後再試験もPASS済み。K-PA-12は1回目FAIL（Launch設定不足）、2回目FAIL（PowerShell 7で複数Window生成）まで確認し、2回目の原因修正後3回目再試験待ち。
 
 手順:
 
@@ -273,11 +273,24 @@ K-PA-12 1回目はFAIL。
 
 - Explorer = `explorer.exe`
 - ChatGPT Desktop = AppsFolder経由
-- PowerShell 7 = `pwsh.exe`
+- PowerShell 7 = `wt.exe -w new new-tab --title "PowerShell 7" pwsh.exe -NoExit`
 - LaunchPendingへ元Action IDを保持し、Window生成後に自動Bind → Activate → Toggle phase移行を実装
 - ATT Regressionへ3対象のLaunch fallback / continuation確認を追加
 
-修正後のK-PA-12再試験待ち。
+2回目K-PA-12ではExplorer / ChatGPT DesktopはPASS、PowerShell 7のみFAIL。PowerShell 7で複数Windowが生成された。
+
+原因:
+
+- `LaunchTarget=pwsh.exe` はPowerShellプロセスの起動であり、PowerShell 7用Windows Terminal Windowを1つだけ生成する保証がなかった。
+
+追加修正:
+
+- `LaunchTarget=wt.exe`
+- `LaunchArguments=-w new new-tab --title "PowerShell 7" pwsh.exe -NoExit`
+- ユーザー環境で同等起動をProbeし、新規Top-level Windowが1個のみ生成されることを確認
+- RegressionへWindows Terminal単一Window起動Config条件を追加
+
+現在はK-PA-12 3回目再試験待ち。
 
 ---
 
@@ -316,4 +329,4 @@ Phase K完了判定は物理受入後にTASKS / PROJECT_HANDOFFへ最終反映�
 
 **Implementation Complete / Automated Regression PASS / Physical Acceptance Pending**
 
-実装上のPhase K残作業はK-PA-12修正後再試験、結果反映とRelease Ready判定のみ。次Release予定は **v0.4.0**。
+実装上のPhase K残作業はK-PA-12 3回目再試験、結果反映とRelease Ready判定のみ。次Release予定は **v0.4.0**。
