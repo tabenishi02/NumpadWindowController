@@ -743,7 +743,7 @@ Controllerを再起動後、Explorer / ChatGPT Desktop / PowerShell 7のWindow�
 
 結果:
 
-- [ ] PASS
+- [x] PASS
 - [ ] FAIL
 
 備考:
