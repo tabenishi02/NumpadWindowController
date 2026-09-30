@@ -685,19 +685,68 @@ Explorer、ChatGPT Desktop、PowerShell 7の3つとも、未起動状態でKey�
 - Physical Acceptance Configの3つのWindowGroupに `LaunchTarget` が設定されていなかった。
 - RuntimeのActivateThenToggleはBinding後の状態遷移を実装していたが、未起動Applicationを生成する設定が欠落していた。
 
-修正:
+1回目修正:
 
 - Explorer: `explorer.exe`
 - ChatGPT Desktop: `explorer.exe shell:AppsFolder\\<ChatGPT AppID>`
 - PowerShell 7: `pwsh.exe`
 - ActivateThenToggleではLaunchPendingがWindow生成を検出後、自動Bind → Activateを続行し、成功後にToggle phaseへ移行する。
 
-### 修正後再試験
+### 2回目結果
 
 - [ ] PASS
 - [x] FAIL
 
-備考:エクスプローラー、ChatGPTデスクトップはOK。PowerShellはウィンドウが複数立ち上がる。
+備考:
+
+- Explorer: PASS
+- ChatGPT Desktop: PASS
+- PowerShell 7: FAIL
+- PowerShell 7では1回の試験で複数Windowが生成された。
+
+原因:
+
+- `LaunchTarget=pwsh.exe` はPowerShellプロセスを直接起動するだけで、WindowGroupが期待する「PowerShell 7用Windows Terminal Windowを1つ生成する」ことを保証しない。
+- Windows 11の既定Terminal連携へ委ねたため、Windows TerminalのWindow生成数・Title・Hosting方法が安定しなかった。
+
+2回目修正:
+
+```ini
+LaunchTarget=wt.exe
+LaunchArguments=-w new new-tab --title "PowerShell 7" pwsh.exe -NoExit
+```
+
+- `wt.exe` を明示的に使用する。
+- `-w new` で新しいWindows Terminal Windowを1つ要求する。
+- `--title "PowerShell 7"` でWindowGroupの `MatchTitleContains=PowerShell 7` と確実に一致させる。
+- ユーザー環境で同等コマンドをProbeし、1回の起動で新規Top-level Windowが **1個** だけ生成されることを確認済み。
+
+### 3回目再試験
+
+試験前に最新Fixtureを必ず再適用する。
+
+```powershell
+git pull
+Copy-Item .\examples\KeyBindings.phase-k-test.ini .\KeyBindings.ini -Force
+```
+
+Controllerを再起動後、Explorer / ChatGPT Desktop / PowerShell 7のWindowが存在しない状態から各Keyを1回押す。
+
+期待:
+
+- Explorer: 1 Windowのみ起動しActivate
+- ChatGPT Desktop: 1 Windowのみ起動しActivate
+- PowerShell 7: **Windows Terminal Windowが1個だけ**起動しActivate
+- PowerShell 7のTitleに `PowerShell 7` を含む
+- Activation成功後はToggle phaseへ移行
+- 次回Key押下でMinimize、次回でRestore + Activate
+
+結果:
+
+- [ ] PASS
+- [ ] FAIL
+
+備考:
 
 
 ---
@@ -728,7 +777,7 @@ Physical AcceptanceのPASS条件には含めない。
 | K-PA-9 Auto Bind Strategy | [x] PASS / [ ] FAIL |
 | K-PA-10 Native Pass-through | [x] PASS / [ ] FAIL |
 | K-PA-11 NumLock lifecycle | [x] PASS / [ ] FAIL |
-| K-PA-12 ActivateThenToggle | 1回目 FAIL / 修正後再試験待ち |
+| K-PA-12 ActivateThenToggle | 1回目 FAIL / 2回目 FAIL / 3回目再試験待ち |
 | Virtual00 physical test | N/A |
 
 Phase K Physical Acceptance PASS条件:
