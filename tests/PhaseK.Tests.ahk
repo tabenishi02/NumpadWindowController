@@ -136,6 +136,14 @@ Test_Config() {
         "ActivateThenToggle ChatGPT uses AppsFolder launch")
     Test_Assert(physical.WindowGroups["PowerShell"].LaunchTarget != "",
         "ActivateThenToggle PowerShell 7 has launch fallback")
+    Test_Assert(InStr(StrLower(physical.WindowGroups["PowerShell"].LaunchTarget), "wt.exe"),
+        "ActivateThenToggle PowerShell 7 launches via Windows Terminal")
+    Test_Assert(InStr(physical.WindowGroups["PowerShell"].LaunchArguments, "-w new"),
+        "PowerShell launch forces a new Windows Terminal window")
+    Test_Assert(InStr(physical.WindowGroups["PowerShell"].LaunchArguments, "--title ""PowerShell 7"""),
+        "PowerShell launch sets the matching Window title")
+    Test_Assert(InStr(physical.WindowGroups["PowerShell"].LaunchArguments, "pwsh.exe"),
+        "PowerShell launch starts pwsh.exe inside Windows Terminal")
     Test_Assert(!Config_KeyIsControllerMapped(physical, "Backspace"),
         "Physical acceptance config keeps Backspace native")
 
