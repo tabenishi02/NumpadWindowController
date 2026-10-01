@@ -1367,9 +1367,11 @@ Window_ToggleArmedAfterActivation(behavior, current, activationSucceeded) {
 }
 
 Window_BehaviorDecision(behavior, isActive, minMax) {
+    if minMax = -1
+        return "RestoreActivate"
     if behavior = "Toggle" && isActive
         return "Minimize"
-    return minMax = -1 ? "RestoreActivate" : "Activate"
+    return "Activate"
 }
 
 Action_Window(actionId) {
