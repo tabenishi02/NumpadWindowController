@@ -492,6 +492,8 @@ Test_WindowBehavior() {
         "Toggle active window minimizes")
     Test_Assert(Window_BehaviorDecision("Toggle", false, -1) = "RestoreActivate",
         "Toggle minimized window restores and activates")
+    Test_Assert(Window_BehaviorDecision("Toggle", true, -1) = "RestoreActivate",
+        "Toggle minimized window restores even if reported active")
     Test_Assert(Window_BehaviorDecision("Toggle", false, 0) = "Activate",
         "Toggle inactive normal window activates")
     Test_Assert(Window_BehaviorDecision("Activate", true, 0) = "Activate",
