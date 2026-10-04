@@ -2,7 +2,8 @@
 
 Windows 11 + AutoHotkey v2で、一般的なテンキーを **Window切替 / Keyboard Shortcut / Media操作 / Layer / Macro** 用の左手デバイスとして使うControllerです。
 
-**最新安定Release: GitHub Releasesを参照**  
+**最新安定Release: v0.4.1**
+
 **License: MIT**
 
 現在の `main` 系開発では Phase K「Action / Layer Architecture」を採用し、Runtime Configurationは **ConfigVersion 3のみ**をサポートします。ConfigVersion 1 / 2は過去Release・Git履歴・Phase文書から参照できますが、現行Runtimeでは読み込みません。
@@ -530,7 +531,7 @@ GitHub ActionsのWindows runnerでもAutoHotkey v2 Regressionを実行します�
 - Config Hot Reloadなし
 - HWND Bindingは永続化しない
 - Keyboard Device単位識別なし
-- Virtual00の物理実機受入は未実施
+- Virtual00は00キー搭載実機なしのため物理受入N/A（Logic Regression PASS）
 - 管理者権限ApplicationへのKeySend / Window操作にはWindows権限分離の制限あり
 - Tap / Hold / Double Tap、Mouse ActionはPhase K対象外
 
@@ -561,6 +562,7 @@ RepositoryはPublicです。
 - `v0.2.1`: Release後ドキュメント同期
 - `v0.3.0`: Phase J Public Default / Configuration一般化
 - Phase K: ConfigVersion 3 / Action / Layer Architecture（v0.4.0でRelease）
+- `v0.4.1`: Window Toggle復元修正
 
 公開済みTagは後から移動しません。最新の安定ReleaseはGitHub Releasesを参照してください。
 

@@ -100,12 +100,12 @@ USB HID上の独立したKeypad 00 / Keypad 000 Usageを直接送る製品はPha
 
 ---
 
-## 10. Virtual00物理実機受入は未実施
+## 10. Virtual00物理実機受入はN/A
 
 現時点で00キー搭載テンキーを所有していないため:
 
 - Logic Regression: 実施
-- 物理00受入: Not Executed / N/A
+- 物理00受入: 00キー搭載実機がないためN/A（未完了タスクには含めない）
 
 Virtual000はPhase KのK-PA-8で物理実機Regression PASS済み。
 

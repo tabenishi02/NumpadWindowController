@@ -4,7 +4,11 @@
 
 ## [Unreleased]
 
-現時点で未リリース変更なし。
+### Documentation
+
+- 残タスク監査を実施し、Open Issue / Pull Request、GitHub Security設定、Secret scanning alert、Release、Actionsの現在状態を文書へ反映。
+- Phase K追加試験仕様の古い「3回目物理再試験待ち」をPASS済みへ修正。
+- Virtual00物理受入を、00キー搭載実機なしによるN/Aとして明確化。
 
 ## v0.4.1 - 2026-10-04
 

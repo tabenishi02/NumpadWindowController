@@ -6,7 +6,7 @@
 
 ## 0. 現在地点
 
-**Phase A～K完了。v0.4.0のWindow Toggle復元不具合を修正し、v0.4.1 Maintenance Releaseへ反映。最新安定ReleaseはGitHub Releasesを参照。**
+**Phase A～K完了。v0.4.0のWindow Toggle復元不具合を修正し、v0.4.1 Maintenance Releaseへ反映。未完了タスクなし。**
 
 > Phase A～Iの各項目はv0.1/v0.2系を作った時点の履歴であり、Chrome固定割り当て・ConfigVersion 1・UTF-16等の記述は現行v0.3.0仕様を示さない。現行仕様はPhase K、README、`docs/KNOWN_LIMITATIONS.md` を正とする。
 
@@ -932,7 +932,7 @@ Phase K  Action / Layer Architecture
 
 ## 最優先タスク
 
-Phase A～Kは正式完了。Phase Kはv0.4.0として公開済み。
+Phase A～Kは正式完了。Phase Kはv0.4.0、保守修正はv0.4.1として公開済み。2026-10-04の残タスク監査で、未完了Issue / Pull Request / 実装・試験・Release作業がないことを確認した。
 
 公開状態:
 
@@ -942,20 +942,27 @@ Phase A～Kは正式完了。Phase Kはv0.4.0として公開済み。
 - `v0.2.0`: ログオン時自動起動追加
 - `v0.2.1`: Release後ドキュメント同期
 - `v0.3.0`: Phase J Public Default / Configuration一般化
+- `v0.4.0`: Phase K Action / Layer Architecture
+- `v0.4.1`: Window Toggle復元修正
 
 `v0.1.0` は自動起動実装前の初回MVP Release。自動起動を含む実装は `v0.2.0` としてRelease済み。
 
-必要に応じた後続作業:
+完了確認:
 
 - [x] v0.2.0 Tag / GitHub Releaseを作成
-- [ ] Public RepositoryのPrivate vulnerability reporting設定を確認
-- [ ] GitHub Secret scanning alertを確認
-- [ ] v0.2.x bugfix
+- [x] Public RepositoryのPrivate vulnerability reporting設定を確認（2026-10-04時点: Disabled、`SECURITY.md`で報告経路を案内）
+- [x] GitHub Secret scanning alertを確認（Secret Protection / Push Protection有効、Open 0件）
+- [x] v0.2.x後続保守を終了（v0.3.0以降へ移行、v0.4.1までRelease済み）
 - [x] v0.3.0向けPhase J一般化を実装
 - [x] v0.3.0 Release Ready判定: PASS
 - [x] v0.3.0 Tag / GitHub Releaseを作成
 - [x] v0.4.0 Release Ready判定: PASS
 - [x] v0.4.0 Tag / GitHub Releaseを作成
+- [x] v0.4.1 Tag / GitHub Releaseを作成
+- [x] Open Issue 0件 / Open Pull Request 0件を確認
+- [x] 最新main GitHub Actions `AutoHotkey Tests` PASSを確認
+
+**現在の未完了タスク: なし**
 
 ---
 
@@ -983,8 +990,8 @@ GitHub Repository操作:
 
 - [x] VisibilityをPrivateからPublicへ変更
 - [x] Tag / Release `v0.1.0` を作成
-- [ ] Private vulnerability reporting設定を確認
-- [ ] Secret scanning alertを確認
+- [x] Private vulnerability reporting設定を確認（2026-10-04時点: Disabled）
+- [x] Secret scanning alertを確認（Secret Protection / Push Protection有効、Open 0件）
 
 監査詳細: [Public Release Audit](docs/PUBLIC_RELEASE_AUDIT.md)
 

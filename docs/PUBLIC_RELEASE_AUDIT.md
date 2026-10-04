@@ -281,3 +281,21 @@ Phase J完了後、v0.3.0公開前に現行文書とRelease条件を再監査し
 **v0.3.0 Release Ready: PASS**
 
 Tag / GitHub Releaseは、この監査完了後のcurrent `main` を対象として作成する。
+
+---
+
+## 15. 2026-10-04 残タスク監査
+
+GitHubのRepository画面と現行mainを再確認した。
+
+- Repository visibility: Public
+- Latest Release: v0.4.1
+- Open Issue: 0件
+- Open Pull Request: 0件
+- 最新main GitHub Actions `AutoHotkey Tests`: PASS
+- Secret Protection: Enabled
+- Push Protection: Enabled
+- Open Secret scanning alert: 0件
+- Private vulnerability reporting: Disabled（設定状態確認済み、`SECURITY.md`で報告経路を案内）
+
+Phase A～K、v0.4.1 Maintenance、公開・試験・文書同期は完了している。現時点の未完了タスクはない。

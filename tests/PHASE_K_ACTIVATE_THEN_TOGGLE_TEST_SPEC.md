@@ -244,4 +244,4 @@ Runtime実装完了後、暫定的な `ActivateThenToggle → Toggle` 正規化�
 - Startup Preview: **24 assertions PASS**
 - Startup Task Scheduler Integration: **37 assertions PASS**
 
-K-PA-4 / 5 / 6 / 9は追加後再試験PASS済み。K-PA-12はPowerShell 7の単一Window起動修正後、3回目物理再試験待ち。
+K-PA-4 / 5 / 6 / 9は追加後再試験PASS済み。K-PA-12もPowerShell 7の単一Window起動修正後、3回目物理再試験でPASS済み。Phase K Physical Acceptanceは完了している。

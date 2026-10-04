@@ -2,7 +2,7 @@
 
 更新日: 2026-10-04  
 対象: NumpadWindowController  
-状態: **Phase K Complete / v0.4.1 Maintenance Released**
+状態: **Phase K Complete / v0.4.1 Maintenance Released / 未完了タスクなし**
 
 ## 現在地点
 
@@ -387,7 +387,19 @@ Virtual00のみN/A。
 
 Phase K / v0.4.0のRelease作業は完了。
 
-Phase K自体の残タスクはない。今後はv0.4.0で見つかった不具合へのPatch対応、または次Phaseの設計を必要に応じて行う。
+Phase K自体の残タスクはない。v0.4.0で見つかったWindow Toggle復元不具合もv0.4.1で修正・Release済み。
+
+2026-10-04残タスク監査:
+
+- Repository: Public
+- Latest Release: v0.4.1
+- Open Issue: 0件
+- Open Pull Request: 0件
+- 最新main GitHub Actions `AutoHotkey Tests`: PASS
+- Secret Protection / Push Protection: Enabled
+- Open Secret scanning alert: 0件
+- Private vulnerability reporting: Disabled（設定状態確認済み、`SECURITY.md`で報告経路を案内）
+- 実装・試験・Release・文書に未完了タスクなし
 
 Release Ready再監査: PASS
 - Phase K現行差分16ファイルを再走査
