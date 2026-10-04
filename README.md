@@ -15,7 +15,7 @@ Windows 11 + AutoHotkey v2で、一般的なテンキーを **Window切替 / Key
 - Window Action
   - Manual Bind
   - Auto Bind
-  - Toggle（Activeなら最小化、InactiveならActivate）
+  - Toggle（MinimizedならRestore + Activate、非最小化でActiveならMinimize、InactiveならActivate）
   - Activate（Activeでも最小化しない）
   - ActivateThenToggle（新しいBindingでは最初のActivation成功までActivate、その後Toggle）
 - Run Action
@@ -162,15 +162,20 @@ Window Actionを解決するKeyでは:
 `Behavior=Toggle` の場合:
 
 ```text
-対象WindowがInactive
-→ 必要ならRestore
+対象WindowがMinimized
+→ Restore
 → Activate
 
-対象WindowがActive
+対象Windowが非最小化かつInactive
+→ Activate
+
+対象Windowが非最小化かつActive
 → Minimize
 ```
 
-時間ベースのDouble Tapではありません。押下時点のActive状態だけを見ます。
+Minimized状態をActive判定より優先します。Windowsの状態遷移中にActive判定が一時的に残っていても、Minimizedなら再度MinimizeせずRestore + Activateします。
+
+時間ベースのDouble Tapではありません。押下時点のWindow状態を見ます。
 
 ### Activate
 
