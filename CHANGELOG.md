@@ -6,6 +6,23 @@
 
 現時点で未リリース変更なし。
 
+## v0.4.1 - 2026-10-04
+
+v0.4.0のWindow Toggle復元不具合を修正したPatch Release。
+
+### Fixed
+
+- Window `Behavior=Toggle` で、最小化済みWindowの状態判定をActive判定より優先するよう修正。
+- Windowsの状態遷移中に `isActive=true` と `minMax=-1` が同時に観測されても、再度Minimizeせず `Restore + Activate` するよう修正。
+- Toggle phaseへ移行済みの `ActivateThenToggle` にも同じ復元規則を適用。
+- `Toggle + isActive=true + minMax=-1` のRegression Testを追加。
+
+### Verification
+
+- GitHub Actions `AutoHotkey Tests`: PASS（commit `6b6a62353dc31829b56a36523b4a48ad13feea40`）。
+- 実機で「表示 → Key押下で最小化 → 同じKey押下で再表示」を確認: PASS。
+- Controller / PC再起動後も同じ操作を再確認し、問題が再発しないことを確認: PASS。
+
 ## v0.4.0 - 2026-09-30
 
 Phase K「Action / Layer Architecture」を反映したRelease。
