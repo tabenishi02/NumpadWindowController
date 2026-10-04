@@ -1,4 +1,5 @@
 # Runtime / test output
+/.playwright-cli/
 logs/
 poc/logs/
 poc/phase_b/results/
