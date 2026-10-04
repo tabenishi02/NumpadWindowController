@@ -1,12 +1,12 @@
 # PROJECT_HANDOFF
 
-更新日: 2026-09-29  
+更新日: 2026-10-04  
 対象: NumpadWindowController  
-状態: **Phase K Complete / v0.4.0 Released**
+状態: **Phase K Complete / v0.4.1 Maintenance Released**
 
 ## 現在地点
 
-Phase A～Kは完了済み。v0.4.0は2026-09-30にGitHub Release済み。
+Phase A～Kは完了済み。v0.4.0は2026-09-30にGitHub Release済み。Window Toggle復元不具合を修正したv0.4.1を2026-10-04にMaintenance Releaseした。
 
 Phase K - Action / Layer Architectureは、設計・実装・ConfigVersion 3移行・Automated Regression・利用者向け文書更新まで完了した。
 
@@ -21,6 +21,7 @@ K-PA-1～11、ActivateThenToggle追加後のK-PA-4 / 5 / 6 / 9再試験、K-PA-1
 - `v0.2.1`: Release後ドキュメント同期
 - `v0.3.0`: Phase J Public Default / Configuration一般化
 - `v0.4.0`: **Phase K Action / Layer Architecture（2026-09-30 Release）**
+- `v0.4.1`: **Window Toggle minimized restore fix（2026-10-04 Maintenance Release）**
 
 License: MIT
 
@@ -149,9 +150,10 @@ Reserved Global Command:
 
 `Toggle`:
 
-- Active → Minimize
-- Inactive → Activate
 - Minimized → Restore + Activate
+- 非最小化かつActive → Minimize
+- 非最小化かつInactive → Activate
+- Minimized判定をActive判定より優先し、状態遷移中にActive判定が残っていても再Minimizeしない
 
 `Activate`:
 
