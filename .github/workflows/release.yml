@@ -1,0 +1,58 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Create GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          tag="${GITHUB_REF_NAME}"
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists."
+            exit 0
+          fi
+
+          if [[ "$tag" == "v0.4.1" ]]; then
+            cat > release-notes.md <<'EOF'
+          ## Fixed
+
+          - Fixed Window `Behavior=Toggle` so a minimized target is restored and activated before any active-window minimize decision.
+          - Prevented a minimized window from being minimized again when Windows temporarily reports both active and minimized state.
+          - Applied the same restore rule to the Toggle phase of `ActivateThenToggle`.
+          - Added regression coverage for `isActive=true` with `minMax=-1`.
+
+          ## Verification
+
+          - GitHub Actions: 188 controller assertions PASS.
+          - Startup preview: 24 assertions PASS.
+          - Startup Task Scheduler integration: 37 assertions PASS.
+          - Physical test: minimize → same key → restore and activate PASS.
+          - Re-tested after controller / PC restart with no recurrence.
+
+          ## Compatibility
+
+          - ConfigVersion remains 3.
+          - No user configuration migration is required from v0.4.0.
+          EOF
+
+            gh release create "$tag"               --title "v0.4.1 - Window Toggle Restore Fix"               --notes-file release-notes.md
+          else
+            gh release create "$tag" --title "$tag" --generate-notes
+          fi
