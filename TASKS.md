@@ -1,14 +1,14 @@
 # Numpad Window Controller - Implementation Tasks
 
-更新日: 2026-09-29
+更新日: 2026-10-04
 対象: NumpadWindowController  
 目的: AutoHotkey v2によるNumpadWindowControllerの設計・実装・検証・Release後の一般化までを管理するタスク一覧
 
 ## 0. 現在地点
 
-**Phase A～K完了。Phase Kはv0.4.0としてGitHub Release済み。最新安定ReleaseはGitHub Releasesを参照。**
+**Phase A～K完了。v0.4.0のWindow Toggle復元不具合を修正し、v0.4.1 Maintenance Releaseへ反映。最新安定ReleaseはGitHub Releasesを参照。**
 
-> Phase A～Iの各項目はv0.1/v0.2系を作った時点の履歴であり、Chrome固定割り当て・ConfigVersion 1・UTF-16等の記述は現行v0.3.0仕様を示さない。現行仕様はPhase J、README、`docs/KNOWN_LIMITATIONS.md` を正とする。
+> Phase A～Iの各項目はv0.1/v0.2系を作った時点の履歴であり、Chrome固定割り当て・ConfigVersion 1・UTF-16等の記述は現行v0.3.0仕様を示さない。現行仕様はPhase K、README、`docs/KNOWN_LIMITATIONS.md` を正とする。
 
 完了済み:
 
@@ -26,6 +26,22 @@
 - [x] VS Code優先3Windowを未使用候補の`WinGetList`逆順で4→5→6へ簡易割り当てする方針を決定（真のOpen順は保証しない）
 - [x] ShortcutキーをWindow Binding対象から除外する方針を決定
 - [x] HWNDをRuntime Bindingとして使用し、永続化しない方針を決定
+
+---
+
+
+## v0.4.1 Maintenance Release ✅ 完了
+
+- [x] Window `Behavior=Toggle` で最小化後に同一Keyを押しても再表示されない不具合を再現・原因分析
+- [x] `Window_BehaviorDecision()` でMinimized状態をActive状態より優先するよう修正
+- [x] `Toggle + isActive=true + minMax=-1` のRegression Testを追加
+- [x] GitHub Actions Controller Regression: **188 assertions PASS**
+- [x] Startup Preview Regression: **24 assertions PASS**
+- [x] Startup Task Scheduler Integration Regression: **37 assertions PASS**
+- [x] 実機で「表示 → Minimize → 同一KeyでRestore + Activate」を確認
+- [x] Controller / PC再起動後も不具合が再発しないことを確認
+- [x] README / CHANGELOG / PROJECT_HANDOFF / Phase K Resultへ修正内容を反映
+- [x] v0.4.1 Maintenance Release
 
 ---
 
