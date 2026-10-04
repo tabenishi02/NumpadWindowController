@@ -1,7 +1,7 @@
 # Phase K - Action / Layer Architecture Result
 
-更新日: 2026-09-29  
-状態: **Phase K Complete / Automated Regression PASS / Physical Acceptance PASS / v0.4.0 Released**
+更新日: 2026-10-04  
+状態: **Phase K Complete / Automated Regression PASS / Physical Acceptance PASS / v0.4.0 Released / v0.4.1 Maintenance Released**
 
 ## 1. 概要
 
@@ -71,9 +71,10 @@ Runtime ConfigurationはConfigVersion 3のみをサポートする。ConfigVersi
 ### Window Behavior
 
 - Toggle:
-  - Active → Minimize
-  - Inactive → Activate
   - Minimized → Restore + Activate
+  - 非最小化かつActive → Minimize
+  - 非最小化かつInactive → Activate
+  - Minimized判定をActive判定より優先する
 - Activate:
   - ActiveでもMinimizeしない
 - ActivateThenToggle:
@@ -369,3 +370,29 @@ Phase Kの実装・自動Regression・Physical Acceptance・文書整合・Relea
 - Automated Regression: **PASS**
 - Physical Acceptance: **PASS**
 - Release Ready Audit: **PASS**
+
+---
+
+## 12. v0.4.1 Post-release Maintenance
+
+v0.4.0 Release後、Window `Behavior=Toggle` でActive WindowをMinimizeした後、同じKeyを押してもRestoreされずMinimizedのままになる不具合を確認した。
+
+原因はWindow状態判定の優先順位にあり、Windowsの状態遷移中に `isActive=true` と `WinGetMinMax=-1` が同時に観測された場合、旧判定ではToggleのActive分岐が先に評価され、再度Minimizeが選択される可能性があった。
+
+修正:
+
+- `Window_BehaviorDecision()` で `minMax=-1` を最優先
+- MinimizedならActive判定に関係なく `RestoreActivate`
+- Toggle phaseへ移行済みの `ActivateThenToggle` にも同じ規則を適用
+- `Toggle + isActive=true + minMax=-1` のRegression Testを追加
+
+Verification:
+
+- GitHub Actions / AutoHotkey v2.0.28: **188 assertions PASS**
+- Startup Preview Regression: **24 assertions PASS**
+- Startup Task Scheduler Integration Regression: **37 assertions PASS**
+- 実機: 表示 → Key押下でMinimize → 同一KeyでRestore + Activate: **PASS**
+- Controller / PC再起動後の再試験: **PASS / 再発なし**
+
+この修正をPatch Release **v0.4.1** として2026-10-04にReleaseした。
+
